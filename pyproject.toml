@@ -69,6 +69,7 @@ exclude_lines = ["no cov", "if __name__ == .__main__.:"]
 # === DO_NOT_EDIT: path-sync dev ===
 [dependency-groups]
 dev = [
+  "pyright>=1.1",
   "pytest>=9.0",
   "pytest-cov>=7.0",
   "ruff>=0.14",
