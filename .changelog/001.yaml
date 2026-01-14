@@ -1,271 +1,271 @@
 name: load_yaml_model
-full_path: _internal.yaml_utils.load_yaml_model
 ts: 2026-01-14 07:58:19.336206+00:00
 type: keep_private
+full_path: _internal.yaml_utils.load_yaml_model
 ---
 name: dump_yaml_model
-full_path: _internal.yaml_utils.dump_yaml_model
 ts: 2026-01-14 07:58:19.843835+00:00
 type: keep_private
+full_path: _internal.yaml_utils.dump_yaml_model
 ---
 name: parse_skip_sections
-full_path: _internal.validation.parse_skip_sections
 ts: 2026-01-14 07:58:24.726358+00:00
 type: keep_private
+full_path: _internal.validation.parse_skip_sections
 ---
 name: validate_no_unauthorized_changes
-full_path: _internal.validation.validate_no_unauthorized_changes
 ts: 2026-01-14 07:58:24.726498+00:00
 type: keep_private
+full_path: _internal.validation.validate_no_unauthorized_changes
 ---
 name: has_sections
-full_path: sections.has_sections
 ts: 2026-01-14 07:58:31.866797+00:00
 type: keep_private
+full_path: sections.has_sections
 ---
 name: parse_sections
-full_path: sections.parse_sections
 ts: 2026-01-14 07:58:31.866860+00:00
 type: keep_private
+full_path: sections.parse_sections
 ---
 name: wrap_in_default_section
-full_path: sections.wrap_in_default_section
 ts: 2026-01-14 07:58:31.866868+00:00
 type: keep_private
+full_path: sections.wrap_in_default_section
 ---
 name: extract_sections
-full_path: sections.extract_sections
 ts: 2026-01-14 07:58:31.866872+00:00
 type: keep_private
+full_path: sections.extract_sections
 ---
 name: replace_sections
-full_path: sections.replace_sections
 ts: 2026-01-14 07:58:31.866877+00:00
 type: keep_private
+full_path: sections.replace_sections
 ---
 name: compare_sections
-full_path: sections.compare_sections
 ts: 2026-01-14 07:58:31.866882+00:00
 type: keep_private
+full_path: sections.compare_sections
 ---
 name: get_comment_prefix
-full_path: _internal.header.get_comment_prefix
 ts: 2026-01-14 07:58:38.539054+00:00
 type: keep_private
+full_path: _internal.header.get_comment_prefix
 ---
 name: get_comment_suffix
-full_path: _internal.header.get_comment_suffix
 ts: 2026-01-14 07:58:38.539218+00:00
 type: keep_private
+full_path: _internal.header.get_comment_suffix
 ---
 name: get_header_line
-full_path: _internal.header.get_header_line
 ts: 2026-01-14 07:58:38.539232+00:00
 type: keep_private
+full_path: _internal.header.get_header_line
 ---
 name: has_header
-full_path: _internal.header.has_header
 ts: 2026-01-14 07:58:38.539242+00:00
 type: keep_private
+full_path: _internal.header.has_header
 ---
 name: get_config_name
-full_path: _internal.header.get_config_name
 ts: 2026-01-14 07:58:38.539253+00:00
 type: keep_private
+full_path: _internal.header.get_config_name
 ---
 name: add_header
-full_path: _internal.header.add_header
 ts: 2026-01-14 07:58:38.539262+00:00
 type: keep_private
+full_path: _internal.header.add_header
 ---
 name: remove_header
-full_path: _internal.header.remove_header
 ts: 2026-01-14 07:58:38.539275+00:00
 type: keep_private
+full_path: _internal.header.remove_header
 ---
 name: has_known_comment_prefix
-full_path: _internal.header.has_known_comment_prefix
 ts: 2026-01-14 07:58:38.539288+00:00
 type: keep_private
+full_path: _internal.header.has_known_comment_prefix
 ---
 name: file_get_config_name
-full_path: _internal.header.file_get_config_name
 ts: 2026-01-14 07:58:38.539301+00:00
 type: keep_private
+full_path: _internal.header.file_get_config_name
 ---
 name: file_has_header
-full_path: _internal.header.file_has_header
 ts: 2026-01-14 07:58:38.539311+00:00
 type: keep_private
+full_path: _internal.header.file_has_header
 ---
 name: resolve_config_path
-full_path: _internal.models.resolve_config_path
 ts: 2026-01-14 07:58:42.311289+00:00
 type: keep_private
+full_path: _internal.models.resolve_config_path
 ---
 name: find_repo_root
-full_path: _internal.models.find_repo_root
 ts: 2026-01-14 07:58:42.311365+00:00
 type: keep_private
+full_path: _internal.models.find_repo_root
 ---
 name: get_repo
-full_path: _internal.git_ops.get_repo
 ts: 2026-01-14 07:58:50.947764+00:00
 type: keep_private
+full_path: _internal.git_ops.get_repo
 ---
 name: is_git_repo
-full_path: _internal.git_ops.is_git_repo
 ts: 2026-01-14 07:58:50.947850+00:00
 type: keep_private
+full_path: _internal.git_ops.is_git_repo
 ---
 name: get_default_branch
-full_path: _internal.git_ops.get_default_branch
 ts: 2026-01-14 07:58:50.947857+00:00
 type: keep_private
+full_path: _internal.git_ops.get_default_branch
 ---
 name: clone_repo
-full_path: _internal.git_ops.clone_repo
 ts: 2026-01-14 07:58:50.947866+00:00
 type: keep_private
+full_path: _internal.git_ops.clone_repo
 ---
 name: checkout_branch
-full_path: _internal.git_ops.checkout_branch
 ts: 2026-01-14 07:58:50.947878+00:00
 type: keep_private
+full_path: _internal.git_ops.checkout_branch
 ---
 name: prepare_copy_branch
-full_path: _internal.git_ops.prepare_copy_branch
 ts: 2026-01-14 07:58:50.947890+00:00
 type: keep_private
+full_path: _internal.git_ops.prepare_copy_branch
 ---
 name: get_current_sha
-full_path: _internal.git_ops.get_current_sha
 ts: 2026-01-14 07:58:50.947902+00:00
 type: keep_private
+full_path: _internal.git_ops.get_current_sha
 ---
 name: get_remote_url
-full_path: _internal.git_ops.get_remote_url
 ts: 2026-01-14 07:58:50.947913+00:00
 type: keep_private
+full_path: _internal.git_ops.get_remote_url
 ---
 name: has_changes
-full_path: _internal.git_ops.has_changes
 ts: 2026-01-14 07:58:50.947924+00:00
 type: keep_private
+full_path: _internal.git_ops.has_changes
 ---
 name: commit_changes
-full_path: _internal.git_ops.commit_changes
 ts: 2026-01-14 07:58:50.947939+00:00
 type: keep_private
+full_path: _internal.git_ops.commit_changes
 ---
 name: push_branch
-full_path: _internal.git_ops.push_branch
 ts: 2026-01-14 07:58:50.947950+00:00
 type: keep_private
+full_path: _internal.git_ops.push_branch
 ---
 name: update_pr_body
-full_path: _internal.git_ops.update_pr_body
 ts: 2026-01-14 07:58:50.947961+00:00
 type: keep_private
+full_path: _internal.git_ops.update_pr_body
 ---
 name: create_or_update_pr
-full_path: _internal.git_ops.create_or_update_pr
 ts: 2026-01-14 07:58:50.947973+00:00
 type: keep_private
+full_path: _internal.git_ops.create_or_update_pr
 ---
 name: file_has_git_changes
-full_path: _internal.git_ops.file_has_git_changes
 ts: 2026-01-14 07:58:50.947984+00:00
 type: keep_private
+full_path: _internal.git_ops.file_has_git_changes
 ---
 name: get_changed_files
-full_path: _internal.git_ops.get_changed_files
 ts: 2026-01-14 07:58:50.947995+00:00
 type: keep_private
+full_path: _internal.git_ops.get_changed_files
 ---
 name: get_file_content_at_ref
-full_path: _internal.git_ops.get_file_content_at_ref
 ts: 2026-01-14 07:58:50.948007+00:00
 type: keep_private
+full_path: _internal.git_ops.get_file_content_at_ref
 ---
 name: ensure_parents_write_text
-full_path: _internal.file_utils.ensure_parents_write_text
 ts: 2026-01-14 07:59:10.533773+00:00
 type: keep_private
+full_path: _internal.file_utils.ensure_parents_write_text
 ---
 name: validate_no_changes
-full_path: _internal.cmd_validate.validate_no_changes
 ts: 2026-01-14 07:59:14.214016+00:00
 type: keep_private
+full_path: _internal.cmd_validate.validate_no_changes
 ---
 name: capture_sync_log
-full_path: _internal.cmd_copy.capture_sync_log
 ts: 2026-01-14 07:59:20.229458+00:00
 type: keep_private
+full_path: _internal.cmd_copy.capture_sync_log
 ---
 name: copy
-full_path: _internal.cmd_copy.copy
 ts: 2026-01-14 07:59:20.229592+00:00
 type: keep_private
+full_path: _internal.cmd_copy.copy
 ---
 name: boot
-full_path: _internal.cmd_boot.boot
 ts: 2026-01-14 07:59:24.184294+00:00
 type: keep_private
+full_path: _internal.cmd_boot.boot
 ---
 name: config
-module_path: _internal.models
 ts: 2026-01-14 08:00:37.574228+00:00
 type: group_module
+module_path: _internal.models
 ---
 name: SyncMode
-group: config
-details: created in _internal/models.py
 ts: 2026-01-14 08:00:37.576198+00:00
 type: make_public
+group: config
+details: created in _internal/models.py
 ---
 name: PathMapping
-group: config
-details: created in _internal/models.py
 ts: 2026-01-14 08:00:37.577553+00:00
 type: make_public
+group: config
+details: created in _internal/models.py
 ---
 name: HeaderConfig
-group: config
-details: created in _internal/models.py
 ts: 2026-01-14 08:00:37.578654+00:00
 type: make_public
+group: config
+details: created in _internal/models.py
 ---
 name: PRDefaults
-group: config
-details: created in _internal/models.py
 ts: 2026-01-14 08:00:37.580326+00:00
 type: make_public
+group: config
+details: created in _internal/models.py
 ---
 name: Destination
-group: config
-details: created in _internal/models.py
 ts: 2026-01-14 08:00:37.581736+00:00
 type: make_public
----
-name: SrcConfig
 group: config
 details: created in _internal/models.py
+---
+name: SrcConfig
 ts: 2026-01-14 08:00:37.582850+00:00
 type: make_public
+group: config
+details: created in _internal/models.py
 ---
 name: copy
-module_path: _internal.cmd_copy
 ts: 2026-01-14 08:03:19.828752+00:00
 type: group_module
+module_path: _internal.cmd_copy
 ---
 name: CopyOptions
-group: copy
-details: created in _internal/cmd_copy.py
 ts: 2026-01-14 08:03:19.830056+00:00
 type: make_public
+group: copy
+details: created in _internal/cmd_copy.py
 ---
 name: SyncResult
-full_path: _internal.cmd_copy.SyncResult
 ts: 2026-01-14 08:03:19.830117+00:00
 type: keep_private
+full_path: _internal.cmd_copy.SyncResult
