@@ -15,7 +15,7 @@ def _setup_baseline(repo_path, filename: str, content: str) -> None:
     file_path.write_text(content)
     repo.index.add([filename])
     repo.index.commit("baseline")
-    repo.create_head("origin/main", repo.head.commit)
+    repo.create_head("origin/main", repo.head.commit.hexsha)
 
 
 def test_modify_ok_edit_passes(tmp_repo):
