@@ -28,9 +28,14 @@ def boot(
     sync_paths: Annotated[list[str], typer.Option("-p", "--path", help="Paths to sync (glob patterns)")] = [],
     dry_run: bool = typer.Option(False, "--dry-run", help="Preview without writing"),
     regen: bool = typer.Option(False, "--regen", help="Regenerate config"),
+    src_root_opt: str = typer.Option(
+        "",
+        "--src-root",
+        help="Source repo root (default: find git root from cwd)",
+    ),
 ) -> None:
     """Initialize or update SRC repo config."""
-    repo_root = find_repo_root(Path.cwd())
+    repo_root = Path(src_root_opt) if src_root_opt else find_repo_root(Path.cwd())
     config_path = resolve_config_path(repo_root, name)
 
     if config_path.exists() and not regen:

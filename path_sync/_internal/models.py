@@ -9,6 +9,24 @@ from pydantic import BaseModel, Field
 
 LOG_FORMAT = "%(asctime)s %(levelname)s %(message)s"
 
+DEFAULT_EXCLUDE_DIRS: frozenset[str] = frozenset(
+    {
+        "__pycache__",
+        ".git",
+        ".venv",
+        "venv",
+        "node_modules",
+        ".mypy_cache",
+        ".pytest_cache",
+        ".ruff_cache",
+        ".tox",
+    }
+)
+
+
+def _default_exclude_dirs() -> set[str]:
+    return set(DEFAULT_EXCLUDE_DIRS)
+
 
 class SyncMode(StrEnum):
     SYNC = "sync"
@@ -20,9 +38,13 @@ class PathMapping(BaseModel):
     src_path: str
     dest_path: str = ""
     sync_mode: SyncMode = SyncMode.SYNC
+    exclude_dirs: set[str] = Field(default_factory=_default_exclude_dirs)
 
     def resolved_dest_path(self) -> str:
         return self.dest_path or self.src_path
+
+    def is_excluded(self, path: Path) -> bool:
+        return bool(self.exclude_dirs & set(path.parts))
 
     def expand_dest_paths(self, repo_root: Path) -> list[Path]:
         dest_path = self.resolved_dest_path()

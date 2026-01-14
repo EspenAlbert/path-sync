@@ -86,7 +86,18 @@ class CopyOptions:
 
 @app.command()
 def copy(
-    name: str = typer.Option(..., "-n", "--name", help="Config name"),
+    name: str = typer.Option("", "-n", "--name", help="Config name (used with src-root to find config)"),
+    config_path_opt: str = typer.Option(
+        "",
+        "-c",
+        "--config-path",
+        help="Full path to config file (alternative to --name)",
+    ),
+    src_root_opt: str = typer.Option(
+        "",
+        "--src-root",
+        help="Source repo root (default: find git root from cwd)",
+    ),
     dest_filter: str = typer.Option("", "-d", "--dest", help="Filter destinations (comma-separated)"),
     dry_run: bool = typer.Option(False, "--dry-run", help="Preview without writing"),
     force_overwrite: bool = typer.Option(
@@ -152,8 +163,15 @@ def copy(
     ),
 ) -> None:
     """Copy files from SRC to DEST repositories."""
-    src_root = find_repo_root(Path.cwd())
-    config_path = resolve_config_path(src_root, name)
+    if name and config_path_opt:
+        logger.error("Cannot use both --name and --config-path")
+        raise typer.Exit(EXIT_ERROR if detailed_exit_code else 1)
+    if not name and not config_path_opt:
+        logger.error("Either --name or --config-path is required")
+        raise typer.Exit(EXIT_ERROR if detailed_exit_code else 1)
+
+    src_root = Path(src_root_opt) if src_root_opt else find_repo_root(Path.cwd())
+    config_path = Path(config_path_opt) if config_path_opt else resolve_config_path(src_root, name)
 
     if not config_path.exists():
         logger.error(f"Config not found: {config_path}")
@@ -316,7 +334,7 @@ def _sync_path(
             logger.warning(f"Glob matched no files: {mapping.src_path}")
         for src_file in matches:
             src_path = Path(src_file)
-            if src_path.is_file():
+            if src_path.is_file() and not mapping.is_excluded(src_path):
                 rel = src_path.relative_to(src_root / glob_prefix)
                 dest_path = dest_root / dest_base / rel
                 dest_key = str(Path(dest_base) / rel)
@@ -334,7 +352,7 @@ def _sync_path(
     elif src_pattern.is_dir():
         dest_base = mapping.resolved_dest_path()
         for src_file in src_pattern.rglob("*"):
-            if src_file.is_file():
+            if src_file.is_file() and not mapping.is_excluded(src_file):
                 rel = src_file.relative_to(src_pattern)
                 dest_path = dest_root / dest_base / rel
                 dest_key = str(Path(dest_base) / rel)
