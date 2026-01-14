@@ -1,0 +1,7 @@
+name: copy
+ts: 2026-01-14 14:42:59.828983+00:00
+type: fix
+author: Espen Albert
+changelog_message: 'fix: handle binary file copying and improve error handling for text reading'
+message: 'fix: handle binary file copying and improve error handling for text reading'
+short_sha: 082f15
