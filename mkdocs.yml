@@ -1,0 +1,26 @@
+# === DO_NOT_EDIT: pkg-ext site ===
+site_name: path_sync
+# === OK_EDIT: pkg-ext site ===
+
+# === DO_NOT_EDIT: pkg-ext theme ===
+theme:
+  name: material
+  features:
+    - navigation.tabs
+    - navigation.sections
+# === OK_EDIT: pkg-ext theme ===
+
+# === DO_NOT_EDIT: pkg-ext nav ===
+nav:
+  - Home: index.md
+  - config: config/index.md
+  - copy: copy/index.md
+# === OK_EDIT: pkg-ext nav ===
+
+# === DO_NOT_EDIT: pkg-ext extensions ===
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
+  - admonition
+# === OK_EDIT: pkg-ext extensions ===
