@@ -1,0 +1,7 @@
+name: __ROOT__
+ts: 2026-01-14 13:39:32.492338+00:00
+type: fix
+author: Espen Albert
+changelog_message: 'fix: updates sdist include pattern and add py.typed file'
+message: 'fix: updates sdist include pattern and add py.typed file'
+short_sha: 128df2
