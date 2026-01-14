@@ -221,38 +221,38 @@ module_path: _internal.models
 name: SyncMode
 ts: 2026-01-14 08:00:37.576198+00:00
 type: make_public
-group: config
 details: created in _internal/models.py
+group: config
 ---
 name: PathMapping
 ts: 2026-01-14 08:00:37.577553+00:00
 type: make_public
-group: config
 details: created in _internal/models.py
+group: config
 ---
 name: HeaderConfig
 ts: 2026-01-14 08:00:37.578654+00:00
 type: make_public
-group: config
 details: created in _internal/models.py
+group: config
 ---
 name: PRDefaults
 ts: 2026-01-14 08:00:37.580326+00:00
 type: make_public
-group: config
 details: created in _internal/models.py
+group: config
 ---
 name: Destination
 ts: 2026-01-14 08:00:37.581736+00:00
 type: make_public
-group: config
 details: created in _internal/models.py
+group: config
 ---
 name: SrcConfig
 ts: 2026-01-14 08:00:37.582850+00:00
 type: make_public
-group: config
 details: created in _internal/models.py
+group: config
 ---
 name: copy
 ts: 2026-01-14 08:03:19.828752+00:00
@@ -262,8 +262,8 @@ module_path: _internal.cmd_copy
 name: CopyOptions
 ts: 2026-01-14 08:03:19.830056+00:00
 type: make_public
-group: copy
 details: created in _internal/cmd_copy.py
+group: copy
 ---
 name: SyncResult
 ts: 2026-01-14 08:03:19.830117+00:00
