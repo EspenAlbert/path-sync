@@ -3,7 +3,7 @@
 from path_sync import copy
 from path_sync import config
 
-VERSION = "0.2.1"
+VERSION = "0.3.0"
 __all__ = [
     "copy",
     "config",
