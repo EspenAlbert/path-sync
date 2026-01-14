@@ -43,7 +43,7 @@ def has_sections(content: str, path: Path) -> bool:
 
 
 def parse_sections(content: str, path: Path) -> list[Section]:
-    return _parse_sections(content, TOOL_NAME, get_comment_config(path))
+    return _parse_sections(content, TOOL_NAME, get_comment_config(path), str(path))
 
 
 def wrap_in_default_section(content: str, path: Path) -> str:
@@ -51,7 +51,7 @@ def wrap_in_default_section(content: str, path: Path) -> str:
 
 
 def extract_sections(content: str, path: Path) -> dict[str, str]:
-    return _extract_sections(content, TOOL_NAME, get_comment_config(path))
+    return _extract_sections(content, TOOL_NAME, get_comment_config(path), str(path))
 
 
 def replace_sections(
@@ -69,4 +69,4 @@ def compare_sections(
     path: Path,
     skip: set[str] | None = None,
 ) -> list[str]:
-    return _compare_sections(baseline_content, current_content, TOOL_NAME, get_comment_config(path), skip)
+    return _compare_sections(baseline_content, current_content, TOOL_NAME, get_comment_config(path), skip, str(path))

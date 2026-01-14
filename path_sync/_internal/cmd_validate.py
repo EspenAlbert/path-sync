@@ -21,9 +21,14 @@ def validate_no_changes(
         "--skip-sections",
         help="Comma-separated path:section_id pairs to skip (e.g., 'justfile:coverage,pyproject.toml:default')",
     ),
+    src_root_opt: str = typer.Option(
+        "",
+        "--src-root",
+        help="Source repo root (default: find git root from cwd)",
+    ),
 ) -> None:
     """Validate no unauthorized changes to synced files."""
-    repo_root = find_repo_root(Path.cwd())
+    repo_root = Path(src_root_opt) if src_root_opt else find_repo_root(Path.cwd())
     repo = git_ops.get_repo(repo_root)
 
     current_branch = repo.active_branch.name
