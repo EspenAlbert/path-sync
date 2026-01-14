@@ -2,19 +2,17 @@
 groups:
 - name: __ROOT__
 - name: config
+  owned_modules:
+  - _internal.models
   owned_refs:
-  - _internal.models.SrcConfig
   - _internal.models.Destination
+  - _internal.models.HeaderConfig
+  - _internal.models.PRDefaults
   - _internal.models.PathMapping
-- name: options
+  - _internal.models.SrcConfig
+  - _internal.models.SyncMode
+- name: copy
+  owned_modules:
+  - _internal.cmd_copy
   owned_refs:
   - _internal.cmd_copy.CopyOptions
-- name: sections
-  owned_refs:
-  - sections.Section
-  - sections.compare_sections
-  - sections.extract_sections
-  - sections.has_sections
-  - sections.parse_sections
-  - sections.replace_sections
-  - sections.wrap_in_default_section
