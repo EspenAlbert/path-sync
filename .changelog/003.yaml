@@ -5,3 +5,8 @@ author: Espen Albert
 changelog_message: 'fix: handle binary file copying and improve error handling for text reading'
 message: 'fix: handle binary file copying and improve error handling for text reading'
 short_sha: 082f15
+---
+name: 0.3.2
+ts: 2026-01-14 14:55:10.698428+00:00
+type: release
+old_version: 0.3.1
