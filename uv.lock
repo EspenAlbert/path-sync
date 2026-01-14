@@ -393,6 +393,15 @@ wheels = [
 ]
 
 [[package]]
+name = "nodeenv"
+version = "1.10.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/24/bf/d1bda4f6168e0b2e9e5958945e01910052158313224ada5ce1fb2e1113b8/nodeenv-1.10.0.tar.gz", hash = "sha256:996c191ad80897d076bdfba80a41994c2b47c68e224c542b48feba42ba00f8bb", size = 55611, upload-time = "2025-12-20T14:08:54.006Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/88/b2/d0896bdcdc8d28a7fc5717c305f1a861c26e18c05047949fb371034d98bd/nodeenv-1.10.0-py2.py3-none-any.whl", hash = "sha256:5bb13e3eed2923615535339b3c620e76779af4cb4c6a90deccc9e36b274d3827", size = 23438, upload-time = "2025-12-20T14:08:52.782Z" },
+]
+
+[[package]]
 name = "packaging"
 version = "25.0"
 source = { registry = "https://pypi.org/simple" }
@@ -412,7 +421,7 @@ wheels = [
 
 [[package]]
 name = "path-sync"
-version = "0.2.1"
+version = "0.3.1"
 source = { editable = "." }
 dependencies = [
     { name = "gitpython" },
@@ -424,6 +433,7 @@ dependencies = [
 
 [package.dev-dependencies]
 dev = [
+    { name = "pyright" },
     { name = "pytest" },
     { name = "pytest-cov" },
     { name = "ruff" },
@@ -438,11 +448,12 @@ requires-dist = [
     { name = "pydantic", specifier = ">=2.0" },
     { name = "pyyaml", specifier = ">=6.0" },
     { name = "typer", specifier = ">=0.16.0" },
-    { name = "zero-3rdparty", specifier = ">=0.100.0" },
+    { name = "zero-3rdparty", specifier = ">=0.101.1" },
 ]
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "pyright", specifier = ">=1.1" },
     { name = "pytest", specifier = ">=9.0" },
     { name = "pytest-cov", specifier = ">=7.0" },
     { name = "ruff", specifier = ">=0.14" },
@@ -564,6 +575,19 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/3e/35/e3814a5b7df295df69d035cfb8aab78b2967cdf11fcfae7faed726b66664/pymdown_extensions-10.20.tar.gz", hash = "sha256:5c73566ab0cf38c6ba084cb7c5ea64a119ae0500cce754ccb682761dfea13a52", size = 852774, upload-time = "2025-12-31T19:59:42.211Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/ea/10/47caf89cbb52e5bb764696fd52a8c591a2f0e851a93270c05a17f36000b5/pymdown_extensions-10.20-py3-none-any.whl", hash = "sha256:ea9e62add865da80a271d00bfa1c0fa085b20d133fb3fc97afdc88e682f60b2f", size = 268733, upload-time = "2025-12-31T19:59:40.652Z" },
+]
+
+[[package]]
+name = "pyright"
+version = "1.1.408"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "nodeenv" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/74/b2/5db700e52554b8f025faa9c3c624c59f1f6c8841ba81ab97641b54322f16/pyright-1.1.408.tar.gz", hash = "sha256:f28f2321f96852fa50b5829ea492f6adb0e6954568d1caa3f3af3a5f555eb684", size = 4400578, upload-time = "2026-01-08T08:07:38.795Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/0c/82/a2c93e32800940d9573fb28c346772a14778b84ba7524e691b324620ab89/pyright-1.1.408-py3-none-any.whl", hash = "sha256:090b32865f4fdb1e0e6cd82bf5618480d48eecd2eb2e70f960982a3d9a4c17c1", size = 6399144, upload-time = "2026-01-08T08:07:37.082Z" },
 ]
 
 [[package]]
@@ -805,9 +829,9 @@ wheels = [
 
 [[package]]
 name = "zero-3rdparty"
-version = "0.101.0"
+version = "0.101.1"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/67/e6/fb19e77d9723272f6abacf81dee7fb33b4ad4767f38677a74560f265fd3d/zero_3rdparty-0.101.0.tar.gz", hash = "sha256:bbb81b9502ecbb416d51b369667ed339e2070aef0e22b075d7db3a8036574ed5", size = 32890, upload-time = "2026-01-13T21:39:14.816Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/7a/b2/ff3695fed32bbaf5cb1d51cb4849f0686fefd5432c40453489f2670fdcdf/zero_3rdparty-0.101.1.tar.gz", hash = "sha256:d2b1038cbe82d7a2fe0a2fbe20e772234b913f8bd459fe3d07e7a4d9738daa8f", size = 34013, upload-time = "2026-01-14T14:42:46.381Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/0c/ad/ec5ff4fa440c447c130bb3f0abfa3a727b48c5c5c9e483274efd031a1831/zero_3rdparty-0.101.0-py3-none-any.whl", hash = "sha256:600f02d4b5eec0f33b90854abf401b1d4d5592947b26c5b6f38af79c985b629b", size = 41836, upload-time = "2026-01-13T21:39:13.431Z" },
+    { url = "https://files.pythonhosted.org/packages/d1/27/3b867aee10baff8b28d013b78bb510fc4a68d3efae0638506054479d5f26/zero_3rdparty-0.101.1-py3-none-any.whl", hash = "sha256:11140803c4d9ca355580d617776a4611e0359663b591fddcb4c382d5f210ca09", size = 43149, upload-time = "2026-01-14T14:42:45.21Z" },
 ]
