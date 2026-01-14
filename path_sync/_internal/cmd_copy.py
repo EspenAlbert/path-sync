@@ -379,7 +379,10 @@ def _copy_file(
     dry_run: bool,
     force_overwrite: bool = False,
 ) -> int:
-    src_content = header.remove_header(src.read_text())
+    try:
+        src_content = header.remove_header(src.read_text())
+    except UnicodeDecodeError:
+        return _copy_binary_file(src, dest_path, sync_mode, dry_run)
 
     match sync_mode:
         case SyncMode.SCAFFOLD:
@@ -389,6 +392,28 @@ def _copy_file(
         case SyncMode.SYNC:
             skip_list = dest.skip_sections.get(dest_key, [])
             return _handle_sync(src_content, dest_path, skip_list, config_name, dry_run, force_overwrite)
+
+
+def _copy_binary_file(src: Path, dest_path: Path, sync_mode: SyncMode, dry_run: bool) -> int:
+    src_bytes = src.read_bytes()
+    match sync_mode:
+        case SyncMode.SCAFFOLD:
+            if dest_path.exists():
+                return 0
+        case SyncMode.REPLACE | SyncMode.SYNC:
+            if dest_path.exists() and dest_path.read_bytes() == src_bytes:
+                return 0
+    return _write_binary_file(dest_path, src_bytes, dry_run)
+
+
+def _write_binary_file(dest_path: Path, content: bytes, dry_run: bool) -> int:
+    if dry_run:
+        logger.info(f"[DRY RUN] Would write binary: {dest_path}")
+        return 1
+    dest_path.parent.mkdir(parents=True, exist_ok=True)
+    dest_path.write_bytes(content)
+    logger.info(f"Wrote binary: {dest_path}")
+    return 1
 
 
 def _handle_scaffold(content: str, dest_path: Path, dry_run: bool) -> int:
