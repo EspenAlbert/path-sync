@@ -3,7 +3,8 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
-from path_sync import git_ops, header, sections
+from path_sync import sections
+from path_sync._internal import git_ops, header
 
 logger = logging.getLogger(__name__)
 

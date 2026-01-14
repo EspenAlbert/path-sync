@@ -5,10 +5,10 @@ from pathlib import Path
 
 import typer
 
-from path_sync import git_ops
-from path_sync.models import find_repo_root
-from path_sync.typer_app import app
-from path_sync.validation import parse_skip_sections, validate_no_unauthorized_changes
+from path_sync._internal import git_ops
+from path_sync._internal.models import find_repo_root
+from path_sync._internal.typer_app import app
+from path_sync._internal.validation import parse_skip_sections, validate_no_unauthorized_changes
 
 logger = logging.getLogger(__name__)
 

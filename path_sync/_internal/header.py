@@ -5,7 +5,7 @@ from pathlib import Path
 
 from zero_3rdparty.sections import CommentConfig, get_comment_config
 
-from path_sync.models import HEADER_TEMPLATE, HeaderConfig
+from path_sync._internal.models import HEADER_TEMPLATE, HeaderConfig
 
 HEADER_PATTERN = re.compile(r"path-sync copy -n (?P<config_name>[\w-]+)")
 

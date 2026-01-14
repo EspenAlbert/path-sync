@@ -1,13 +1,13 @@
 import pytest
 
-from path_sync.cmd_copy import (
+from path_sync._internal.cmd_copy import (
     CopyOptions,
     _cleanup_orphans,
     _ensure_dest_repo,
     _sync_path,
 )
-from path_sync.header import add_header, has_header
-from path_sync.models import Destination, PathMapping, SyncMode
+from path_sync._internal.header import add_header, has_header
+from path_sync._internal.models import Destination, PathMapping, SyncMode
 
 CONFIG_NAME = "test-config"
 

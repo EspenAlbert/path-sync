@@ -6,17 +6,17 @@ from typing import Annotated
 
 import typer
 
-from path_sync import git_ops
-from path_sync.file_utils import ensure_parents_write_text
-from path_sync.models import (
+from path_sync._internal import git_ops
+from path_sync._internal.file_utils import ensure_parents_write_text
+from path_sync._internal.models import (
     Destination,
     PathMapping,
     SrcConfig,
     find_repo_root,
     resolve_config_path,
 )
-from path_sync.typer_app import app
-from path_sync.yaml_utils import dump_yaml_model, load_yaml_model
+from path_sync._internal.typer_app import app
+from path_sync._internal.yaml_utils import dump_yaml_model, load_yaml_model
 
 logger = logging.getLogger(__name__)
 

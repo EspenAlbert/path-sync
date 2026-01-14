@@ -1,4 +1,4 @@
-from path_sync.models import (
+from path_sync._internal.models import (
     Destination,
     PathMapping,
     PRDefaults,

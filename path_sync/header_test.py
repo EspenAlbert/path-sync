@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from path_sync import header
+from path_sync._internal import header
 
 
 def test_header_generation():

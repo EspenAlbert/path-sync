@@ -9,9 +9,10 @@ from pathlib import Path
 
 import typer
 
-from path_sync import git_ops, header, sections
-from path_sync.file_utils import ensure_parents_write_text
-from path_sync.models import (
+from path_sync import sections
+from path_sync._internal import git_ops, header
+from path_sync._internal.file_utils import ensure_parents_write_text
+from path_sync._internal.models import (
     LOG_FORMAT,
     Destination,
     PathMapping,
@@ -20,8 +21,8 @@ from path_sync.models import (
     find_repo_root,
     resolve_config_path,
 )
-from path_sync.typer_app import app
-from path_sync.yaml_utils import load_yaml_model
+from path_sync._internal.typer_app import app
+from path_sync._internal.yaml_utils import load_yaml_model
 
 logger = logging.getLogger(__name__)
 
