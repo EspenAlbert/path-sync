@@ -1,0 +1,19 @@
+# path-sync copy -n python-template
+name: Validate Synced Files
+
+on:
+  push:
+    branches-ignore:
+      - main
+      - 'sync/**'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup
+      - name: Validate no changes to synced files
+        run: uvx path-sync validate-no-changes -b main
