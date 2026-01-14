@@ -5,3 +5,8 @@ author: Espen Albert
 changelog_message: 'fix: updates sdist include pattern and add py.typed file'
 message: 'fix: updates sdist include pattern and add py.typed file'
 short_sha: 128df2
+---
+name: 0.3.1
+ts: 2026-01-14 13:40:58.891350+00:00
+type: release
+old_version: 0.3.0
