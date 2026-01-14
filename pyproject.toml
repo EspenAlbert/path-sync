@@ -43,7 +43,7 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.sdist]
 include = [
-  "path_sync/*.py",
+  "path_sync/**/*.py",
 ]
 exclude = [
   "*_test.py",
