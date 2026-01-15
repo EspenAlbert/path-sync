@@ -127,6 +127,10 @@ paths:
   - src_path: .cursor/**/*.mdc
   - src_path: templates/justfile
     dest_path: justfile
+  - src_path: scripts/
+    exclude_file_patterns:
+      - "*.pyc"
+      - "test_*.py"
 destinations:
   - name: dest1
     repo_url: https://github.com/user/dest1
@@ -142,10 +146,20 @@ destinations:
 | `name` | Config identifier |
 | `src_repo_url` | Source repo URL (auto-detected from git remote) |
 | `schedule` | Cron for scheduled sync workflow |
-| `paths` | Files/globs to sync (`src_path` required, `dest_path` optional) |
+| `paths` | Files/globs to sync (see path options below) |
 | `destinations` | Target repos with sync settings |
 | `header_config` | Comment style per extension (has defaults) |
 | `pr_defaults` | PR title, labels, reviewers, assignees |
+
+**Path options**:
+
+| Field | Description |
+|-------|-------------|
+| `src_path` | Source file, directory, or glob pattern (required) |
+| `dest_path` | Destination path (defaults to `src_path`) |
+| `sync_mode` | `sync` (default), `replace`, or `scaffold` |
+| `exclude_dirs` | Directory names to skip (defaults: `__pycache__`, `.git`, `.venv`, etc.) |
+| `exclude_file_patterns` | Filename patterns to skip, supports globs (`*.pyc`, `test_*.py`) |
 
 ## Header Format
 
