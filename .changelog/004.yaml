@@ -1,0 +1,7 @@
+name: config
+ts: 2026-01-15 05:36:01.638779+00:00
+type: fix
+author: Espen Albert
+changelog_message: 'fix: allows exclude_file_patterns'
+message: 'fix: allows exclude_file_patterns'
+short_sha: 2b56e6
