@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.3 2026-01-15T05-37Z
+
+### Config
+- fix: allows exclude_file_patterns [2b56e6](https://github.com/EspenAlbert/path-sync/commit/2b56e6)
+
+
 ## 0.3.2 2026-01-14T14-55Z
 
 ### Copy
