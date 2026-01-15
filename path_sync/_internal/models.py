@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import fnmatch
 import glob as glob_mod
 from enum import StrEnum
 from pathlib import Path
@@ -39,12 +40,15 @@ class PathMapping(BaseModel):
     dest_path: str = ""
     sync_mode: SyncMode = SyncMode.SYNC
     exclude_dirs: set[str] = Field(default_factory=_default_exclude_dirs)
+    exclude_file_patterns: set[str] = Field(default_factory=set)
 
     def resolved_dest_path(self) -> str:
         return self.dest_path or self.src_path
 
     def is_excluded(self, path: Path) -> bool:
-        return bool(self.exclude_dirs & set(path.parts))
+        if self.exclude_dirs & set(path.parts):
+            return True
+        return any(fnmatch.fnmatch(path.name, pat) for pat in self.exclude_file_patterns)
 
     def expand_dest_paths(self, repo_root: Path) -> list[Path]:
         dest_path = self.resolved_dest_path()

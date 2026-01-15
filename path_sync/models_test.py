@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from path_sync._internal.models import (
     Destination,
     PathMapping,
@@ -67,3 +69,21 @@ def test_pr_defaults_format_body_extracts_repo_name():
     pr = PRDefaults(body_template="{src_repo_name}")
     assert pr.format_body("https://github.com/u/repo", "sha", "", "") == "repo"
     assert pr.format_body("https://github.com/u/repo.git", "sha", "", "") == "repo"
+
+
+def test_path_mapping_is_excluded():
+    mapping = PathMapping(
+        src_path="src/",
+        exclude_dirs={"__pycache__", ".git"},
+        exclude_file_patterns={"*.pyc", ".DS_Store", "test_*.py"},
+    )
+    # Excluded by dir
+    assert mapping.is_excluded(Path("src/__pycache__/module.cpython-311.pyc"))
+    assert mapping.is_excluded(Path(".git/config"))
+    # Excluded by file pattern
+    assert mapping.is_excluded(Path("src/module.pyc"))
+    assert mapping.is_excluded(Path("src/.DS_Store"))
+    assert mapping.is_excluded(Path("src/test_models.py"))
+    # Not excluded
+    assert not mapping.is_excluded(Path("src/module.py"))
+    assert not mapping.is_excluded(Path("src/models_test.py"))
