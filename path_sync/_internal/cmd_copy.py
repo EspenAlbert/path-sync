@@ -336,8 +336,10 @@ def _sync_path(
             src_path = Path(src_file)
             if src_path.is_file() and not mapping.is_excluded(src_path):
                 rel = src_path.relative_to(src_root / glob_prefix)
-                dest_path = dest_root / dest_base / rel
                 dest_key = str(Path(dest_base) / rel)
+                if dest.is_skipped(dest_key):
+                    continue
+                dest_path = dest_root / dest_base / rel
                 changes += _copy_file(
                     src_path,
                     dest_path,
@@ -354,8 +356,10 @@ def _sync_path(
         for src_file in src_pattern.rglob("*"):
             if src_file.is_file() and not mapping.is_excluded(src_file):
                 rel = src_file.relative_to(src_pattern)
-                dest_path = dest_root / dest_base / rel
                 dest_key = str(Path(dest_base) / rel)
+                if dest.is_skipped(dest_key):
+                    continue
+                dest_path = dest_root / dest_base / rel
                 changes += _copy_file(
                     src_file,
                     dest_path,
@@ -369,18 +373,21 @@ def _sync_path(
                 synced.add(dest_path)
     elif src_pattern.is_file():
         dest_base = mapping.resolved_dest_path()
-        dest_path = dest_root / dest_base
-        changes += _copy_file(
-            src_pattern,
-            dest_path,
-            dest,
-            dest_base,
-            config_name,
-            sync_mode,
-            dry_run,
-            force_overwrite,
-        )
-        synced.add(dest_path)
+        if dest.is_skipped(dest_base):
+            pass
+        else:
+            dest_path = dest_root / dest_base
+            changes += _copy_file(
+                src_pattern,
+                dest_path,
+                dest,
+                dest_base,
+                config_name,
+                sync_mode,
+                dry_run,
+                force_overwrite,
+            )
+            synced.add(dest_path)
     else:
         logger.warning(f"Source not found: {mapping.src_path}")
 
