@@ -1,0 +1,7 @@
+name: config
+ts: 2026-01-16 16:05:09.724459+00:00
+type: fix
+author: Espen Albert
+changelog_message: 'fix: Adds support for skipping files per destination in path sync'
+message: 'fix: Adds support for skipping files per destination in path sync'
+short_sha: 4025a8
