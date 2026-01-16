@@ -115,6 +115,26 @@ destinations:
     skip_sections:
       justfile: [coverage]  # keep local coverage recipe
 ```
+
+## Skipping Files per Destination
+
+Use `skip_file_patterns` to exclude files for specific destinations. Patterns match against the **destination path** (after `dest_path` remapping):
+
+```yaml
+paths:
+  - src_path: scripts/
+    dest_path: tools/  # remapped in destination
+destinations:
+  - name: dest1
+    dest_path_relative: ../dest1
+    skip_file_patterns:
+      - "tools/internal/*"   # matches destination path, not src
+      - "*.test.py"
+      - "docs/draft.md"
+```
+
+Patterns use [fnmatch](https://docs.python.org/3/library/fnmatch.html) syntax (`*` matches any characters, `?` matches single character).
+
 ## Config Reference
 
 **Source config** (`.github/{name}.src.yaml`):
@@ -139,6 +159,8 @@ destinations:
     default_branch: main
     skip_sections:
       justfile: [coverage]
+    skip_file_patterns:
+      - "scripts/internal/*"
 ```
 
 | Field | Description |
@@ -160,6 +182,18 @@ destinations:
 | `sync_mode` | `sync` (default), `replace`, or `scaffold` |
 | `exclude_dirs` | Directory names to skip (defaults: `__pycache__`, `.git`, `.venv`, etc.) |
 | `exclude_file_patterns` | Filename patterns to skip, supports globs (`*.pyc`, `test_*.py`) |
+
+**Destination options**:
+
+| Field | Description |
+|-------|-------------|
+| `name` | Destination identifier (required) |
+| `repo_url` | Repo URL for cloning if not found locally |
+| `dest_path_relative` | Path to destination repo relative to source (required) |
+| `copy_branch` | Branch for sync (defaults to `sync/{config_name}`) |
+| `default_branch` | Default branch to compare against (defaults to `main`) |
+| `skip_sections` | Map of `{dest_path: [section_ids]}` to preserve locally |
+| `skip_file_patterns` | Patterns to skip for this destination (matches dest path, fnmatch syntax) |
 
 ## Header Format
 

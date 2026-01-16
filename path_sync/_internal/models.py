@@ -121,10 +121,13 @@ class Destination(BaseModel):
     copy_branch: str = ""
     default_branch: str = "main"
     skip_sections: dict[str, list[str]] = Field(default_factory=dict)
+    skip_file_patterns: set[str] = Field(default_factory=set)
 
     def resolved_copy_branch(self, config_name: str) -> str:
-        """Returns branch name, defaulting to sync/{config_name} if not set."""
         return self.copy_branch or f"sync/{config_name}"
+
+    def is_skipped(self, dest_key: str) -> bool:
+        return any(fnmatch.fnmatch(dest_key, pat) for pat in self.skip_file_patterns)
 
 
 class SrcConfig(BaseModel):

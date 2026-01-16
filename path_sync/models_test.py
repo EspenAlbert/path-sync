@@ -52,6 +52,19 @@ def test_destination_skip_sections():
     assert dest.skip_sections.get("unknown", []) == []
 
 
+def test_destination_skip_file_patterns():
+    dest = Destination(
+        name="test",
+        dest_path_relative="../test",
+        skip_file_patterns={"scripts/*", "*.test.py", "docs/internal.md"},
+    )
+    assert dest.is_skipped("scripts/check.py")
+    assert dest.is_skipped("models.test.py")
+    assert dest.is_skipped("docs/internal.md")
+    assert not dest.is_skipped("scripts.py")
+    assert not dest.is_skipped("docs/public.md")
+
+
 def test_pr_defaults_format_body():
     pr = PRDefaults()
     body = pr.format_body(
