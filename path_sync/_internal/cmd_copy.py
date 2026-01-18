@@ -8,6 +8,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 import typer
+from pydantic import BaseModel
 
 from path_sync import sections
 from path_sync._internal import git_ops, header
@@ -68,8 +69,7 @@ def capture_sync_log(dest_name: str):
             root_logger.removeHandler(file_handler)
 
 
-@dataclass
-class CopyOptions:
+class CopyOptions(BaseModel):
     dry_run: bool = False
     force_overwrite: bool = False
     no_checkout: bool = False
@@ -312,19 +312,12 @@ def _sync_paths(
     return result
 
 
-def _sync_path(
+def _iter_sync_files(
     mapping: PathMapping,
     src_root: Path,
     dest_root: Path,
-    dest: Destination,
-    config_name: str,
-    dry_run: bool,
-    force_overwrite: bool,
-) -> tuple[int, set[Path]]:
+):
     src_pattern = src_root / mapping.src_path
-    changes = 0
-    synced: set[Path] = set()
-    sync_mode = mapping.sync_mode
 
     if "*" in mapping.src_path:
         glob_prefix = mapping.src_path.split("*")[0].rstrip("/")
@@ -336,53 +329,48 @@ def _sync_path(
             src_path = Path(src_file)
             if src_path.is_file() and not mapping.is_excluded(src_path):
                 rel = src_path.relative_to(src_root / glob_prefix)
-                dest_path = dest_root / dest_base / rel
                 dest_key = str(Path(dest_base) / rel)
-                changes += _copy_file(
-                    src_path,
-                    dest_path,
-                    dest,
-                    dest_key,
-                    config_name,
-                    sync_mode,
-                    dry_run,
-                    force_overwrite,
-                )
-                synced.add(dest_path)
+                yield src_path, dest_key, dest_root / dest_base / rel
     elif src_pattern.is_dir():
         dest_base = mapping.resolved_dest_path()
         for src_file in src_pattern.rglob("*"):
             if src_file.is_file() and not mapping.is_excluded(src_file):
                 rel = src_file.relative_to(src_pattern)
-                dest_path = dest_root / dest_base / rel
                 dest_key = str(Path(dest_base) / rel)
-                changes += _copy_file(
-                    src_file,
-                    dest_path,
-                    dest,
-                    dest_key,
-                    config_name,
-                    sync_mode,
-                    dry_run,
-                    force_overwrite,
-                )
-                synced.add(dest_path)
+                yield src_file, dest_key, dest_root / dest_base / rel
     elif src_pattern.is_file():
         dest_base = mapping.resolved_dest_path()
-        dest_path = dest_root / dest_base
+        yield src_pattern, dest_base, dest_root / dest_base
+    else:
+        logger.warning(f"Source not found: {mapping.src_path}")
+
+
+def _sync_path(
+    mapping: PathMapping,
+    src_root: Path,
+    dest_root: Path,
+    dest: Destination,
+    config_name: str,
+    dry_run: bool,
+    force_overwrite: bool,
+) -> tuple[int, set[Path]]:
+    changes = 0
+    synced: set[Path] = set()
+
+    for src_path, dest_key, dest_path in _iter_sync_files(mapping, src_root, dest_root):
+        if dest.is_skipped(dest_key):
+            continue
         changes += _copy_file(
-            src_pattern,
+            src_path,
             dest_path,
             dest,
-            dest_base,
+            dest_key,
             config_name,
-            sync_mode,
+            mapping.sync_mode,
             dry_run,
             force_overwrite,
         )
         synced.add(dest_path)
-    else:
-        logger.warning(f"Source not found: {mapping.src_path}")
 
     return changes, synced
 
