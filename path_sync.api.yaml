@@ -1,0 +1,402 @@
+pkg_import_name: path_sync
+version: 0.3.3
+groups:
+- name: config
+  stability: ga
+  symbols:
+  - name: Destination
+    module_path: _internal.models
+    docstring: ''
+    line_number: 117
+    type: class
+    direct_bases:
+    - BaseModel
+    fields:
+    - name: name
+      type_annotation: str
+      type_imports: []
+      default:
+        value_repr: PydanticUndefined
+        is_factory: false
+      is_class_var: false
+      is_computed: false
+    - name: repo_url
+      type_annotation: str
+      type_imports: []
+      default:
+        value_repr: ''''''
+        is_factory: false
+      is_class_var: false
+      is_computed: false
+    - name: dest_path_relative
+      type_annotation: str
+      type_imports: []
+      default:
+        value_repr: PydanticUndefined
+        is_factory: false
+      is_class_var: false
+      is_computed: false
+    - name: copy_branch
+      type_annotation: str
+      type_imports: []
+      default:
+        value_repr: ''''''
+        is_factory: false
+      is_class_var: false
+      is_computed: false
+    - name: default_branch
+      type_annotation: str
+      type_imports: []
+      default:
+        value_repr: '''main'''
+        is_factory: false
+      is_class_var: false
+      is_computed: false
+    - name: skip_sections
+      type_annotation: dict[str, list[str]]
+      type_imports: []
+      default:
+        value_repr: '...'
+        is_factory: true
+      is_class_var: false
+      is_computed: false
+    - name: skip_file_patterns
+      type_annotation: set[str]
+      type_imports: []
+      default:
+        value_repr: '...'
+        is_factory: true
+      is_class_var: false
+      is_computed: false
+  - name: HeaderConfig
+    module_path: _internal.models
+    docstring: ''
+    line_number: 69
+    type: class
+    direct_bases:
+    - BaseModel
+    fields:
+    - name: comment_prefixes
+      type_annotation: dict[str, str]
+      type_imports: []
+      default:
+        value_repr: '...'
+        is_factory: true
+      is_class_var: false
+      is_computed: false
+    - name: comment_suffixes
+      type_annotation: dict[str, str]
+      type_imports: []
+      default:
+        value_repr: '...'
+        is_factory: true
+      is_class_var: false
+      is_computed: false
+  - name: PRDefaults
+    module_path: _internal.models
+    docstring: ''
+    line_number: 88
+    type: class
+    direct_bases:
+    - BaseModel
+    fields:
+    - name: title
+      type_annotation: str
+      type_imports: []
+      default:
+        value_repr: '''chore: sync {name} files'''
+        is_factory: false
+      is_class_var: false
+      is_computed: false
+    - name: body_template
+      type_annotation: str
+      type_imports: []
+      default:
+        value_repr: '''Synced from [{src_repo_name}]({src_repo_url}) @ `{src_sha_short}`\n\n<details>\n<summary>Sync Log</summary>\n\n```\n{sync_log}\n```\n\n</details>\n'''
+        is_factory: false
+      is_class_var: false
+      is_computed: false
+    - name: body_suffix
+      type_annotation: str
+      type_imports: []
+      default:
+        value_repr: ''''''
+        is_factory: false
+      is_class_var: false
+      is_computed: false
+    - name: labels
+      type_annotation: list[str]
+      type_imports: []
+      default:
+        value_repr: '...'
+        is_factory: true
+      is_class_var: false
+      is_computed: false
+    - name: reviewers
+      type_annotation: list[str]
+      type_imports: []
+      default:
+        value_repr: '...'
+        is_factory: true
+      is_class_var: false
+      is_computed: false
+    - name: assignees
+      type_annotation: list[str]
+      type_imports: []
+      default:
+        value_repr: '...'
+        is_factory: true
+      is_class_var: false
+      is_computed: false
+  - name: PathMapping
+    module_path: _internal.models
+    docstring: ''
+    line_number: 38
+    type: class
+    direct_bases:
+    - BaseModel
+    fields:
+    - name: src_path
+      type_annotation: str
+      type_imports: []
+      default:
+        value_repr: PydanticUndefined
+        is_factory: false
+      is_class_var: false
+      is_computed: false
+    - name: dest_path
+      type_annotation: str
+      type_imports: []
+      default:
+        value_repr: ''''''
+        is_factory: false
+      is_class_var: false
+      is_computed: false
+    - name: sync_mode
+      type_annotation: SyncMode
+      type_imports:
+      - path_sync._internal.models.SyncMode
+      default:
+        value_repr: '<SyncMode.SYNC: ''sync''>'
+        is_factory: false
+      is_class_var: false
+      is_computed: false
+    - name: exclude_dirs
+      type_annotation: set[str]
+      type_imports: []
+      default:
+        value_repr: '...'
+        is_factory: true
+      is_class_var: false
+      is_computed: false
+    - name: exclude_file_patterns
+      type_annotation: set[str]
+      type_imports: []
+      default:
+        value_repr: '...'
+        is_factory: true
+      is_class_var: false
+      is_computed: false
+  - name: SrcConfig
+    module_path: _internal.models
+    docstring: ''
+    line_number: 133
+    type: class
+    direct_bases:
+    - BaseModel
+    fields:
+    - name: name
+      type_annotation: str
+      type_imports: []
+      default:
+        value_repr: PydanticUndefined
+        is_factory: false
+      is_class_var: false
+      is_computed: false
+    - name: git_remote
+      type_annotation: str
+      type_imports: []
+      default:
+        value_repr: '''origin'''
+        is_factory: false
+      is_class_var: false
+      is_computed: false
+    - name: src_repo_url
+      type_annotation: str
+      type_imports: []
+      default:
+        value_repr: ''''''
+        is_factory: false
+      is_class_var: false
+      is_computed: false
+    - name: schedule
+      type_annotation: str
+      type_imports: []
+      default:
+        value_repr: '''0 6 * * *'''
+        is_factory: false
+      is_class_var: false
+      is_computed: false
+    - name: header_config
+      type_annotation: HeaderConfig
+      type_imports:
+      - path_sync._internal.models.HeaderConfig
+      default:
+        value_repr: '...'
+        is_factory: true
+      is_class_var: false
+      is_computed: false
+    - name: pr_defaults
+      type_annotation: PRDefaults
+      type_imports:
+      - path_sync._internal.models.PRDefaults
+      default:
+        value_repr: '...'
+        is_factory: true
+      is_class_var: false
+      is_computed: false
+    - name: paths
+      type_annotation: list[PathMapping]
+      type_imports:
+      - path_sync._internal.models.PathMapping
+      default:
+        value_repr: '...'
+        is_factory: true
+      is_class_var: false
+      is_computed: false
+    - name: destinations
+      type_annotation: list[Destination]
+      type_imports:
+      - path_sync._internal.models.Destination
+      default:
+        value_repr: '...'
+        is_factory: true
+      is_class_var: false
+      is_computed: false
+  - name: SyncMode
+    module_path: _internal.models
+    docstring: ''
+    line_number: 32
+    type: class
+    direct_bases:
+    - StrEnum
+    init_signature:
+      parameters:
+      - name: self
+        kind: positional_or_keyword
+        type_imports: []
+      - name: args
+        kind: var_positional
+        type_imports: []
+      - name: kwds
+        kind: var_keyword
+        type_imports: []
+      return_type_imports: []
+- name: copy
+  stability: ga
+  symbols:
+  - name: CopyOptions
+    module_path: _internal.cmd_copy
+    docstring: ''
+    line_number: 72
+    type: class
+    direct_bases:
+    - BaseModel
+    fields:
+    - name: dry_run
+      type_annotation: bool
+      type_imports: []
+      default:
+        value_repr: 'False'
+        is_factory: false
+      is_class_var: false
+      is_computed: false
+    - name: force_overwrite
+      type_annotation: bool
+      type_imports: []
+      default:
+        value_repr: 'False'
+        is_factory: false
+      is_class_var: false
+      is_computed: false
+    - name: no_checkout
+      type_annotation: bool
+      type_imports: []
+      default:
+        value_repr: 'False'
+        is_factory: false
+      is_class_var: false
+      is_computed: false
+    - name: checkout_from_default
+      type_annotation: bool
+      type_imports: []
+      default:
+        value_repr: 'False'
+        is_factory: false
+      is_class_var: false
+      is_computed: false
+    - name: local
+      type_annotation: bool
+      type_imports: []
+      default:
+        value_repr: 'False'
+        is_factory: false
+      is_class_var: false
+      is_computed: false
+    - name: no_prompt
+      type_annotation: bool
+      type_imports: []
+      default:
+        value_repr: 'False'
+        is_factory: false
+      is_class_var: false
+      is_computed: false
+    - name: no_pr
+      type_annotation: bool
+      type_imports: []
+      default:
+        value_repr: 'False'
+        is_factory: false
+      is_class_var: false
+      is_computed: false
+    - name: skip_orphan_cleanup
+      type_annotation: bool
+      type_imports: []
+      default:
+        value_repr: 'False'
+        is_factory: false
+      is_class_var: false
+      is_computed: false
+    - name: pr_title
+      type_annotation: str
+      type_imports: []
+      default:
+        value_repr: ''''''
+        is_factory: false
+      is_class_var: false
+      is_computed: false
+    - name: pr_labels
+      type_annotation: str
+      type_imports: []
+      default:
+        value_repr: ''''''
+        is_factory: false
+      is_class_var: false
+      is_computed: false
+    - name: pr_reviewers
+      type_annotation: str
+      type_imports: []
+      default:
+        value_repr: ''''''
+        is_factory: false
+      is_class_var: false
+      is_computed: false
+    - name: pr_assignees
+      type_annotation: str
+      type_imports: []
+      default:
+        value_repr: ''''''
+        is_factory: false
+      is_class_var: false
+      is_computed: false
+dumped_at: 2026-01-18 11:19:05.499396+00:00
