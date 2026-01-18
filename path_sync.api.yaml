@@ -1,8 +1,7 @@
 pkg_import_name: path_sync
-version: 0.3.3
+version: 0.3.4
 groups:
 - name: config
-  stability: ga
   symbols:
   - name: Destination
     module_path: _internal.models
@@ -293,7 +292,6 @@ groups:
         type_imports: []
       return_type_imports: []
 - name: copy
-  stability: ga
   symbols:
   - name: CopyOptions
     module_path: _internal.cmd_copy
@@ -399,4 +397,4 @@ groups:
         is_factory: false
       is_class_var: false
       is_computed: false
-dumped_at: 2026-01-18 11:19:05.499396+00:00
+dumped_at: 2026-01-18 18:29:15.256808+00:00

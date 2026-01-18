@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.4 2026-01-18T18-29Z
+
+### Config
+- fix: Adds support for skipping files per destination in path sync [4025a8](https://github.com/EspenAlbert/path-sync/commit/4025a8)
+
+
 ## 0.3.3 2026-01-15T05-37Z
 
 ### Config
