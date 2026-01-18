@@ -8,6 +8,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 import typer
+from pydantic import BaseModel
 
 from path_sync import sections
 from path_sync._internal import git_ops, header
@@ -68,8 +69,7 @@ def capture_sync_log(dest_name: str):
             root_logger.removeHandler(file_handler)
 
 
-@dataclass
-class CopyOptions:
+class CopyOptions(BaseModel):
     dry_run: bool = False
     force_overwrite: bool = False
     no_checkout: bool = False
