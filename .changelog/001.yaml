@@ -223,36 +223,42 @@ ts: 2026-01-14 08:00:37.576198+00:00
 type: make_public
 details: created in _internal/models.py
 group: config
+full_path: _internal.models.SyncMode
 ---
 name: PathMapping
 ts: 2026-01-14 08:00:37.577553+00:00
 type: make_public
 details: created in _internal/models.py
 group: config
+full_path: _internal.models.PathMapping
 ---
 name: HeaderConfig
 ts: 2026-01-14 08:00:37.578654+00:00
 type: make_public
 details: created in _internal/models.py
 group: config
+full_path: _internal.models.HeaderConfig
 ---
 name: PRDefaults
 ts: 2026-01-14 08:00:37.580326+00:00
 type: make_public
 details: created in _internal/models.py
 group: config
+full_path: _internal.models.PRDefaults
 ---
 name: Destination
 ts: 2026-01-14 08:00:37.581736+00:00
 type: make_public
 details: created in _internal/models.py
 group: config
+full_path: _internal.models.Destination
 ---
 name: SrcConfig
 ts: 2026-01-14 08:00:37.582850+00:00
 type: make_public
 details: created in _internal/models.py
 group: config
+full_path: _internal.models.SrcConfig
 ---
 name: copy
 ts: 2026-01-14 08:03:19.828752+00:00
@@ -264,6 +270,7 @@ ts: 2026-01-14 08:03:19.830056+00:00
 type: make_public
 details: created in _internal/cmd_copy.py
 group: copy
+full_path: _internal.cmd_copy.CopyOptions
 ---
 name: SyncResult
 ts: 2026-01-14 08:03:19.830117+00:00

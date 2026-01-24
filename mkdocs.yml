@@ -23,4 +23,5 @@ markdown_extensions:
       anchor_linenums: true
   - pymdownx.superfences
   - admonition
+  - attr_list
 # === OK_EDIT: pkg-ext extensions ===

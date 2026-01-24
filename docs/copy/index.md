@@ -12,6 +12,8 @@
 <!-- === OK_EDIT: pkg-ext symbol_details_header === -->
 
 <!-- === DO_NOT_EDIT: pkg-ext copyoptions_def === -->
+<a id="copyoptions_def"></a>
+
 ### class: `CopyOptions`
 - [source](../../path_sync/_internal/cmd_copy.py#L72)
 > **Since:** 0.3.0
