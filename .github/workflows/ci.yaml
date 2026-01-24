@@ -69,3 +69,12 @@ jobs:
           disable_search: true
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage.xml
+
+  pkg-pre-commit:
+    needs: pre_job
+    if: needs.pre_job.outputs.should_skip != 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      - run: just pkg-pre-commit
