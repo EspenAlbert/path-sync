@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.5 2026-01-24T19-46Z
+
+### Copy
+- fix: --no-checkout was checked before --dry-run, so the dry-run flag was ignored when both were passed. [0401d1](https://github.com/EspenAlbert/path-sync/commit/0401d1)
+
+
 ## 0.3.4 2026-01-18T18-29Z
 
 ### Config

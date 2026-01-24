@@ -1,5 +1,5 @@
 pkg_import_name: path_sync
-version: 0.3.4
+version: 0.3.5
 groups:
 - name: config
   symbols:
@@ -397,4 +397,4 @@ groups:
         is_factory: false
       is_class_var: false
       is_computed: false
-dumped_at: 2026-01-18 18:29:15.256808+00:00
+dumped_at: 2026-01-24 19:46:58.256637+00:00
