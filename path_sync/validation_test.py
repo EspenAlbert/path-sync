@@ -79,7 +79,7 @@ MODIFIED
     assert result == []
 
 
-def test_section_removed_fails(tmp_repo):
+def test_section_removed_warns_not_fails(tmp_repo, caplog):
     baseline = f"""{HEADER}
 # === DO_NOT_EDIT: path-sync standard ===
 protected
@@ -93,7 +93,8 @@ protected
     (tmp_repo / "test.py").write_text(current)
 
     result = validation.validate_no_unauthorized_changes(tmp_repo, "main")
-    assert result == ["test.py:standard"]
+    assert result == []
+    assert "Section 'standard' removed" in caplog.text
 
 
 def test_no_sections_full_file_comparison(tmp_repo):

@@ -33,7 +33,7 @@ def test_parse_sections():
 
 
 def test_parse_sections_no_markers():
-    assert sections.parse_sections("just plain content\nno markers", JUSTFILE) == []
+    assert not sections.parse_sections("just plain content\nno markers", JUSTFILE)
 
 
 def test_parse_sections_nested_error():
@@ -122,7 +122,7 @@ def test_replace_sections_keeps_dest_only():
 # === DO_NOT_EDIT: path-sync custom ===
 my custom section
 # === OK_EDIT: path-sync custom ==="""
-    result = sections.replace_sections(dest, {}, JUSTFILE)
+    result = sections.replace_sections(dest, {}, JUSTFILE, keep_deleted_sections=True)
     assert "my custom section" in result
     assert "DO_NOT_EDIT: path-sync custom" in result
 

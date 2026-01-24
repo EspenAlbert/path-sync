@@ -4,10 +4,11 @@ from pathlib import Path
 
 from zero_3rdparty.sections import (
     Section,
+    SectionChanges,
     get_comment_config,
 )
 from zero_3rdparty.sections import (
-    compare_sections as _compare_sections,
+    changed_sections as _changed_sections,
 )
 from zero_3rdparty.sections import (
     extract_sections as _extract_sections,
@@ -27,7 +28,8 @@ from zero_3rdparty.sections import (
 
 __all__ = [
     "Section",
-    "compare_sections",
+    "SectionChanges",
+    "changed_sections",
     "extract_sections",
     "has_sections",
     "parse_sections",
@@ -59,14 +61,23 @@ def replace_sections(
     src_sections: dict[str, str],
     path: Path,
     skip_sections: list[str] | None = None,
+    *,
+    keep_deleted_sections: bool = False,
 ) -> str:
-    return _replace_sections(dest_content, src_sections, TOOL_NAME, get_comment_config(path), skip_sections)
+    return _replace_sections(
+        dest_content,
+        src_sections,
+        TOOL_NAME,
+        get_comment_config(path),
+        skip_sections,
+        keep_deleted_sections=keep_deleted_sections,
+    )
 
 
-def compare_sections(
+def changed_sections(
     baseline_content: str,
     current_content: str,
     path: Path,
     skip: set[str] | None = None,
-) -> list[str]:
-    return _compare_sections(baseline_content, current_content, TOOL_NAME, get_comment_config(path), skip, str(path))
+) -> SectionChanges:
+    return _changed_sections(baseline_content, current_content, TOOL_NAME, get_comment_config(path), skip, str(path))
