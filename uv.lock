@@ -490,7 +490,7 @@ requires-dist = [
     { name = "pydantic", specifier = ">=2.0" },
     { name = "pyyaml", specifier = ">=6.0" },
     { name = "typer", specifier = ">=0.16.0" },
-    { name = "zero-3rdparty", specifier = ">=0.101.1" },
+    { name = "zero-3rdparty", specifier = ">=0.102.0" },
 ]
 
 [package.metadata.requires-dev]
@@ -1002,9 +1002,9 @@ wheels = [
 
 [[package]]
 name = "zero-3rdparty"
-version = "0.101.1"
+version = "0.102.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/7a/b2/ff3695fed32bbaf5cb1d51cb4849f0686fefd5432c40453489f2670fdcdf/zero_3rdparty-0.101.1.tar.gz", hash = "sha256:d2b1038cbe82d7a2fe0a2fbe20e772234b913f8bd459fe3d07e7a4d9738daa8f", size = 34013, upload-time = "2026-01-14T14:42:46.381Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/bb/b9/0d1c8f76970b50324084e944e917857690b03357fd31710026b775d90098/zero_3rdparty-0.102.0.tar.gz", hash = "sha256:520df5d66ef1d8c8d7ea3e6b1c6d6ad6511ec3d2efc283a8ac71ef714343bdff", size = 34445, upload-time = "2026-01-24T19:19:44.182Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/d1/27/3b867aee10baff8b28d013b78bb510fc4a68d3efae0638506054479d5f26/zero_3rdparty-0.101.1-py3-none-any.whl", hash = "sha256:11140803c4d9ca355580d617776a4611e0359663b591fddcb4c382d5f210ca09", size = 43149, upload-time = "2026-01-14T14:42:45.21Z" },
+    { url = "https://files.pythonhosted.org/packages/4d/a4/f4ebcf763defff9b34195e842b87bb5197c38d196dcb2edc8457feab700b/zero_3rdparty-0.102.0-py3-none-any.whl", hash = "sha256:6bf58395a4e6e3f33beb739b3dec53e9c1277df448c07910c219e694e57794d7", size = 43600, upload-time = "2026-01-24T19:19:42.443Z" },
 ]
