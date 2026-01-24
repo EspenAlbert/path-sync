@@ -17,6 +17,8 @@
 <!-- === OK_EDIT: pkg-ext symbol_details_header === -->
 
 <!-- === DO_NOT_EDIT: pkg-ext destination_def === -->
+<a id="destination_def"></a>
+
 ### class: `Destination`
 - [source](../../path_sync/_internal/models.py#L117)
 > **Since:** 0.3.0
@@ -43,6 +45,8 @@ class Destination(BaseModel):
 | skip_file_patterns | `set[str]` | `...` | 0.3.0 |
 <!-- === OK_EDIT: pkg-ext destination_def === -->
 <!-- === DO_NOT_EDIT: pkg-ext headerconfig_def === -->
+<a id="headerconfig_def"></a>
+
 ### class: `HeaderConfig`
 - [source](../../path_sync/_internal/models.py#L69)
 > **Since:** 0.3.0
@@ -59,6 +63,8 @@ class HeaderConfig(BaseModel):
 | comment_suffixes | `dict[str, str]` | `...` | 0.3.0 |
 <!-- === OK_EDIT: pkg-ext headerconfig_def === -->
 <!-- === DO_NOT_EDIT: pkg-ext prdefaults_def === -->
+<a id="prdefaults_def"></a>
+
 ### class: `PRDefaults`
 - [source](../../path_sync/_internal/models.py#L88)
 > **Since:** 0.3.0
@@ -83,6 +89,8 @@ class PRDefaults(BaseModel):
 | assignees | `list[str]` | `...` | 0.3.0 |
 <!-- === OK_EDIT: pkg-ext prdefaults_def === -->
 <!-- === DO_NOT_EDIT: pkg-ext pathmapping_def === -->
+<a id="pathmapping_def"></a>
+
 ### class: `PathMapping`
 - [source](../../path_sync/_internal/models.py#L38)
 > **Since:** 0.3.0
@@ -105,6 +113,8 @@ class PathMapping(BaseModel):
 | exclude_file_patterns | `set[str]` | `...` | 0.3.0 |
 <!-- === OK_EDIT: pkg-ext pathmapping_def === -->
 <!-- === DO_NOT_EDIT: pkg-ext srcconfig_def === -->
+<a id="srcconfig_def"></a>
+
 ### class: `SrcConfig`
 - [source](../../path_sync/_internal/models.py#L133)
 > **Since:** 0.3.0
@@ -133,6 +143,8 @@ class SrcConfig(BaseModel):
 | destinations | `list[Destination]` | `...` | 0.3.0 |
 <!-- === OK_EDIT: pkg-ext srcconfig_def === -->
 <!-- === DO_NOT_EDIT: pkg-ext syncmode_def === -->
+<a id="syncmode_def"></a>
+
 ### class: `SyncMode`
 - [source](../../path_sync/_internal/models.py#L32)
 > **Since:** 0.3.0

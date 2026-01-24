@@ -237,10 +237,10 @@ def _sync_destination(
 
     # --no-checkout means "I'm already on the right branch"
     # Prompt decline means "skip git operations for this run"
-    if opts.no_checkout:
-        skip_git_ops = False
-    elif opts.dry_run:
+    if opts.dry_run:
         skip_git_ops = True
+    elif opts.no_checkout:
+        skip_git_ops = False
     elif _prompt(f"Switch {dest.name} to {copy_branch}?", opts.no_prompt):
         git_ops.prepare_copy_branch(
             repo=dest_repo,

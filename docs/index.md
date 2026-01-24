@@ -1,5 +1,10 @@
 # path-sync
 
+[![PyPI](https://img.shields.io/pypi/v/path-sync)](https://pypi.org/project/path-sync/)
+[![GitHub](https://img.shields.io/github/license/EspenAlbert/path-sync)](https://github.com/EspenAlbert/path-sync)
+[![codecov](https://codecov.io/gh/EspenAlbert/path-sync/graph/badge.svg)](https://codecov.io/gh/EspenAlbert/path-sync)
+[![Docs](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://espenalbert.github.io/path-sync/)
+
 Sync files from a source repo to multiple destination repos.
 
 ## Overview

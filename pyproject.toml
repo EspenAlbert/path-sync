@@ -1,6 +1,5 @@
 # path-sync copy -n python-template
 
-# === OK_EDIT: path-sync header ===
 [project]
 name = "path-sync"
 version = "0.3.4"
@@ -29,7 +28,7 @@ dependencies = [
   "pyyaml>=6.0",
   "typer>=0.16.0",
   "gitpython>=3.1.0",
-  "zero-3rdparty>=0.101.1",
+  "zero-3rdparty>=0.102.0",
 ]
 
 [project.scripts]
@@ -75,6 +74,7 @@ extend-select = ["Q", "RUF100", "C90", "UP", "I", "T"]
 [tool.pytest.ini_options]
 addopts = "-s -vv --log-cli-level=INFO"
 python_files = ["*_test.py", "test_*.py"]
+asyncio_mode = "auto"
 # === OK_EDIT: path-sync pytest ===
 
 # === DO_NOT_EDIT: path-sync coverage ===
@@ -88,7 +88,9 @@ exclude_lines = ["no cov", "if __name__ == .__main__.:"]
 dev = [
   "pyright>=1.1",
   "pytest>=9.0",
+  "pytest-asyncio>=0.24",
   "pytest-cov>=7.0",
+  "pytest-regressions>=2.6",
   "ruff>=0.14",
 ]
 # === OK_EDIT: path-sync dev ===
@@ -98,3 +100,7 @@ docs = [
   "mkdocs-material>=9.5",
 ]
 # === OK_EDIT: path-sync docs ===
+
+# === DO_NOT_EDIT: path-sync release ===
+release = ["pkg-ext"]
+# === OK_EDIT: path-sync release ===

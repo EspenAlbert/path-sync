@@ -31,6 +31,7 @@ def validate_no_unauthorized_changes(
     """Find files with unauthorized changes in DO_NOT_EDIT sections.
 
     Returns 'path:section_id' for section changes or 'path' for full-file.
+    Missing sections (user opted out) are warned but not treated as errors.
     """
     repo = git_ops.get_repo(repo_root)
     base_ref = f"origin/{default_branch}"
@@ -55,8 +56,10 @@ def validate_no_unauthorized_changes(
 
         if baseline_has_sections:
             file_skip = skip.get(rel_path, set())
-            changed_ids = sections.compare_sections(baseline_content, current_content, path, file_skip)
-            unauthorized.extend(f"{rel_path}:{sid}" for sid in changed_ids)
+            changes = sections.changed_sections(baseline_content, current_content, path, file_skip)
+            for sid in changes.missing:
+                logger.warning(f"Section '{sid}' removed from {rel_path}, consider updating src.yaml")
+            unauthorized.extend(f"{rel_path}:{sid}" for sid in changes.modified)
         elif current_has_sections:
             unauthorized.append(rel_path)
         else:

@@ -1,6 +1,5 @@
 # path-sync copy -n python-template
 
-# === OK_EDIT: path-sync header ===
 # Custom variables and setup
 REPO_URL := "https://github.com/EspenAlbert/path-sync"
 
@@ -54,16 +53,16 @@ type-check:
 
 # === DO_NOT_EDIT: path-sync pkg-ext ===
 pkg-pre-change:
-  uv run pkg-ext pre-change
+  uv run --group release pkg-ext pre-change
 
 pkg-pre-commit:
-  uv run pkg-ext --is-bot pre-commit
+  uv run --group release pkg-ext --is-bot pre-commit
 
 pkg-post-merge:
-  uv run pkg-ext --is-bot post-merge --push
+  uv run --group release pkg-ext --is-bot post-merge --push
 
 pkg-release-notes tag:
-  uv run pkg-ext release-notes --tag {{tag}}
+  uv run --group release pkg-ext release-notes --tag {{tag}}
 # === OK_EDIT: path-sync pkg-ext ===
 
 # === DO_NOT_EDIT: path-sync docs ===
