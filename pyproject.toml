@@ -28,7 +28,7 @@ dependencies = [
   "pyyaml>=6.0",
   "typer>=0.16.0",
   "gitpython>=3.1.0",
-  "zero-3rdparty>=0.101.1",
+  "zero-3rdparty>=0.102.0",
 ]
 
 [project.scripts]
