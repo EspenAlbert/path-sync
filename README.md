@@ -296,6 +296,112 @@ Add as repository secret: `GH_PAT`
 | `GraphQL: Resource not accessible` | Use GH_PAT, not GITHUB_TOKEN |
 | `HTTP 422: Required status check` | Exclude `sync/*` from branch protection |
 
+## Dependency Updates
+
+The `dep-update` command runs dependency updates across multiple repositories. It clones repos, runs update commands, verifies changes, and creates PRs.
+
+### Quick Start
+
+```bash
+# Create config at .github/myconfig.dep.yaml (see example below)
+# Then run:
+path-sync dep-update -n myconfig
+
+# Preview without creating PRs
+path-sync dep-update -n myconfig --dry-run
+
+# Filter specific destinations
+path-sync dep-update -n myconfig -d repo1,repo2
+```
+
+### Dep Config Reference
+
+**Config file**: `.github/{name}.dep.yaml`
+
+```yaml
+name: uv-deps
+from_config: python-template  # references .github/python-template.src.yaml for destinations
+exclude_destinations:
+  - path-sync  # skip self
+
+updates:
+  - command: uv lock --upgrade
+  - workdir: packages/sub  # optional subdirectory
+    command: uv lock --upgrade
+
+verify:
+  on_fail: skip  # default strategy: skip, fail, warn
+  max_stderr_lines: 30  # truncate stderr in PR body
+  steps:
+    - run: uv sync
+    - run: just fmt
+      commit:
+        message: "chore: format after update"
+        add_paths: [".", "!uv.lock"]  # ! prefix excludes
+      on_fail: warn
+    - run: just test
+
+pr:
+  branch: deps/uv-lock-update
+  title: "chore(deps): update uv.lock"
+  labels: [dependencies]
+  reviewers: []  # optional
+  assignees: []  # optional
+  auto_merge: true
+```
+
+| Field | Description |
+|-------|-------------|
+| `from_config` | Source config name for destination list |
+| `include_destinations` | Only process these destinations |
+| `exclude_destinations` | Skip these destinations |
+| `updates` | Commands to run (in order) |
+| `verify.on_fail` | Default failure strategy: `skip`, `fail`, `warn` |
+| `verify.max_stderr_lines` | Max stderr lines in PR body (default: 20) |
+| `verify.steps` | Verification commands with optional commit/on_fail |
+| `pr.auto_merge` | Enable GitHub auto-merge after PR creation |
+
+### CLI Flags
+
+| Flag | Description |
+|------|-------------|
+| `-n, --name` | Config name (required) |
+| `-d, --dest` | Filter destinations (comma-separated) |
+| `--work-dir` | Clone directory for repos without `dest_path_relative` |
+| `--dry-run` | Preview without creating PRs |
+| `--skip-verify` | Skip verification steps |
+| `--pr-reviewers` | Override PR reviewers (comma-separated) |
+| `--pr-assignees` | Override PR assignees (comma-separated) |
+| `--max-stderr-lines` | Override max stderr lines (0=use config) |
+
+### Failure Strategies
+
+- **skip**: Skip PR for this repo, continue with others (default)
+- **fail**: Stop all processing immediately
+- **warn**: Create PR anyway with warning in body
+
+Per-step `on_fail` overrides the verify-level default.
+
+### GitHub Actions
+
+```yaml
+name: dep-update
+on:
+  schedule:
+    - cron: "0 6 * * 1"  # Weekly Monday
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uvx path-sync dep-update -n myconfig
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+```
+
 ## Alternatives Considered
 
 | Tool | Why Not |

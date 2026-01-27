@@ -11,7 +11,7 @@ import typer
 from pydantic import BaseModel
 
 from path_sync import sections
-from path_sync._internal import git_ops, header
+from path_sync._internal import cmd_options, git_ops, header
 from path_sync._internal.file_utils import ensure_parents_write_text
 from path_sync._internal.models import (
     LOG_FORMAT,
@@ -79,9 +79,9 @@ class CopyOptions(BaseModel):
     no_pr: bool = False
     skip_orphan_cleanup: bool = False
     pr_title: str = ""
-    pr_labels: str = ""
-    pr_reviewers: str = ""
-    pr_assignees: str = ""
+    labels: list[str] | None = None
+    reviewers: list[str] | None = None
+    assignees: list[str] | None = None
 
 
 @app.command()
@@ -141,21 +141,9 @@ def copy(
         "--pr-title",
         help="Override PR title (supports {name}, {dest_name})",
     ),
-    pr_labels: str = typer.Option(
-        "",
-        "--pr-labels",
-        help="Comma-separated PR labels",
-    ),
-    pr_reviewers: str = typer.Option(
-        "",
-        "--pr-reviewers",
-        help="Comma-separated PR reviewers",
-    ),
-    pr_assignees: str = typer.Option(
-        "",
-        "--pr-assignees",
-        help="Comma-separated PR assignees",
-    ),
+    pr_labels: str = cmd_options.pr_labels_option(),
+    pr_reviewers: str = cmd_options.pr_reviewers_option(),
+    pr_assignees: str = cmd_options.pr_assignees_option(),
     skip_orphan_cleanup: bool = typer.Option(
         False,
         "--skip-orphan-cleanup",
@@ -192,9 +180,9 @@ def copy(
         no_pr=no_pr,
         skip_orphan_cleanup=skip_orphan_cleanup,
         pr_title=pr_title or config.pr_defaults.title,
-        pr_labels=pr_labels or ",".join(config.pr_defaults.labels),
-        pr_reviewers=pr_reviewers or ",".join(config.pr_defaults.reviewers),
-        pr_assignees=pr_assignees or ",".join(config.pr_defaults.assignees),
+        labels=cmd_options.split_csv(pr_labels) or config.pr_defaults.labels,
+        reviewers=cmd_options.split_csv(pr_reviewers) or config.pr_defaults.reviewers,
+        assignees=cmd_options.split_csv(pr_assignees) or config.pr_defaults.assignees,
     )
 
     destinations = config.destinations
@@ -569,9 +557,9 @@ def _commit_and_pr(
         copy_branch,
         title,
         pr_body,
-        opts.pr_labels.split(",") if opts.pr_labels else None,
-        opts.pr_reviewers.split(",") if opts.pr_reviewers else None,
-        opts.pr_assignees.split(",") if opts.pr_assignees else None,
+        opts.labels,
+        opts.reviewers,
+        opts.assignees,
     )
     if pr_url:
         typer.echo(f"  Created PR: {pr_url}", err=True)
