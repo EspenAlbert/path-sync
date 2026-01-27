@@ -12,6 +12,7 @@ from path_sync._internal.cmd_dep_update import (
     _process_single_repo,
     _run_updates,
     _run_verify_steps,
+    _truncate_stderr,
 )
 from path_sync._internal.models import Destination
 from path_sync._internal.models_dep import (
@@ -282,3 +283,24 @@ def test_verify_per_step_on_fail_overrides_verify_level(tmp_path: Path):
         assert status == Status.WARN  # Uses step-level override, not verify-level
         assert len(failures) == 1
         assert failures[0].on_fail == OnFailStrategy.WARN
+
+
+# --- _truncate_stderr tests ---
+
+
+def test_truncate_stderr_short_text_unchanged():
+    text = "line1\nline2\nline3"
+    result = _truncate_stderr(text, max_lines=5)
+    assert result == "line1\nline2\nline3"
+
+
+def test_truncate_stderr_keeps_last_lines():
+    lines = [f"line{i}" for i in range(30)]
+    text = "\n".join(lines)
+
+    result = _truncate_stderr(text, max_lines=5)
+
+    assert result.startswith("... (25 lines skipped)")
+    assert "line25" in result
+    assert "line29" in result
+    assert "line0" not in result
