@@ -82,7 +82,7 @@ def _truncate_stderr(text: str, max_lines: int) -> str:
 def dep_update(
     name: str = typer.Option(..., "-n", "--name", help="Config name"),
     dest_filter: str = typer.Option("", "-d", "--dest", help="Filter destinations (comma-separated)"),
-    work_dir: str = typer.Option("", "--work-dir", help="Directory for cloning repos"),
+    work_dir: str = typer.Option("", "--work-dir", help="Clone repos here (overrides dest_path_relative)"),
     dry_run: bool = typer.Option(False, "--dry-run", help="Preview without creating PRs"),
     skip_verify: bool = typer.Option(False, "--skip-verify", help="Skip verification steps"),
     src_root_opt: str = typer.Option("", "--src-root", help="Source repo root"),
@@ -214,11 +214,11 @@ def _create_prs(config: DepConfig, results: list[RepoResult], opts: DepUpdateOpt
 
 
 def _resolve_repo_path(dest: Destination, src_root: Path, work_dir: str) -> Path:
+    if work_dir:
+        return Path(work_dir) / dest.name
     if dest.dest_path_relative:
         return (src_root / dest.dest_path_relative).resolve()
-    if not work_dir:
-        raise typer.BadParameter(f"No dest_path_relative for {dest.name}, --work-dir required")
-    return Path(work_dir) / dest.name
+    raise typer.BadParameter(f"No dest_path_relative for {dest.name}, --work-dir required")
 
 
 def _ensure_repo(dest: Destination, repo_path: Path):
