@@ -13,6 +13,7 @@ from path_sync._internal.models import Destination, find_repo_root
 from path_sync._internal.models_dep import (
     DepConfig,
     OnFailStrategy,
+    UpdateEntry,
     VerifyConfig,
     resolve_dep_config_path,
 )
@@ -21,7 +22,7 @@ from path_sync._internal.yaml_utils import load_yaml_model
 
 logger = logging.getLogger(__name__)
 
-StatusType = Literal["passed", "skipped", "warn"]
+StatusType = Literal["passed", "skipped", "warn", "no_changes", "failed"]
 
 
 @dataclass
@@ -32,7 +33,7 @@ class RepoResult:
     warnings: list[str] = field(default_factory=list)
 
 
-@app.command(name="dep-update")
+@app.command()
 def dep_update(
     name: str = typer.Option(..., "-n", "--name", help="Config name"),
     dest_filter: str = typer.Option("", "-d", "--dest", help="Filter destinations (comma-separated)"),
@@ -55,14 +56,14 @@ def dep_update(
         filter_names = [n.strip() for n in dest_filter.split(",")]
         destinations = [d for d in destinations if d.name in filter_names]
 
-    results = _phase1_update_and_validate(config, destinations, src_root, work_dir, skip_verify)
-    _phase2_create_prs(config, results, dry_run)
+    results = _update_and_validate(config, destinations, src_root, work_dir, skip_verify)
+    _create_prs(config, results, dry_run)
 
     if any(r.status == "skipped" for r in results):
         raise typer.Exit(1)
 
 
-def _phase1_update_and_validate(
+def _update_and_validate(
     config: DepConfig,
     destinations: list[Destination],
     src_root: Path,
@@ -72,41 +73,62 @@ def _phase1_update_and_validate(
     results: list[RepoResult] = []
 
     for dest in destinations:
-        logger.info(f"Processing {dest.name}...")
-        repo_path = _resolve_repo_path(dest, src_root, work_dir)
+        result = _process_single_repo(config, dest, src_root, work_dir, skip_verify)
 
-        repo = _ensure_repo(dest, repo_path)
-        git_ops.prepare_copy_branch(repo, dest.default_branch, config.pr.branch, from_default=True)
-
-        try:
-            for update in config.updates:
-                _run_command(update.command, repo_path / update.workdir)
-        except subprocess.CalledProcessError as e:
-            logger.warning(f"{dest.name}: Update failed, skipping: {e}")
-            results.append(RepoResult(dest, repo_path, "skipped"))
-            continue
-
-        if not git_ops.has_changes(repo):
-            logger.info(f"{dest.name}: No changes, skipping")
-            continue
-
-        git_ops.commit_changes(repo, config.pr.title)
-
-        if skip_verify:
-            results.append(RepoResult(dest, repo_path, "passed"))
-            continue
-
-        status, warnings = _run_verify_steps(repo, repo_path, config.verify)
-        if status == "failed":
+        if result.status == "failed":
             logger.error(f"{dest.name}: Verification failed, stopping")
             raise typer.Exit(1)
 
-        results.append(RepoResult(dest, repo_path, status, warnings))
+        if result.status != "no_changes":
+            results.append(result)
 
     return results
 
 
-def _phase2_create_prs(config: DepConfig, results: list[RepoResult], dry_run: bool) -> None:
+def _process_single_repo(
+    config: DepConfig,
+    dest: Destination,
+    src_root: Path,
+    work_dir: str,
+    skip_verify: bool,
+) -> RepoResult:
+    logger.info(f"Processing {dest.name}...")
+    repo_path = _resolve_repo_path(dest, src_root, work_dir)
+    repo = _ensure_repo(dest, repo_path)
+    git_ops.prepare_copy_branch(repo, dest.default_branch, config.pr.branch, from_default=True)
+
+    if err := _run_updates(config.updates, repo_path):
+        logger.warning(f"{dest.name}: {err}")
+        return RepoResult(dest, repo_path, "skipped", warnings=[err])
+
+    if not git_ops.has_changes(repo):
+        logger.info(f"{dest.name}: No changes, skipping")
+        return RepoResult(dest, repo_path, "no_changes")
+
+    git_ops.commit_changes(repo, config.pr.title)
+
+    if skip_verify:
+        return RepoResult(dest, repo_path, "passed")
+
+    return _verify_repo(repo, repo_path, config.verify, dest)
+
+
+def _run_updates(updates: list[UpdateEntry], repo_path: Path) -> str | None:
+    """Returns error message on failure, None on success."""
+    try:
+        for update in updates:
+            _run_command(update.command, repo_path / update.workdir)
+        return None
+    except subprocess.CalledProcessError as e:
+        return f"Update failed: {e}"
+
+
+def _verify_repo(repo, repo_path: Path, verify: VerifyConfig, dest: Destination) -> RepoResult:
+    status, warnings = _run_verify_steps(repo, repo_path, verify)
+    return RepoResult(dest, repo_path, status, warnings)
+
+
+def _create_prs(config: DepConfig, results: list[RepoResult], dry_run: bool) -> None:
     for result in results:
         if result.status == "skipped":
             continue
@@ -154,11 +176,14 @@ def _run_command(cmd: str, cwd: Path) -> None:
         raise subprocess.CalledProcessError(result.returncode, cmd)
 
 
+VerifyStatusType = Literal["passed", "skipped", "warn", "failed"]
+
+
 def _run_verify_steps(
     repo,
     repo_path: Path,
     verify: VerifyConfig,
-) -> tuple[Literal["passed", "skipped", "warn", "failed"], list[str]]:
+) -> tuple[VerifyStatusType, list[str]]:
     warnings: list[str] = []
 
     for step in verify.steps:
