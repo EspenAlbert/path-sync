@@ -7,6 +7,8 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from path_sync._internal.cmd_dep_update import (
+    Status,
+    StepFailure,
     _process_single_repo,
     _run_updates,
     _run_verify_steps,
@@ -68,7 +70,7 @@ def test_process_single_repo_no_changes_skips(dest: Destination, config: DepConf
 
         result = _process_single_repo(config, dest, tmp_path, "", skip_verify=False)
 
-        assert result.status == "no_changes"
+        assert result.status == Status.NO_CHANGES
         git_ops.prepare_copy_branch.assert_called_once_with(mock_repo, "main", "chore/deps", from_default=True)
 
 
@@ -87,8 +89,10 @@ def test_process_single_repo_update_fails_returns_skipped(
 
         result = _process_single_repo(config, dest, tmp_path, "", skip_verify=False)
 
-        assert result.status == "skipped"
-        assert "Update failed" in result.warnings[0]
+        assert result.status == Status.SKIPPED
+        assert len(result.failures) == 1
+        assert result.failures[0].step == "uv lock"
+        assert result.failures[0].returncode == 1
 
 
 def test_process_single_repo_changes_with_skip_verify_passes(
@@ -106,7 +110,7 @@ def test_process_single_repo_changes_with_skip_verify_passes(
 
         result = _process_single_repo(config, dest, tmp_path, "", skip_verify=True)
 
-        assert result.status == "passed"
+        assert result.status == Status.PASSED
         git_ops.commit_changes.assert_called_once_with(mock_repo, "chore: update deps")
 
 
@@ -130,7 +134,7 @@ def test_process_single_repo_verify_runs_when_changes_present(dest: Destination,
 
         result = _process_single_repo(config, dest, tmp_path, "", skip_verify=False)
 
-        assert result.status == "passed"
+        assert result.status == Status.PASSED
         assert run_cmd.call_count == 2  # update + verify step
 
 
@@ -149,7 +153,7 @@ def test_run_updates_success_returns_none(tmp_path: Path):
         run_cmd.assert_any_call("echo 2", tmp_path / "sub")
 
 
-def test_run_updates_failure_returns_error_message(tmp_path: Path):
+def test_run_updates_failure_returns_step_failure(tmp_path: Path):
     updates = [UpdateEntry(command="fail")]
 
     with patch(f"{MODULE}._run_command") as run_cmd:
@@ -158,7 +162,9 @@ def test_run_updates_failure_returns_error_message(tmp_path: Path):
         result = _run_updates(updates, tmp_path)
 
         assert result is not None
-        assert "Update failed" in result
+        assert isinstance(result, StepFailure)
+        assert result.step == "fail"
+        assert result.returncode == 1
 
 
 # --- _run_verify_steps tests ---
@@ -174,10 +180,10 @@ def test_verify_steps_all_pass(tmp_path: Path):
     mock_repo = MagicMock()
 
     with patch(f"{MODULE}._run_command"):
-        status, warnings = _run_verify_steps(mock_repo, tmp_path, verify)
+        status, failures = _run_verify_steps(mock_repo, tmp_path, verify)
 
-        assert status == "passed"
-        assert not warnings
+        assert status == Status.PASSED
+        assert not failures
 
 
 def test_verify_step_fails_with_skip_strategy(tmp_path: Path):
@@ -190,10 +196,12 @@ def test_verify_step_fails_with_skip_strategy(tmp_path: Path):
     with patch(f"{MODULE}._run_command") as run_cmd:
         run_cmd.side_effect = subprocess.CalledProcessError(1, "just test")
 
-        status, warnings = _run_verify_steps(mock_repo, tmp_path, verify)
+        status, failures = _run_verify_steps(mock_repo, tmp_path, verify)
 
-        assert status == "skipped"
-        assert "`just test` failed" in warnings[0]
+        assert status == Status.SKIPPED
+        assert len(failures) == 1
+        assert failures[0].step == "just test"
+        assert failures[0].on_fail == OnFailStrategy.SKIP
 
 
 def test_verify_step_fails_with_fail_strategy(tmp_path: Path):
@@ -206,10 +214,12 @@ def test_verify_step_fails_with_fail_strategy(tmp_path: Path):
     with patch(f"{MODULE}._run_command") as run_cmd:
         run_cmd.side_effect = subprocess.CalledProcessError(1, "just test")
 
-        status, warnings = _run_verify_steps(mock_repo, tmp_path, verify)
+        status, failures = _run_verify_steps(mock_repo, tmp_path, verify)
 
-        assert status == "failed"
-        assert "`just test` failed" in warnings[0]
+        assert status == Status.FAILED
+        assert len(failures) == 1
+        assert failures[0].step == "just test"
+        assert failures[0].on_fail == OnFailStrategy.FAIL
 
 
 def test_verify_step_fails_with_warn_strategy_continues(tmp_path: Path):
@@ -228,11 +238,12 @@ def test_verify_step_fails_with_warn_strategy_continues(tmp_path: Path):
             None,  # just test passes
         ]
 
-        status, warnings = _run_verify_steps(mock_repo, tmp_path, verify)
+        status, failures = _run_verify_steps(mock_repo, tmp_path, verify)
 
-        assert status == "warn"
-        assert len(warnings) == 1
-        assert "`just fmt` failed" in warnings[0]
+        assert status == Status.WARN
+        assert len(failures) == 1
+        assert failures[0].step == "just fmt"
+        assert failures[0].on_fail == OnFailStrategy.WARN
 
 
 def test_verify_step_with_commit_stages_and_commits(tmp_path: Path):
@@ -247,9 +258,10 @@ def test_verify_step_with_commit_stages_and_commits(tmp_path: Path):
     mock_repo = MagicMock()
 
     with patch(f"{MODULE}._run_command"), patch(f"{MODULE}.git_ops") as git_ops:
-        status, warnings = _run_verify_steps(mock_repo, tmp_path, verify)
+        status, failures = _run_verify_steps(mock_repo, tmp_path, verify)
 
-        assert status == "passed"
+        assert status == Status.PASSED
+        assert not failures
         git_ops.stage_and_commit.assert_called_once_with(mock_repo, [".", "!.venv"], "style: format")
 
 
@@ -265,7 +277,8 @@ def test_verify_per_step_on_fail_overrides_verify_level(tmp_path: Path):
     with patch(f"{MODULE}._run_command") as run_cmd:
         run_cmd.side_effect = subprocess.CalledProcessError(1, "just fmt")
 
-        status, warnings = _run_verify_steps(mock_repo, tmp_path, verify)
+        status, failures = _run_verify_steps(mock_repo, tmp_path, verify)
 
-        assert status == "warn"  # Uses step-level override, not verify-level
-        assert len(warnings) == 1
+        assert status == Status.WARN  # Uses step-level override, not verify-level
+        assert len(failures) == 1
+        assert failures[0].on_fail == OnFailStrategy.WARN

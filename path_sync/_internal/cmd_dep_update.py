@@ -3,8 +3,8 @@ from __future__ import annotations
 import logging
 import subprocess
 from dataclasses import dataclass, field
+from enum import StrEnum
 from pathlib import Path
-from typing import Literal
 
 import typer
 
@@ -22,15 +22,44 @@ from path_sync._internal.yaml_utils import load_yaml_model
 
 logger = logging.getLogger(__name__)
 
-StatusType = Literal["passed", "skipped", "warn", "no_changes", "failed"]
+MAX_STDERR_LINES = 20
+
+
+class Status(StrEnum):
+    PASSED = "passed"
+    SKIPPED = "skipped"
+    WARN = "warn"
+    NO_CHANGES = "no_changes"
+    FAILED = "failed"
+
+
+@dataclass
+class StepFailure:
+    step: str
+    returncode: int
+    stderr: str
+    on_fail: OnFailStrategy
+
+    @classmethod
+    def from_error(cls, step: str, e: subprocess.CalledProcessError, on_fail: OnFailStrategy) -> StepFailure:
+        stderr = _truncate_stderr(e.stderr or "", MAX_STDERR_LINES)
+        return cls(step=step, returncode=e.returncode, stderr=stderr, on_fail=on_fail)
 
 
 @dataclass
 class RepoResult:
     dest: Destination
     repo_path: Path
-    status: StatusType
-    warnings: list[str] = field(default_factory=list)
+    status: Status
+    failures: list[StepFailure] = field(default_factory=list)
+
+
+def _truncate_stderr(text: str, max_lines: int) -> str:
+    lines = text.strip().splitlines()
+    if len(lines) <= max_lines:
+        return text.strip()
+    skipped = len(lines) - max_lines
+    return f"... ({skipped} lines skipped)\n" + "\n".join(lines[-max_lines:])
 
 
 @app.command()
@@ -59,7 +88,7 @@ def dep_update(
     results = _update_and_validate(config, destinations, src_root, work_dir, skip_verify)
     _create_prs(config, results, dry_run)
 
-    if any(r.status == "skipped" for r in results):
+    if any(r.status == Status.SKIPPED for r in results):
         raise typer.Exit(1)
 
 
@@ -75,11 +104,11 @@ def _update_and_validate(
     for dest in destinations:
         result = _process_single_repo(config, dest, src_root, work_dir, skip_verify)
 
-        if result.status == "failed":
+        if result.status == Status.FAILED:
             logger.error(f"{dest.name}: Verification failed, stopping")
             raise typer.Exit(1)
 
-        if result.status != "no_changes":
+        if result.status != Status.NO_CHANGES:
             results.append(result)
 
     return results
@@ -97,40 +126,40 @@ def _process_single_repo(
     repo = _ensure_repo(dest, repo_path)
     git_ops.prepare_copy_branch(repo, dest.default_branch, config.pr.branch, from_default=True)
 
-    if err := _run_updates(config.updates, repo_path):
-        logger.warning(f"{dest.name}: {err}")
-        return RepoResult(dest, repo_path, "skipped", warnings=[err])
+    if failure := _run_updates(config.updates, repo_path):
+        logger.warning(f"{dest.name}: Update failed with exit code {failure.returncode}")
+        return RepoResult(dest, repo_path, Status.SKIPPED, failures=[failure])
 
     if not git_ops.has_changes(repo):
         logger.info(f"{dest.name}: No changes, skipping")
-        return RepoResult(dest, repo_path, "no_changes")
+        return RepoResult(dest, repo_path, Status.NO_CHANGES)
 
     git_ops.commit_changes(repo, config.pr.title)
 
     if skip_verify:
-        return RepoResult(dest, repo_path, "passed")
+        return RepoResult(dest, repo_path, Status.PASSED)
 
     return _verify_repo(repo, repo_path, config.verify, dest)
 
 
-def _run_updates(updates: list[UpdateEntry], repo_path: Path) -> str | None:
-    """Returns error message on failure, None on success."""
+def _run_updates(updates: list[UpdateEntry], repo_path: Path) -> StepFailure | None:
+    """Returns StepFailure on failure, None on success."""
     try:
         for update in updates:
             _run_command(update.command, repo_path / update.workdir)
         return None
     except subprocess.CalledProcessError as e:
-        return f"Update failed: {e}"
+        return StepFailure.from_error(e.cmd, e, OnFailStrategy.SKIP)
 
 
 def _verify_repo(repo, repo_path: Path, verify: VerifyConfig, dest: Destination) -> RepoResult:
-    status, warnings = _run_verify_steps(repo, repo_path, verify)
-    return RepoResult(dest, repo_path, status, warnings)
+    status, failures = _run_verify_steps(repo, repo_path, verify)
+    return RepoResult(dest, repo_path, status, failures)
 
 
 def _create_prs(config: DepConfig, results: list[RepoResult], dry_run: bool) -> None:
     for result in results:
-        if result.status == "skipped":
+        if result.status == Status.SKIPPED:
             continue
 
         if dry_run:
@@ -140,7 +169,7 @@ def _create_prs(config: DepConfig, results: list[RepoResult], dry_run: bool) -> 
         repo = git_ops.get_repo(result.repo_path)
         git_ops.push_branch(repo, config.pr.branch, force=True)
 
-        body = _build_pr_body(result.warnings)
+        body = _build_pr_body(result.failures)
         git_ops.create_or_update_pr(
             result.repo_path,
             config.pr.branch,
@@ -177,15 +206,12 @@ def _run_command(cmd: str, cwd: Path) -> None:
         raise subprocess.CalledProcessError(result.returncode, cmd, output=result.stdout, stderr=stderr)
 
 
-VerifyStatusType = Literal["passed", "skipped", "warn", "failed"]
-
-
 def _run_verify_steps(
     repo,
     repo_path: Path,
     verify: VerifyConfig,
-) -> tuple[VerifyStatusType, list[str]]:
-    warnings: list[str] = []
+) -> tuple[Status, list[StepFailure]]:
+    failures: list[StepFailure] = []
 
     for step in verify.steps:
         on_fail = step.on_fail or verify.on_fail
@@ -193,25 +219,31 @@ def _run_verify_steps(
         try:
             _run_command(step.run, repo_path)
         except subprocess.CalledProcessError as e:
-            error_msg = f"`{step.run}` failed: {e}"
+            failure = StepFailure.from_error(step.run, e, on_fail)
             match on_fail:
                 case OnFailStrategy.FAIL:
-                    return ("failed", [error_msg])
+                    return (Status.FAILED, [failure])
                 case OnFailStrategy.SKIP:
-                    return ("skipped", [error_msg])
+                    return (Status.SKIPPED, [failure])
                 case OnFailStrategy.WARN:
-                    warnings.append(error_msg)
+                    failures.append(failure)
                     continue
 
         if step.commit:
             git_ops.stage_and_commit(repo, step.commit.add_paths, step.commit.message)
 
-    return ("warn" if warnings else "passed", warnings)
+    return (Status.WARN if failures else Status.PASSED, failures)
 
 
-def _build_pr_body(warnings: list[str]) -> str:
+def _build_pr_body(failures: list[StepFailure]) -> str:
     body = "Automated dependency update."
-    if warnings:
-        body += "\n\n---\n**Warning:** Some verification steps failed:\n"
-        body += "\n".join(f"- {w}" for w in warnings)
+    if not failures:
+        return body
+
+    body += "\n\n---\n## Verification Issues\n"
+    for f in failures:
+        body += f"\n### `{f.step}` (strategy: {f.on_fail})\n"
+        body += f"**Exit code:** {f.returncode}\n"
+        if f.stderr:
+            body += f"\n```\n{f.stderr}\n```\n"
     return body
