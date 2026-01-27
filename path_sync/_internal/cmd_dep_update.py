@@ -9,7 +9,7 @@ from pathlib import Path
 import typer
 from git import Repo
 
-from path_sync._internal import git_ops
+from path_sync._internal import cmd_options, git_ops
 from path_sync._internal.models import Destination, find_repo_root
 from path_sync._internal.models_dep import (
     DepConfig,
@@ -23,7 +23,7 @@ from path_sync._internal.yaml_utils import load_yaml_model
 
 logger = logging.getLogger(__name__)
 
-MAX_STDERR_LINES = 20
+DEFAULT_MAX_STDERR_LINES = 20
 
 
 class Status(StrEnum):
@@ -42,8 +42,14 @@ class StepFailure:
     on_fail: OnFailStrategy
 
     @classmethod
-    def from_error(cls, step: str, e: subprocess.CalledProcessError, on_fail: OnFailStrategy) -> StepFailure:
-        stderr = _truncate_stderr(e.stderr or "", MAX_STDERR_LINES)
+    def from_error(
+        cls,
+        step: str,
+        e: subprocess.CalledProcessError,
+        on_fail: OnFailStrategy,
+        max_stderr_lines: int = DEFAULT_MAX_STDERR_LINES,
+    ) -> StepFailure:
+        stderr = _truncate_stderr(e.stderr or "", max_stderr_lines)
         return cls(step=step, returncode=e.returncode, stderr=stderr, on_fail=on_fail)
 
 
@@ -53,6 +59,15 @@ class RepoResult:
     repo_path: Path
     status: Status
     failures: list[StepFailure] = field(default_factory=list)
+
+
+@dataclass
+class DepUpdateOptions:
+    dry_run: bool = False
+    skip_verify: bool = False
+    reviewers: list[str] | None = None
+    assignees: list[str] | None = None
+    max_stderr_lines: int = 0  # 0 means use config value
 
 
 def _truncate_stderr(text: str, max_lines: int) -> str:
@@ -71,6 +86,9 @@ def dep_update(
     dry_run: bool = typer.Option(False, "--dry-run", help="Preview without creating PRs"),
     skip_verify: bool = typer.Option(False, "--skip-verify", help="Skip verification steps"),
     src_root_opt: str = typer.Option("", "--src-root", help="Source repo root"),
+    pr_reviewers: str = cmd_options.pr_reviewers_option(),
+    pr_assignees: str = cmd_options.pr_assignees_option(),
+    max_stderr_lines: int = typer.Option(0, "--max-stderr-lines", help="Max stderr lines in PR body (0=use config)"),
 ) -> None:
     """Run dependency updates across repositories."""
     src_root = Path(src_root_opt) if src_root_opt else find_repo_root(Path.cwd())
@@ -86,8 +104,16 @@ def dep_update(
         filter_names = [n.strip() for n in dest_filter.split(",")]
         destinations = [d for d in destinations if d.name in filter_names]
 
-    results = _update_and_validate(config, destinations, src_root, work_dir, skip_verify)
-    _create_prs(config, results, dry_run)
+    opts = DepUpdateOptions(
+        dry_run=dry_run,
+        skip_verify=skip_verify,
+        reviewers=cmd_options.split_csv(pr_reviewers) or config.pr.reviewers,
+        assignees=cmd_options.split_csv(pr_assignees) or config.pr.assignees,
+        max_stderr_lines=max_stderr_lines,
+    )
+
+    results = _update_and_validate(config, destinations, src_root, work_dir, opts)
+    _create_prs(config, results, opts)
 
     if any(r.status == Status.SKIPPED for r in results):
         raise typer.Exit(1)
@@ -98,12 +124,12 @@ def _update_and_validate(
     destinations: list[Destination],
     src_root: Path,
     work_dir: str,
-    skip_verify: bool,
+    opts: DepUpdateOptions,
 ) -> list[RepoResult]:
     results: list[RepoResult] = []
 
     for dest in destinations:
-        result = _process_single_repo(config, dest, src_root, work_dir, skip_verify)
+        result = _process_single_repo(config, dest, src_root, work_dir, opts)
 
         if result.status == Status.FAILED:
             logger.error(f"{dest.name}: Verification failed, stopping")
@@ -120,14 +146,15 @@ def _process_single_repo(
     dest: Destination,
     src_root: Path,
     work_dir: str,
-    skip_verify: bool,
+    opts: DepUpdateOptions,
 ) -> RepoResult:
     logger.info(f"Processing {dest.name}...")
     repo_path = _resolve_repo_path(dest, src_root, work_dir)
     repo = _ensure_repo(dest, repo_path)
     git_ops.prepare_copy_branch(repo, dest.default_branch, config.pr.branch, from_default=True)
 
-    if failure := _run_updates(config.updates, repo_path):
+    max_stderr = opts.max_stderr_lines or config.verify.max_stderr_lines
+    if failure := _run_updates(config.updates, repo_path, max_stderr):
         logger.warning(f"{dest.name}: Update failed with exit code {failure.returncode}")
         return RepoResult(dest, repo_path, Status.SKIPPED, failures=[failure])
 
@@ -137,33 +164,35 @@ def _process_single_repo(
 
     git_ops.commit_changes(repo, config.pr.title)
 
-    if skip_verify:
+    if opts.skip_verify:
         return RepoResult(dest, repo_path, Status.PASSED)
 
-    return _verify_repo(repo, repo_path, config.verify, dest)
+    return _verify_repo(repo, repo_path, config.verify, dest, max_stderr)
 
 
-def _run_updates(updates: list[UpdateEntry], repo_path: Path) -> StepFailure | None:
+def _run_updates(updates: list[UpdateEntry], repo_path: Path, max_stderr_lines: int) -> StepFailure | None:
     """Returns StepFailure on failure, None on success."""
     try:
         for update in updates:
             _run_command(update.command, repo_path / update.workdir)
         return None
     except subprocess.CalledProcessError as e:
-        return StepFailure.from_error(e.cmd, e, OnFailStrategy.SKIP)
+        return StepFailure.from_error(e.cmd, e, OnFailStrategy.SKIP, max_stderr_lines)
 
 
-def _verify_repo(repo: Repo, repo_path: Path, verify: VerifyConfig, dest: Destination) -> RepoResult:
-    status, failures = _run_verify_steps(repo, repo_path, verify)
+def _verify_repo(
+    repo: Repo, repo_path: Path, verify: VerifyConfig, dest: Destination, max_stderr_lines: int
+) -> RepoResult:
+    status, failures = _run_verify_steps(repo, repo_path, verify, max_stderr_lines)
     return RepoResult(dest, repo_path, status, failures)
 
 
-def _create_prs(config: DepConfig, results: list[RepoResult], dry_run: bool) -> None:
+def _create_prs(config: DepConfig, results: list[RepoResult], opts: DepUpdateOptions) -> None:
     for result in results:
         if result.status == Status.SKIPPED:
             continue
 
-        if dry_run:
+        if opts.dry_run:
             logger.info(f"[DRY RUN] Would create PR for {result.dest.name}")
             continue
 
@@ -177,6 +206,8 @@ def _create_prs(config: DepConfig, results: list[RepoResult], dry_run: bool) -> 
             config.pr.title,
             body,
             config.pr.labels or None,
+            reviewers=opts.reviewers,
+            assignees=opts.assignees,
             auto_merge=config.pr.auto_merge,
         )
         logger.info(f"{result.dest.name}: PR created/updated")
@@ -211,6 +242,7 @@ def _run_verify_steps(
     repo: Repo,
     repo_path: Path,
     verify: VerifyConfig,
+    max_stderr_lines: int,
 ) -> tuple[Status, list[StepFailure]]:
     failures: list[StepFailure] = []
 
@@ -220,7 +252,7 @@ def _run_verify_steps(
         try:
             _run_command(step.run, repo_path)
         except subprocess.CalledProcessError as e:
-            failure = StepFailure.from_error(step.run, e, on_fail)
+            failure = StepFailure.from_error(step.run, e, on_fail, max_stderr_lines)
             match on_fail:
                 case OnFailStrategy.FAIL:
                     return (Status.FAILED, [failure])

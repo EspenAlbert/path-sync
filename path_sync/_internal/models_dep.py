@@ -6,7 +6,7 @@ from typing import ClassVar
 
 from pydantic import BaseModel, Field
 
-from path_sync._internal.models import Destination, SrcConfig, resolve_config_path
+from path_sync._internal.models import Destination, PRFieldsBase, SrcConfig, resolve_config_path
 from path_sync._internal.yaml_utils import load_yaml_model
 
 
@@ -30,6 +30,7 @@ class VerifyStep(BaseModel):
 class VerifyConfig(BaseModel):
     on_fail: OnFailStrategy = OnFailStrategy.SKIP
     steps: list[VerifyStep] = Field(default_factory=list)
+    max_stderr_lines: int = 20
 
 
 class UpdateEntry(BaseModel):
@@ -37,10 +38,9 @@ class UpdateEntry(BaseModel):
     command: str
 
 
-class PRConfig(BaseModel):
+class PRConfig(PRFieldsBase):
     branch: str
     title: str
-    labels: list[str] = Field(default_factory=list)
     auto_merge: bool = False
 
 
