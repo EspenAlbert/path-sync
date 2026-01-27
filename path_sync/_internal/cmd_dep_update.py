@@ -172,8 +172,9 @@ def _run_command(cmd: str, cwd: Path) -> None:
     logger.info(f"Running: {cmd}")
     result = subprocess.run(cmd, shell=True, cwd=cwd, capture_output=True, text=True)
     if result.returncode != 0:
-        logger.error(f"Command failed '{cmd}' in {cwd}: {result.stderr}")
-        raise subprocess.CalledProcessError(result.returncode, cmd)
+        stderr = result.stderr.strip()
+        logger.error(f"Command failed '{cmd}' in {cwd}: {stderr}")
+        raise subprocess.CalledProcessError(result.returncode, cmd, output=result.stdout, stderr=stderr)
 
 
 VerifyStatusType = Literal["passed", "skipped", "warn", "failed"]
