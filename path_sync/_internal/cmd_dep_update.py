@@ -7,6 +7,7 @@ from enum import StrEnum
 from pathlib import Path
 
 import typer
+from git import Repo
 
 from path_sync._internal import git_ops
 from path_sync._internal.models import Destination, find_repo_root
@@ -152,7 +153,7 @@ def _run_updates(updates: list[UpdateEntry], repo_path: Path) -> StepFailure | N
         return StepFailure.from_error(e.cmd, e, OnFailStrategy.SKIP)
 
 
-def _verify_repo(repo, repo_path: Path, verify: VerifyConfig, dest: Destination) -> RepoResult:
+def _verify_repo(repo: Repo, repo_path: Path, verify: VerifyConfig, dest: Destination) -> RepoResult:
     status, failures = _run_verify_steps(repo, repo_path, verify)
     return RepoResult(dest, repo_path, status, failures)
 
@@ -207,7 +208,7 @@ def _run_command(cmd: str, cwd: Path) -> None:
 
 
 def _run_verify_steps(
-    repo,
+    repo: Repo,
     repo_path: Path,
     verify: VerifyConfig,
 ) -> tuple[Status, list[StepFailure]]:

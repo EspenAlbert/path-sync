@@ -79,3 +79,61 @@ pr:
 def test_resolve_dep_config_path(tmp_path: Path):
     path = resolve_dep_config_path(tmp_path, "uv-deps")
     assert path == tmp_path / ".github" / "uv-deps.dep.yaml"
+
+
+def test_load_destinations_with_include_filter(tmp_path: Path):
+    src_config_yaml = """
+name: python-template
+destinations:
+  - name: repo1
+    dest_path_relative: code/repo1
+  - name: repo2
+    dest_path_relative: code/repo2
+  - name: repo3
+    dest_path_relative: code/repo3
+"""
+    github_dir = tmp_path / ".github"
+    github_dir.mkdir()
+    (github_dir / "python-template.src.yaml").write_text(src_config_yaml)
+
+    config = DepConfig(
+        name="test",
+        from_config="python-template",
+        include_destinations=["repo1", "repo3"],
+        updates=[UpdateEntry(command="echo")],
+        pr=PRConfig(branch="test", title="test"),
+    )
+
+    destinations = config.load_destinations(tmp_path)
+
+    assert len(destinations) == 2
+    assert [d.name for d in destinations] == ["repo1", "repo3"]
+
+
+def test_load_destinations_with_exclude_filter(tmp_path: Path):
+    src_config_yaml = """
+name: python-template
+destinations:
+  - name: repo1
+    dest_path_relative: code/repo1
+  - name: legacy-repo
+    dest_path_relative: code/legacy
+  - name: repo2
+    dest_path_relative: code/repo2
+"""
+    github_dir = tmp_path / ".github"
+    github_dir.mkdir()
+    (github_dir / "python-template.src.yaml").write_text(src_config_yaml)
+
+    config = DepConfig(
+        name="test",
+        from_config="python-template",
+        exclude_destinations=["legacy-repo"],
+        updates=[UpdateEntry(command="echo")],
+        pr=PRConfig(branch="test", title="test"),
+    )
+
+    destinations = config.load_destinations(tmp_path)
+
+    assert len(destinations) == 2
+    assert "legacy-repo" not in [d.name for d in destinations]
