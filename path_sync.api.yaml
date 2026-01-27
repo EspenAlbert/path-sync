@@ -1,5 +1,5 @@
 pkg_import_name: path_sync
-version: 0.3.5
+version: 0.4.0
 groups:
 - name: config
   symbols:
@@ -14,9 +14,6 @@ groups:
     - name: name
       type_annotation: str
       type_imports: []
-      default:
-        value_repr: PydanticUndefined
-        is_factory: false
       is_class_var: false
       is_computed: false
     - name: repo_url
@@ -30,9 +27,6 @@ groups:
     - name: dest_path_relative
       type_annotation: str
       type_imports: []
-      default:
-        value_repr: PydanticUndefined
-        is_factory: false
       is_class_var: false
       is_computed: false
     - name: copy_branch
@@ -158,9 +152,6 @@ groups:
     - name: src_path
       type_annotation: str
       type_imports: []
-      default:
-        value_repr: PydanticUndefined
-        is_factory: false
       is_class_var: false
       is_computed: false
     - name: dest_path
@@ -207,9 +198,6 @@ groups:
     - name: name
       type_annotation: str
       type_imports: []
-      default:
-        value_repr: PydanticUndefined
-        is_factory: false
       is_class_var: false
       is_computed: false
     - name: git_remote
@@ -397,4 +385,314 @@ groups:
         is_factory: false
       is_class_var: false
       is_computed: false
-dumped_at: 2026-01-24 19:46:58.256637+00:00
+- name: dep_update
+  symbols:
+  - name: dep_update
+    module_path: _internal.cmd_dep_update
+    docstring: Run dependency updates across repositories.
+    line_number: 66
+    type: cli_command
+    signature:
+      parameters:
+      - name: name
+        kind: positional_or_keyword
+        type_annotation: str
+        type_imports: []
+        default:
+          value_repr: <typer.models.OptionInfo object>
+          is_factory: false
+      - name: dest_filter
+        kind: positional_or_keyword
+        type_annotation: str
+        type_imports: []
+        default:
+          value_repr: <typer.models.OptionInfo object>
+          is_factory: false
+      - name: work_dir
+        kind: positional_or_keyword
+        type_annotation: str
+        type_imports: []
+        default:
+          value_repr: <typer.models.OptionInfo object>
+          is_factory: false
+      - name: dry_run
+        kind: positional_or_keyword
+        type_annotation: bool
+        type_imports: []
+        default:
+          value_repr: <typer.models.OptionInfo object>
+          is_factory: false
+      - name: skip_verify
+        kind: positional_or_keyword
+        type_annotation: bool
+        type_imports: []
+        default:
+          value_repr: <typer.models.OptionInfo object>
+          is_factory: false
+      - name: src_root_opt
+        kind: positional_or_keyword
+        type_annotation: str
+        type_imports: []
+        default:
+          value_repr: <typer.models.OptionInfo object>
+          is_factory: false
+      return_annotation: None
+      return_type_imports: []
+    cli_params:
+    - param_name: name
+      type_annotation: str
+      flags:
+      - -n
+      - --name
+      help: Config name
+      required: true
+      is_argument: false
+      hidden: false
+    - param_name: dest_filter
+      type_annotation: str
+      flags:
+      - -d
+      - --dest
+      help: Filter destinations (comma-separated)
+      default_repr: ''''''
+      required: false
+      is_argument: false
+      hidden: false
+    - param_name: work_dir
+      type_annotation: str
+      flags:
+      - --work-dir
+      help: Directory for cloning repos
+      default_repr: ''''''
+      required: false
+      is_argument: false
+      hidden: false
+    - param_name: dry_run
+      type_annotation: bool
+      flags:
+      - --dry-run
+      help: Preview without creating PRs
+      default_repr: 'False'
+      required: false
+      is_argument: false
+      hidden: false
+    - param_name: skip_verify
+      type_annotation: bool
+      flags:
+      - --skip-verify
+      help: Skip verification steps
+      default_repr: 'False'
+      required: false
+      is_argument: false
+      hidden: false
+    - param_name: src_root_opt
+      type_annotation: str
+      flags:
+      - --src-root
+      help: Source repo root
+      default_repr: ''''''
+      required: false
+      is_argument: false
+      hidden: false
+  - name: CommitConfig
+    module_path: _internal.models_dep
+    docstring: ''
+    line_number: 19
+    type: class
+    direct_bases:
+    - BaseModel
+    fields:
+    - name: message
+      type_annotation: str
+      type_imports: []
+      is_class_var: false
+      is_computed: false
+    - name: add_paths
+      type_annotation: list[str]
+      type_imports: []
+      default:
+        value_repr: '...'
+        is_factory: true
+      is_class_var: false
+      is_computed: false
+  - name: DepConfig
+    module_path: _internal.models_dep
+    docstring: ''
+    line_number: 47
+    type: class
+    direct_bases:
+    - BaseModel
+    fields:
+    - name: name
+      type_annotation: str
+      type_imports: []
+      is_class_var: false
+      is_computed: false
+    - name: from_config
+      type_annotation: str
+      type_imports: []
+      is_class_var: false
+      is_computed: false
+    - name: include_destinations
+      type_annotation: list[str]
+      type_imports: []
+      default:
+        value_repr: '...'
+        is_factory: true
+      is_class_var: false
+      is_computed: false
+    - name: exclude_destinations
+      type_annotation: list[str]
+      type_imports: []
+      default:
+        value_repr: '...'
+        is_factory: true
+      is_class_var: false
+      is_computed: false
+    - name: updates
+      type_annotation: list[UpdateEntry]
+      type_imports:
+      - path_sync._internal.models_dep.UpdateEntry
+      is_class_var: false
+      is_computed: false
+    - name: verify
+      type_annotation: VerifyConfig
+      type_imports:
+      - path_sync._internal.models_dep.VerifyConfig
+      default:
+        value_repr: '...'
+        is_factory: true
+      is_class_var: false
+      is_computed: false
+    - name: pr
+      type_annotation: PRConfig
+      type_imports:
+      - path_sync._internal.models_dep.PRConfig
+      is_class_var: false
+      is_computed: false
+  - name: OnFailStrategy
+    module_path: _internal.models_dep
+    docstring: ''
+    line_number: 13
+    type: class
+    direct_bases:
+    - StrEnum
+    init_signature:
+      parameters:
+      - name: self
+        kind: positional_or_keyword
+        type_imports: []
+      - name: args
+        kind: var_positional
+        type_imports: []
+      - name: kwds
+        kind: var_keyword
+        type_imports: []
+      return_type_imports: []
+  - name: PRConfig
+    module_path: _internal.models_dep
+    docstring: ''
+    line_number: 40
+    type: class
+    direct_bases:
+    - BaseModel
+    fields:
+    - name: branch
+      type_annotation: str
+      type_imports: []
+      is_class_var: false
+      is_computed: false
+    - name: title
+      type_annotation: str
+      type_imports: []
+      is_class_var: false
+      is_computed: false
+    - name: labels
+      type_annotation: list[str]
+      type_imports: []
+      default:
+        value_repr: '...'
+        is_factory: true
+      is_class_var: false
+      is_computed: false
+    - name: auto_merge
+      type_annotation: bool
+      type_imports: []
+      default:
+        value_repr: 'False'
+        is_factory: false
+      is_class_var: false
+      is_computed: false
+  - name: UpdateEntry
+    module_path: _internal.models_dep
+    docstring: ''
+    line_number: 35
+    type: class
+    direct_bases:
+    - BaseModel
+    fields:
+    - name: workdir
+      type_annotation: str
+      type_imports: []
+      default:
+        value_repr: '''.'''
+        is_factory: false
+      is_class_var: false
+      is_computed: false
+    - name: command
+      type_annotation: str
+      type_imports: []
+      is_class_var: false
+      is_computed: false
+  - name: VerifyConfig
+    module_path: _internal.models_dep
+    docstring: ''
+    line_number: 30
+    type: class
+    direct_bases:
+    - BaseModel
+    fields:
+    - name: on_fail
+      type_annotation: OnFailStrategy
+      type_imports:
+      - path_sync._internal.models_dep.OnFailStrategy
+      default:
+        value_repr: '<OnFailStrategy.SKIP: ''skip''>'
+        is_factory: false
+      is_class_var: false
+      is_computed: false
+    - name: steps
+      type_annotation: list[VerifyStep]
+      type_imports:
+      - path_sync._internal.models_dep.VerifyStep
+      default:
+        value_repr: '...'
+        is_factory: true
+      is_class_var: false
+      is_computed: false
+  - name: VerifyStep
+    module_path: _internal.models_dep
+    docstring: ''
+    line_number: 24
+    type: class
+    direct_bases:
+    - BaseModel
+    fields:
+    - name: run
+      type_annotation: str
+      type_imports: []
+      is_class_var: false
+      is_computed: false
+    - name: commit
+      type_annotation: CommitConfig | None
+      type_imports:
+      - path_sync._internal.models_dep.CommitConfig
+      is_class_var: false
+      is_computed: false
+    - name: on_fail
+      type_annotation: OnFailStrategy | None
+      type_imports:
+      - path_sync._internal.models_dep.OnFailStrategy
+      is_class_var: false
+      is_computed: false
+dumped_at: 2026-01-27 07:56:27.745181+00:00

@@ -124,3 +124,8 @@ change_kind: default_removed
 details: 'field ''name'' default removed (was: PydanticUndefined)'
 field_name: name
 group: config
+---
+name: 0.4.0
+ts: 2026-01-27 07:56:27.779170+00:00
+type: release
+old_version: 0.3.5

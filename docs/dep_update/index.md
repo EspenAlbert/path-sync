@@ -23,7 +23,7 @@
 
 ### class: `CommitConfig`
 - [source](../../path_sync/_internal/models_dep.py#L19)
-> **Since:** unreleased
+> **Since:** 0.4.0
 
 ```python
 class CommitConfig(BaseModel):
@@ -33,15 +33,15 @@ class CommitConfig(BaseModel):
 
 | Field | Type | Default | Since |
 |---|---|---|---|
-| message | `str` | - | unreleased |
-| add_paths | `list[str]` | `...` | unreleased |
+| message | `str` | - | 0.4.0 |
+| add_paths | `list[str]` | `...` | 0.4.0 |
 <!-- === OK_EDIT: pkg-ext commitconfig_def === -->
 <!-- === DO_NOT_EDIT: pkg-ext depconfig_def === -->
 <a id="depconfig_def"></a>
 
 ### class: `DepConfig`
 - [source](../../path_sync/_internal/models_dep.py#L47)
-> **Since:** unreleased
+> **Since:** 0.4.0
 
 ```python
 class DepConfig(BaseModel):
@@ -56,20 +56,20 @@ class DepConfig(BaseModel):
 
 | Field | Type | Default | Since |
 |---|---|---|---|
-| name | `str` | - | unreleased |
-| from_config | `str` | - | unreleased |
-| include_destinations | `list[str]` | `...` | unreleased |
-| exclude_destinations | `list[str]` | `...` | unreleased |
-| updates | `list[UpdateEntry]` | - | unreleased |
-| verify | `VerifyConfig` | `...` | unreleased |
-| pr | `PRConfig` | - | unreleased |
+| name | `str` | - | 0.4.0 |
+| from_config | `str` | - | 0.4.0 |
+| include_destinations | `list[str]` | `...` | 0.4.0 |
+| exclude_destinations | `list[str]` | `...` | 0.4.0 |
+| updates | `list[UpdateEntry]` | - | 0.4.0 |
+| verify | `VerifyConfig` | `...` | 0.4.0 |
+| pr | `PRConfig` | - | 0.4.0 |
 <!-- === OK_EDIT: pkg-ext depconfig_def === -->
 <!-- === DO_NOT_EDIT: pkg-ext onfailstrategy_def === -->
 <a id="onfailstrategy_def"></a>
 
 ### class: `OnFailStrategy`
 - [source](../../path_sync/_internal/models_dep.py#L13)
-> **Since:** unreleased
+> **Since:** 0.4.0
 
 ```python
 class OnFailStrategy(StrEnum):
@@ -81,7 +81,7 @@ class OnFailStrategy(StrEnum):
 
 ### class: `PRConfig`
 - [source](../../path_sync/_internal/models_dep.py#L40)
-> **Since:** unreleased
+> **Since:** 0.4.0
 
 ```python
 class PRConfig(BaseModel):
@@ -93,17 +93,17 @@ class PRConfig(BaseModel):
 
 | Field | Type | Default | Since |
 |---|---|---|---|
-| branch | `str` | - | unreleased |
-| title | `str` | - | unreleased |
-| labels | `list[str]` | `...` | unreleased |
-| auto_merge | `bool` | `False` | unreleased |
+| branch | `str` | - | 0.4.0 |
+| title | `str` | - | 0.4.0 |
+| labels | `list[str]` | `...` | 0.4.0 |
+| auto_merge | `bool` | `False` | 0.4.0 |
 <!-- === OK_EDIT: pkg-ext prconfig_def === -->
 <!-- === DO_NOT_EDIT: pkg-ext updateentry_def === -->
 <a id="updateentry_def"></a>
 
 ### class: `UpdateEntry`
 - [source](../../path_sync/_internal/models_dep.py#L35)
-> **Since:** unreleased
+> **Since:** 0.4.0
 
 ```python
 class UpdateEntry(BaseModel):
@@ -113,15 +113,15 @@ class UpdateEntry(BaseModel):
 
 | Field | Type | Default | Since |
 |---|---|---|---|
-| workdir | `str` | `'.'` | unreleased |
-| command | `str` | - | unreleased |
+| workdir | `str` | `'.'` | 0.4.0 |
+| command | `str` | - | 0.4.0 |
 <!-- === OK_EDIT: pkg-ext updateentry_def === -->
 <!-- === DO_NOT_EDIT: pkg-ext verifyconfig_def === -->
 <a id="verifyconfig_def"></a>
 
 ### class: `VerifyConfig`
 - [source](../../path_sync/_internal/models_dep.py#L30)
-> **Since:** unreleased
+> **Since:** 0.4.0
 
 ```python
 class VerifyConfig(BaseModel):
@@ -131,15 +131,15 @@ class VerifyConfig(BaseModel):
 
 | Field | Type | Default | Since |
 |---|---|---|---|
-| on_fail | `OnFailStrategy` | `<OnFailStrategy.SKIP: 'skip'>` | unreleased |
-| steps | `list[VerifyStep]` | `...` | unreleased |
+| on_fail | `OnFailStrategy` | `<OnFailStrategy.SKIP: 'skip'>` | 0.4.0 |
+| steps | `list[VerifyStep]` | `...` | 0.4.0 |
 <!-- === OK_EDIT: pkg-ext verifyconfig_def === -->
 <!-- === DO_NOT_EDIT: pkg-ext verifystep_def === -->
 <a id="verifystep_def"></a>
 
 ### class: `VerifyStep`
 - [source](../../path_sync/_internal/models_dep.py#L24)
-> **Since:** unreleased
+> **Since:** 0.4.0
 
 ```python
 class VerifyStep(BaseModel):
@@ -150,16 +150,16 @@ class VerifyStep(BaseModel):
 
 | Field | Type | Default | Since |
 |---|---|---|---|
-| run | `str` | - | unreleased |
-| commit | `CommitConfig | None` | - | unreleased |
-| on_fail | `OnFailStrategy | None` | - | unreleased |
+| run | `str` | - | 0.4.0 |
+| commit | `CommitConfig | None` | - | 0.4.0 |
+| on_fail | `OnFailStrategy | None` | - | 0.4.0 |
 <!-- === OK_EDIT: pkg-ext verifystep_def === -->
 <!-- === DO_NOT_EDIT: pkg-ext dep_update_def === -->
 <a id="dep_update_def"></a>
 
 ### cli_command: `dep_update`
 - [source](../../path_sync/_internal/cmd_dep_update.py#L66)
-> **Since:** unreleased
+> **Since:** 0.4.0
 
 ```python
 def dep_update(*, name: str = ..., dest_filter: str = '', work_dir: str = '', dry_run: bool = False, skip_verify: bool = False, src_root_opt: str = '') -> None:

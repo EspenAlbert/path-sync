@@ -30,6 +30,6 @@ class PathMapping(BaseModel):
 
 | Version | Change |
 |---------|--------|
+| 0.4.0 | field 'src_path' default removed (was: PydanticUndefined) |
 | 0.3.0 | Made public |
-| unreleased | field 'src_path' default removed (was: PydanticUndefined) |
 <!-- === OK_EDIT: pkg-ext pathmapping_changes === -->

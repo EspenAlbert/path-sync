@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.4.0 2026-01-27T07-56Z
+
+### Config
+- BREAKING `config.PathMapping`: field 'src_path' default removed (was: PydanticUndefined)
+- BREAKING `config.SrcConfig`: field 'name' default removed (was: PydanticUndefined)
+- BREAKING `config.Destination`: field 'dest_path_relative' default removed (was: PydanticUndefined)
+- BREAKING `config.Destination`: field 'name' default removed (was: PydanticUndefined)
+
+### Dep_Update
+- New function `dep_update`
+- New class `OnFailStrategy`
+- New class `CommitConfig`
+- New class `VerifyStep`
+- New class `VerifyConfig`
+- New class `UpdateEntry`
+- New class `PRConfig`
+- New class `DepConfig`
+
+
 ## 0.3.5 2026-01-24T19-46Z
 
 ### Copy

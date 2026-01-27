@@ -36,6 +36,6 @@ class SrcConfig(BaseModel):
 
 | Version | Change |
 |---------|--------|
+| 0.4.0 | field 'name' default removed (was: PydanticUndefined) |
 | 0.3.0 | Made public |
-| unreleased | field 'name' default removed (was: PydanticUndefined) |
 <!-- === OK_EDIT: pkg-ext srcconfig_changes === -->
