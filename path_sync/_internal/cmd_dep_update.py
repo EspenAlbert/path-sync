@@ -172,7 +172,7 @@ def _run_command(cmd: str, cwd: Path) -> None:
     logger.info(f"Running: {cmd}")
     result = subprocess.run(cmd, shell=True, cwd=cwd, capture_output=True, text=True)
     if result.returncode != 0:
-        logger.error(f"Command failed: {result.stderr}")
+        logger.error(f"Command failed '{cmd}' in {cwd}: {result.stderr}")
         raise subprocess.CalledProcessError(result.returncode, cmd)
 
 
@@ -192,13 +192,14 @@ def _run_verify_steps(
         try:
             _run_command(step.run, repo_path)
         except subprocess.CalledProcessError as e:
+            error_msg = f"`{step.run}` failed: {e}"
             match on_fail:
                 case OnFailStrategy.FAIL:
-                    return ("failed", [])
+                    return ("failed", [error_msg])
                 case OnFailStrategy.SKIP:
-                    return ("skipped", [])
+                    return ("skipped", [error_msg])
                 case OnFailStrategy.WARN:
-                    warnings.append(f"`{step.run}` failed: {e}")
+                    warnings.append(error_msg)
                     continue
 
         if step.commit:
