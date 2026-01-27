@@ -1,0 +1,126 @@
+name: stage_and_commit
+ts: 2026-01-27 07:32:32.448322+00:00
+type: keep_private
+full_path: _internal.git_ops.stage_and_commit
+---
+name: dep_update
+ts: 2026-01-27 07:33:02.740468+00:00
+type: group_module
+module_path: _internal.cmd_dep_update
+---
+name: dep_update
+ts: 2026-01-27 07:33:02.741385+00:00
+type: make_public
+details: CLI command in _internal/cmd_dep_update.py
+full_path: _internal.cmd_dep_update.dep_update
+group: dep_update
+---
+name: resolve_dep_config_path
+ts: 2026-01-27 07:33:10.438185+00:00
+type: keep_private
+full_path: _internal.models_dep.resolve_dep_config_path
+---
+name: Status
+ts: 2026-01-27 07:33:30.726723+00:00
+type: keep_private
+full_path: _internal.cmd_dep_update.Status
+---
+name: StepFailure
+ts: 2026-01-27 07:33:30.726837+00:00
+type: keep_private
+full_path: _internal.cmd_dep_update.StepFailure
+---
+name: RepoResult
+ts: 2026-01-27 07:33:30.726850+00:00
+type: keep_private
+full_path: _internal.cmd_dep_update.RepoResult
+---
+name: dep_update
+ts: 2026-01-27 07:33:53.912772+00:00
+type: group_module
+module_path: _internal.models_dep
+---
+name: OnFailStrategy
+ts: 2026-01-27 07:33:53.914728+00:00
+type: make_public
+details: created in _internal/models_dep.py
+full_path: _internal.models_dep.OnFailStrategy
+group: dep_update
+---
+name: CommitConfig
+ts: 2026-01-27 07:33:53.916351+00:00
+type: make_public
+details: created in _internal/models_dep.py
+full_path: _internal.models_dep.CommitConfig
+group: dep_update
+---
+name: VerifyStep
+ts: 2026-01-27 07:33:53.917577+00:00
+type: make_public
+details: created in _internal/models_dep.py
+full_path: _internal.models_dep.VerifyStep
+group: dep_update
+---
+name: VerifyConfig
+ts: 2026-01-27 07:33:53.918764+00:00
+type: make_public
+details: created in _internal/models_dep.py
+full_path: _internal.models_dep.VerifyConfig
+group: dep_update
+---
+name: UpdateEntry
+ts: 2026-01-27 07:33:53.920035+00:00
+type: make_public
+details: created in _internal/models_dep.py
+full_path: _internal.models_dep.UpdateEntry
+group: dep_update
+---
+name: PRConfig
+ts: 2026-01-27 07:33:53.921317+00:00
+type: make_public
+details: created in _internal/models_dep.py
+full_path: _internal.models_dep.PRConfig
+group: dep_update
+---
+name: DepConfig
+ts: 2026-01-27 07:33:53.922561+00:00
+type: make_public
+details: created in _internal/models_dep.py
+full_path: _internal.models_dep.DepConfig
+group: dep_update
+---
+name: PathMapping
+ts: 2026-01-27 07:33:54.316693+00:00
+type: breaking_change
+auto_generated: true
+change_kind: default_removed
+details: 'field ''src_path'' default removed (was: PydanticUndefined)'
+field_name: src_path
+group: config
+---
+name: SrcConfig
+ts: 2026-01-27 07:33:54.316705+00:00
+type: breaking_change
+auto_generated: true
+change_kind: default_removed
+details: 'field ''name'' default removed (was: PydanticUndefined)'
+field_name: name
+group: config
+---
+name: Destination
+ts: 2026-01-27 07:33:54.316709+00:00
+type: breaking_change
+auto_generated: true
+change_kind: default_removed
+details: 'field ''dest_path_relative'' default removed (was: PydanticUndefined)'
+field_name: dest_path_relative
+group: config
+---
+name: Destination
+ts: 2026-01-27 07:33:54.316712+00:00
+type: breaking_change
+auto_generated: true
+change_kind: default_removed
+details: 'field ''name'' default removed (was: PydanticUndefined)'
+field_name: name
+group: config

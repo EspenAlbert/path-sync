@@ -13,8 +13,13 @@ theme:
 # === DO_NOT_EDIT: pkg-ext nav ===
 nav:
   - Home: index.md
-  - config: config/index.md
+  - config:
+    - Overview: config/index.md
+    - Destination: config/destination.md
+    - PathMapping: config/pathmapping.md
+    - SrcConfig: config/srcconfig.md
   - copy: copy/index.md
+  - dep_update: dep_update/index.md
 # === OK_EDIT: pkg-ext nav ===
 
 # === DO_NOT_EDIT: pkg-ext extensions ===

@@ -16,3 +16,16 @@ groups:
   - _internal.cmd_copy
   owned_refs:
   - _internal.cmd_copy.CopyOptions
+- name: dep_update
+  owned_modules:
+  - _internal.cmd_dep_update
+  - _internal.models_dep
+  owned_refs:
+  - _internal.cmd_dep_update.dep_update
+  - _internal.models_dep.CommitConfig
+  - _internal.models_dep.DepConfig
+  - _internal.models_dep.OnFailStrategy
+  - _internal.models_dep.PRConfig
+  - _internal.models_dep.UpdateEntry
+  - _internal.models_dep.VerifyConfig
+  - _internal.models_dep.VerifyStep
