@@ -30,7 +30,6 @@ class VerifyStep(BaseModel):
 class VerifyConfig(BaseModel):
     on_fail: OnFailStrategy = OnFailStrategy.SKIP
     steps: list[VerifyStep] = Field(default_factory=list)
-    max_stderr_lines: int = 20
 
 
 class UpdateEntry(BaseModel):

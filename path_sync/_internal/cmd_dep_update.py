@@ -10,6 +10,7 @@ import typer
 from git import Repo
 
 from path_sync._internal import cmd_options, git_ops
+from path_sync._internal.log_capture import capture_log
 from path_sync._internal.models import Destination, find_repo_root
 from path_sync._internal.models_dep import (
     DepConfig,
@@ -22,8 +23,6 @@ from path_sync._internal.typer_app import app
 from path_sync._internal.yaml_utils import load_yaml_model
 
 logger = logging.getLogger(__name__)
-
-DEFAULT_MAX_STDERR_LINES = 20
 
 
 class Status(StrEnum):
@@ -38,19 +37,7 @@ class Status(StrEnum):
 class StepFailure:
     step: str
     returncode: int
-    stderr: str
     on_fail: OnFailStrategy
-
-    @classmethod
-    def from_error(
-        cls,
-        step: str,
-        e: subprocess.CalledProcessError,
-        on_fail: OnFailStrategy,
-        max_stderr_lines: int = DEFAULT_MAX_STDERR_LINES,
-    ) -> StepFailure:
-        stderr = _truncate_stderr(e.stderr or "", max_stderr_lines)
-        return cls(step=step, returncode=e.returncode, stderr=stderr, on_fail=on_fail)
 
 
 @dataclass
@@ -59,6 +46,7 @@ class RepoResult:
     repo_path: Path
     status: Status
     failures: list[StepFailure] = field(default_factory=list)
+    log_content: str = ""
 
 
 @dataclass
@@ -67,15 +55,6 @@ class DepUpdateOptions:
     skip_verify: bool = False
     reviewers: list[str] | None = None
     assignees: list[str] | None = None
-    max_stderr_lines: int = 0  # 0 means use config value
-
-
-def _truncate_stderr(text: str, max_lines: int) -> str:
-    lines = text.strip().splitlines()
-    if len(lines) <= max_lines:
-        return text.strip()
-    skipped = len(lines) - max_lines
-    return f"... ({skipped} lines skipped)\n" + "\n".join(lines[-max_lines:])
 
 
 @app.command()
@@ -88,7 +67,6 @@ def dep_update(
     src_root_opt: str = typer.Option("", "--src-root", help="Source repo root"),
     pr_reviewers: str = cmd_options.pr_reviewers_option(),
     pr_assignees: str = cmd_options.pr_assignees_option(),
-    max_stderr_lines: int = typer.Option(0, "--max-stderr-lines", help="Max stderr lines in PR body (0=use config)"),
 ) -> None:
     """Run dependency updates across repositories."""
     src_root = Path(src_root_opt) if src_root_opt else find_repo_root(Path.cwd())
@@ -109,7 +87,6 @@ def dep_update(
         skip_verify=skip_verify,
         reviewers=cmd_options.split_csv(pr_reviewers) or config.pr.reviewers,
         assignees=cmd_options.split_csv(pr_assignees) or config.pr.assignees,
-        max_stderr_lines=max_stderr_lines,
     )
 
     results = _update_and_validate(config, destinations, src_root, work_dir, opts)
@@ -148,43 +125,52 @@ def _process_single_repo(
     work_dir: str,
     opts: DepUpdateOptions,
 ) -> RepoResult:
+    with capture_log(dest.name) as read_log:
+        result = _process_single_repo_inner(config, dest, src_root, work_dir, opts)
+        result.log_content = read_log()
+    return result
+
+
+def _process_single_repo_inner(
+    config: DepConfig,
+    dest: Destination,
+    src_root: Path,
+    work_dir: str,
+    opts: DepUpdateOptions,
+) -> RepoResult:
     logger.info(f"Processing {dest.name}...")
     repo_path = _resolve_repo_path(dest, src_root, work_dir)
     repo = _ensure_repo(dest, repo_path)
     git_ops.prepare_copy_branch(repo, dest.default_branch, config.pr.branch, from_default=True)
 
-    max_stderr = opts.max_stderr_lines or config.verify.max_stderr_lines
-    if failure := _run_updates(config.updates, repo_path, max_stderr):
+    if failure := _run_updates(config.updates, repo_path):
         logger.warning(f"{dest.name}: Update failed with exit code {failure.returncode}")
-        return RepoResult(dest, repo_path, Status.SKIPPED, failures=[failure])
+        return RepoResult(dest=dest, repo_path=repo_path, status=Status.SKIPPED, failures=[failure])
 
     if not git_ops.has_changes(repo):
         logger.info(f"{dest.name}: No changes, skipping")
-        return RepoResult(dest, repo_path, Status.NO_CHANGES)
+        return RepoResult(dest=dest, repo_path=repo_path, status=Status.NO_CHANGES)
 
     git_ops.commit_changes(repo, config.pr.title)
 
     if opts.skip_verify:
-        return RepoResult(dest, repo_path, Status.PASSED)
+        return RepoResult(dest=dest, repo_path=repo_path, status=Status.PASSED)
 
-    return _verify_repo(repo, repo_path, config.verify, dest, max_stderr)
+    return _verify_repo(repo, repo_path, config.verify, dest)
 
 
-def _run_updates(updates: list[UpdateEntry], repo_path: Path, max_stderr_lines: int) -> StepFailure | None:
-    """Returns StepFailure on failure, None on success."""
+def _run_updates(updates: list[UpdateEntry], repo_path: Path) -> StepFailure | None:
     try:
         for update in updates:
             _run_command(update.command, repo_path / update.workdir)
         return None
     except subprocess.CalledProcessError as e:
-        return StepFailure.from_error(e.cmd, e, OnFailStrategy.SKIP, max_stderr_lines)
+        return StepFailure(step=e.cmd, returncode=e.returncode, on_fail=OnFailStrategy.SKIP)
 
 
-def _verify_repo(
-    repo: Repo, repo_path: Path, verify: VerifyConfig, dest: Destination, max_stderr_lines: int
-) -> RepoResult:
-    status, failures = _run_verify_steps(repo, repo_path, verify, max_stderr_lines)
-    return RepoResult(dest, repo_path, status, failures)
+def _verify_repo(repo: Repo, repo_path: Path, verify: VerifyConfig, dest: Destination) -> RepoResult:
+    status, failures = _run_verify_steps(repo, repo_path, verify)
+    return RepoResult(dest=dest, repo_path=repo_path, status=status, failures=failures)
 
 
 def _create_prs(config: DepConfig, results: list[RepoResult], opts: DepUpdateOptions) -> None:
@@ -199,7 +185,7 @@ def _create_prs(config: DepConfig, results: list[RepoResult], opts: DepUpdateOpt
         repo = git_ops.get_repo(result.repo_path)
         git_ops.push_branch(repo, config.pr.branch, force=True)
 
-        body = _build_pr_body(result.failures)
+        body = _build_pr_body(result.log_content, result.failures)
         git_ops.create_or_update_pr(
             result.repo_path,
             config.pr.branch,
@@ -232,18 +218,19 @@ def _ensure_repo(dest: Destination, repo_path: Path):
 def _run_command(cmd: str, cwd: Path) -> None:
     logger.info(f"Running: {cmd}")
     result = subprocess.run(cmd, shell=True, cwd=cwd, capture_output=True, text=True)
+    prefix = cmd.split()[0]
+    for line in result.stdout.strip().splitlines():
+        logger.info(f"[{prefix}] {line}")
+    for line in result.stderr.strip().splitlines():
+        if result.returncode != 0:
+            logger.error(f"[{prefix}] {line}")
+        else:
+            logger.info(f"[{prefix}] {line}")
     if result.returncode != 0:
-        stderr = result.stderr.strip()
-        logger.error(f"Command failed '{cmd}' in {cwd}: {stderr}")
-        raise subprocess.CalledProcessError(result.returncode, cmd, output=result.stdout, stderr=stderr)
+        raise subprocess.CalledProcessError(result.returncode, cmd, output=result.stdout, stderr=result.stderr)
 
 
-def _run_verify_steps(
-    repo: Repo,
-    repo_path: Path,
-    verify: VerifyConfig,
-    max_stderr_lines: int,
-) -> tuple[Status, list[StepFailure]]:
+def _run_verify_steps(repo: Repo, repo_path: Path, verify: VerifyConfig) -> tuple[Status, list[StepFailure]]:
     failures: list[StepFailure] = []
 
     for step in verify.steps:
@@ -252,7 +239,7 @@ def _run_verify_steps(
         try:
             _run_command(step.run, repo_path)
         except subprocess.CalledProcessError as e:
-            failure = StepFailure.from_error(step.run, e, on_fail, max_stderr_lines)
+            failure = StepFailure(step=step.run, returncode=e.returncode, on_fail=on_fail)
             match on_fail:
                 case OnFailStrategy.FAIL:
                     return (Status.FAILED, [failure])
@@ -268,15 +255,15 @@ def _run_verify_steps(
     return (Status.WARN if failures else Status.PASSED, failures)
 
 
-def _build_pr_body(failures: list[StepFailure]) -> str:
+def _build_pr_body(log_content: str, failures: list[StepFailure]) -> str:
     body = "Automated dependency update."
-    if not failures:
-        return body
 
-    body += "\n\n---\n## Verification Issues\n"
-    for f in failures:
-        body += f"\n### `{f.step}` (strategy: {f.on_fail})\n"
-        body += f"**Exit code:** {f.returncode}\n"
-        if f.stderr:
-            body += f"\n```\n{f.stderr}\n```\n"
+    if log_content.strip():
+        body += "\n\n## Command Output\n\n```\n" + log_content.strip() + "\n```"
+
+    if failures:
+        body += "\n\n---\n## Verification Issues\n"
+        for f in failures:
+            body += f"\n- `{f.step}` failed (exit code {f.returncode}, strategy: {f.on_fail})"
+
     return body

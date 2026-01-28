@@ -19,4 +19,4 @@ def pr_labels_option() -> str:
 
 def split_csv(value: str) -> list[str] | None:
     """Split comma-separated string, returns None if empty."""
-    return value.split(",") if value else None
+    return [v.strip() for v in value.split(",")] if value else None

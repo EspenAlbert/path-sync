@@ -331,7 +331,6 @@ updates:
 
 verify:
   on_fail: skip  # default strategy: skip, fail, warn
-  max_stderr_lines: 30  # truncate stderr in PR body
   steps:
     - run: uv sync
     - run: just fmt
@@ -357,7 +356,6 @@ pr:
 | `exclude_destinations` | Skip these destinations |
 | `updates` | Commands to run (in order) |
 | `verify.on_fail` | Default failure strategy: `skip`, `fail`, `warn` |
-| `verify.max_stderr_lines` | Max stderr lines in PR body (default: 20) |
 | `verify.steps` | Verification commands with optional commit/on_fail |
 | `pr.auto_merge` | Enable GitHub auto-merge after PR creation |
 

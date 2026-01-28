@@ -7,14 +7,12 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from path_sync._internal.cmd_dep_update import (
-    DEFAULT_MAX_STDERR_LINES,
     DepUpdateOptions,
     Status,
     StepFailure,
     _process_single_repo,
     _run_updates,
     _run_verify_steps,
-    _truncate_stderr,
 )
 from path_sync._internal.models import Destination
 from path_sync._internal.models_dep import (
@@ -152,7 +150,7 @@ def test_run_updates_success_returns_none(tmp_path: Path):
     updates = [UpdateEntry(command="echo 1"), UpdateEntry(command="echo 2", workdir="sub")]
 
     with patch(f"{MODULE}._run_command") as run_cmd:
-        result = _run_updates(updates, tmp_path, DEFAULT_MAX_STDERR_LINES)
+        result = _run_updates(updates, tmp_path)
 
         assert result is None
         assert run_cmd.call_count == 2
@@ -166,7 +164,7 @@ def test_run_updates_failure_returns_step_failure(tmp_path: Path):
     with patch(f"{MODULE}._run_command") as run_cmd:
         run_cmd.side_effect = subprocess.CalledProcessError(1, "fail")
 
-        result = _run_updates(updates, tmp_path, DEFAULT_MAX_STDERR_LINES)
+        result = _run_updates(updates, tmp_path)
 
         assert result is not None
         assert isinstance(result, StepFailure)
@@ -187,7 +185,7 @@ def test_verify_steps_all_pass(tmp_path: Path):
     mock_repo = MagicMock()
 
     with patch(f"{MODULE}._run_command"):
-        status, failures = _run_verify_steps(mock_repo, tmp_path, verify, DEFAULT_MAX_STDERR_LINES)
+        status, failures = _run_verify_steps(mock_repo, tmp_path, verify)
 
         assert status == Status.PASSED
         assert not failures
@@ -203,7 +201,7 @@ def test_verify_step_fails_with_skip_strategy(tmp_path: Path):
     with patch(f"{MODULE}._run_command") as run_cmd:
         run_cmd.side_effect = subprocess.CalledProcessError(1, "just test")
 
-        status, failures = _run_verify_steps(mock_repo, tmp_path, verify, DEFAULT_MAX_STDERR_LINES)
+        status, failures = _run_verify_steps(mock_repo, tmp_path, verify)
 
         assert status == Status.SKIPPED
         assert len(failures) == 1
@@ -221,7 +219,7 @@ def test_verify_step_fails_with_fail_strategy(tmp_path: Path):
     with patch(f"{MODULE}._run_command") as run_cmd:
         run_cmd.side_effect = subprocess.CalledProcessError(1, "just test")
 
-        status, failures = _run_verify_steps(mock_repo, tmp_path, verify, DEFAULT_MAX_STDERR_LINES)
+        status, failures = _run_verify_steps(mock_repo, tmp_path, verify)
 
         assert status == Status.FAILED
         assert len(failures) == 1
@@ -245,7 +243,7 @@ def test_verify_step_fails_with_warn_strategy_continues(tmp_path: Path):
             None,  # just test passes
         ]
 
-        status, failures = _run_verify_steps(mock_repo, tmp_path, verify, DEFAULT_MAX_STDERR_LINES)
+        status, failures = _run_verify_steps(mock_repo, tmp_path, verify)
 
         assert status == Status.WARN
         assert len(failures) == 1
@@ -265,7 +263,7 @@ def test_verify_step_with_commit_stages_and_commits(tmp_path: Path):
     mock_repo = MagicMock()
 
     with patch(f"{MODULE}._run_command"), patch(f"{MODULE}.git_ops") as git_ops:
-        status, failures = _run_verify_steps(mock_repo, tmp_path, verify, DEFAULT_MAX_STDERR_LINES)
+        status, failures = _run_verify_steps(mock_repo, tmp_path, verify)
 
         assert status == Status.PASSED
         assert not failures
@@ -284,29 +282,8 @@ def test_verify_per_step_on_fail_overrides_verify_level(tmp_path: Path):
     with patch(f"{MODULE}._run_command") as run_cmd:
         run_cmd.side_effect = subprocess.CalledProcessError(1, "just fmt")
 
-        status, failures = _run_verify_steps(mock_repo, tmp_path, verify, DEFAULT_MAX_STDERR_LINES)
+        status, failures = _run_verify_steps(mock_repo, tmp_path, verify)
 
         assert status == Status.WARN  # Uses step-level override, not verify-level
         assert len(failures) == 1
         assert failures[0].on_fail == OnFailStrategy.WARN
-
-
-# --- _truncate_stderr tests ---
-
-
-def test_truncate_stderr_short_text_unchanged():
-    text = "line1\nline2\nline3"
-    result = _truncate_stderr(text, max_lines=5)
-    assert result == "line1\nline2\nline3"
-
-
-def test_truncate_stderr_keeps_last_lines():
-    lines = [f"line{i}" for i in range(30)]
-    text = "\n".join(lines)
-
-    result = _truncate_stderr(text, max_lines=5)
-
-    assert result.startswith("... (25 lines skipped)")
-    assert "line25" in result
-    assert "line29" in result
-    assert "line0" not in result
