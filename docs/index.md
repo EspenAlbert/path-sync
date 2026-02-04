@@ -370,7 +370,6 @@ pr:
 | `--skip-verify` | Skip verification steps |
 | `--pr-reviewers` | Override PR reviewers (comma-separated) |
 | `--pr-assignees` | Override PR assignees (comma-separated) |
-| `--max-stderr-lines` | Override max stderr lines (0=use config) |
 
 ### Failure Strategies
 
