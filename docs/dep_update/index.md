@@ -46,7 +46,7 @@ Run dependency updates across repositories.
 
 | Version | Change |
 |---------|--------|
-| unreleased | fix(dep-update): add user confirmation for removing invalid git repositories |
-| unreleased | fix(dep-update): handle corrupted git repos and reset existing repos to default branch |
+| 0.4.1 | fix(dep-update): add user confirmation for removing invalid git repositories |
+| 0.4.1 | fix(dep-update): handle corrupted git repos and reset existing repos to default branch |
 | 0.4.0 | Made public |
 <!-- === OK_EDIT: pkg-ext dep_update_def === -->

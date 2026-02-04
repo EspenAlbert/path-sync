@@ -32,6 +32,7 @@ class PRDefaults(PRFieldsBase):
 
 | Version | Change |
 |---------|--------|
-| unreleased | added base class 'PRFieldsBase' |
+| 0.4.1 | added base class 'BaseModel' |
+| 0.4.1 | added base class 'PRFieldsBase' |
 | 0.3.0 | Made public |
 <!-- === OK_EDIT: pkg-ext prdefaults_changes === -->

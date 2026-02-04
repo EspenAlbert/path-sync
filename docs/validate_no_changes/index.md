@@ -12,7 +12,7 @@
 
 ### cli_command: `validate_no_changes`
 - [source](../../path_sync/_internal/cmd_validate.py#L16)
-> **Since:** unreleased
+> **Since:** 0.4.1
 
 ```python
 def validate_no_changes(*, branch: str = 'main', skip_sections_opt: str = '', src_root_opt: str = '') -> None:
@@ -33,5 +33,5 @@ Validate no unauthorized changes to synced files.
 
 | Version | Change |
 |---------|--------|
-| unreleased | Made public |
+| 0.4.1 | Made public |
 <!-- === OK_EDIT: pkg-ext validate_no_changes_def === -->

@@ -1,0 +1,134 @@
+name: DepConfig
+ts: 2026-02-04 09:33:47.987419+00:00
+type: additional_change
+auto_generated: true
+change_kind: base_class_added
+details: added base class 'BaseModel'
+group: dep_update
+---
+name: UpdateEntry
+ts: 2026-02-04 09:33:47.987432+00:00
+type: additional_change
+auto_generated: true
+change_kind: base_class_added
+details: added base class 'BaseModel'
+group: dep_update
+---
+name: CommitConfig
+ts: 2026-02-04 09:33:47.987436+00:00
+type: additional_change
+auto_generated: true
+change_kind: base_class_added
+details: added base class 'BaseModel'
+group: dep_update
+---
+name: VerifyStep
+ts: 2026-02-04 09:33:47.987438+00:00
+type: additional_change
+auto_generated: true
+change_kind: base_class_added
+details: added base class 'BaseModel'
+group: dep_update
+---
+name: VerifyStep
+ts: 2026-02-04 09:33:47.987441+00:00
+type: additional_change
+auto_generated: true
+change_kind: default_added
+details: 'field ''commit'' default added: None'
+field_name: commit
+group: dep_update
+---
+name: VerifyStep
+ts: 2026-02-04 09:33:47.987443+00:00
+type: additional_change
+auto_generated: true
+change_kind: default_added
+details: 'field ''on_fail'' default added: None'
+field_name: on_fail
+group: dep_update
+---
+name: OnFailStrategy
+ts: 2026-02-04 09:33:47.987445+00:00
+type: additional_change
+auto_generated: true
+change_kind: base_class_added
+details: added base class 'StrEnum'
+group: dep_update
+---
+name: VerifyConfig
+ts: 2026-02-04 09:33:47.987447+00:00
+type: additional_change
+auto_generated: true
+change_kind: base_class_added
+details: added base class 'BaseModel'
+group: dep_update
+---
+name: PRConfig
+ts: 2026-02-04 09:33:47.987450+00:00
+type: additional_change
+auto_generated: true
+change_kind: base_class_added
+details: added base class 'BaseModel'
+group: dep_update
+---
+name: SyncMode
+ts: 2026-02-04 09:33:47.987456+00:00
+type: additional_change
+auto_generated: true
+change_kind: base_class_added
+details: added base class 'StrEnum'
+group: config
+---
+name: SrcConfig
+ts: 2026-02-04 09:33:47.987458+00:00
+type: additional_change
+auto_generated: true
+change_kind: base_class_added
+details: added base class 'BaseModel'
+group: config
+---
+name: HeaderConfig
+ts: 2026-02-04 09:33:47.987460+00:00
+type: additional_change
+auto_generated: true
+change_kind: base_class_added
+details: added base class 'BaseModel'
+group: config
+---
+name: PathMapping
+ts: 2026-02-04 09:33:47.987462+00:00
+type: additional_change
+auto_generated: true
+change_kind: base_class_added
+details: added base class 'BaseModel'
+group: config
+---
+name: PRDefaults
+ts: 2026-02-04 09:33:47.987464+00:00
+type: additional_change
+auto_generated: true
+change_kind: base_class_added
+details: added base class 'BaseModel'
+group: config
+---
+name: Destination
+ts: 2026-02-04 09:33:47.987466+00:00
+type: additional_change
+auto_generated: true
+change_kind: base_class_added
+details: added base class 'BaseModel'
+group: config
+---
+name: CopyOptions
+ts: 2026-02-04 09:33:47.987468+00:00
+type: additional_change
+auto_generated: true
+change_kind: base_class_added
+details: added base class 'BaseModel'
+group: copy
+---
+name: 0.4.1
+ts: 2026-02-04 09:44:43.724146+00:00
+type: release
+old_version: 0.4.0

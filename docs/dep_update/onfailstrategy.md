@@ -16,6 +16,6 @@ class OnFailStrategy(StrEnum):
 
 | Version | Change |
 |---------|--------|
-| unreleased | added base class 'StrEnum' |
+| 0.4.1 | added base class 'StrEnum' |
 | 0.4.0 | Made public |
 <!-- === OK_EDIT: pkg-ext onfailstrategy_changes === -->

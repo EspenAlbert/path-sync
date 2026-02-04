@@ -1,5 +1,30 @@
 # Changelog
 
+## 0.4.1 2026-02-04T09-44Z
+
+### Config
+- `config.SyncMode`: added base class 'StrEnum'
+- `config.SrcConfig`: added base class 'BaseModel'
+- `config.HeaderConfig`: added base class 'BaseModel'
+- `config.PathMapping`: added base class 'BaseModel'
+- `config.PRDefaults`: added base class 'BaseModel'
+- `config.Destination`: added base class 'BaseModel'
+
+### Copy
+- `copy.CopyOptions`: added base class 'BaseModel'
+
+### Dep_Update
+- `dep_update.DepConfig`: added base class 'BaseModel'
+- `dep_update.UpdateEntry`: added base class 'BaseModel'
+- `dep_update.CommitConfig`: added base class 'BaseModel'
+- `dep_update.VerifyStep`: added base class 'BaseModel'
+- `dep_update.VerifyStep`: field 'commit' default added: None
+- `dep_update.VerifyStep`: field 'on_fail' default added: None
+- `dep_update.OnFailStrategy`: added base class 'StrEnum'
+- `dep_update.VerifyConfig`: added base class 'BaseModel'
+- `dep_update.PRConfig`: added base class 'BaseModel'
+
+
 ## 0.4.0 2026-01-27T07-56Z
 
 ### Config

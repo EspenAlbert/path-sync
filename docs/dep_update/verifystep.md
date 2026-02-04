@@ -18,16 +18,16 @@ class VerifyStep(BaseModel):
 | Field | Type | Default | Since |
 |---|---|---|---|
 | run | `str` | - | 0.4.0 |
-| commit | `CommitConfig | None` | `None` | 0.4.0 |
-| on_fail | `OnFailStrategy | None` | `None` | 0.4.0 |
+| commit | `CommitConfig | None` | `None` | unreleased |
+| on_fail | `OnFailStrategy | None` | `None` | unreleased |
 
 <!-- === DO_NOT_EDIT: pkg-ext verifystep_changes === -->
 ### Changes
 
 | Version | Change |
 |---------|--------|
-| unreleased | field 'commit' default added: None |
-| unreleased | field 'on_fail' default added: None |
-| unreleased | added base class 'BaseModel' |
+| 0.4.1 | field 'on_fail' default added: None |
+| 0.4.1 | field 'commit' default added: None |
+| 0.4.1 | added base class 'BaseModel' |
 | 0.4.0 | Made public |
 <!-- === OK_EDIT: pkg-ext verifystep_changes === -->

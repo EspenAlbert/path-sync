@@ -14,7 +14,7 @@
 
 ### cli_command: `copy`
 - [source](../../path_sync/_internal/cmd_copy.py#L60)
-> **Since:** unreleased
+> **Since:** 0.4.1
 
 ```python
 def copy(*, name: str = '', config_path_opt: str = '', src_root_opt: str = '', dest_filter: str = '', dry_run: bool = False, force_overwrite: bool = False, detailed_exit_code: bool = False, no_checkout: bool = False, checkout_from_default: bool = False, local: bool = False, no_prompt: bool = False, no_pr: bool = False, pr_title: str = '', pr_labels: str = '', pr_reviewers: str = '', pr_assignees: str = '', skip_orphan_cleanup: bool = False) -> None:
@@ -49,7 +49,7 @@ Copy files from SRC to DEST repositories.
 
 | Version | Change |
 |---------|--------|
-| unreleased | Made public |
+| 0.4.1 | Made public |
 | 0.3.5 | fix: --no-checkout was checked before --dry-run, so the dry-run flag was ignored when both were passed. |
 | 0.3.2 | fix: handle binary file copying and improve error handling for text reading |
 <!-- === OK_EDIT: pkg-ext copy_def === -->

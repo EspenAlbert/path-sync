@@ -32,8 +32,9 @@ class PRConfig(PRFieldsBase):
 
 | Version | Change |
 |---------|--------|
-| unreleased | added base class 'PRFieldsBase' |
-| unreleased | added optional field 'assignees' (default: ...) |
-| unreleased | added optional field 'reviewers' (default: ...) |
+| 0.4.1 | added base class 'BaseModel' |
+| 0.4.1 | added base class 'PRFieldsBase' |
+| 0.4.1 | added optional field 'assignees' (default: ...) |
+| 0.4.1 | added optional field 'reviewers' (default: ...) |
 | 0.4.0 | Made public |
 <!-- === OK_EDIT: pkg-ext prconfig_changes === -->
