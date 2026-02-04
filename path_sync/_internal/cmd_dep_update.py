@@ -10,7 +10,7 @@ from pathlib import Path
 import typer
 from git import Repo
 
-from path_sync._internal import cmd_options, git_ops
+from path_sync._internal import cmd_options, git_ops, prompt_utils
 from path_sync._internal.log_capture import capture_log
 from path_sync._internal.models import Destination, find_repo_root
 from path_sync._internal.models_dep import (
@@ -214,7 +214,9 @@ def _ensure_repo(dest: Destination, repo_path: Path, default_branch: str) -> Rep
             repo = git_ops.get_repo(repo_path)
             git_ops.fetch_and_reset_to_default(repo, default_branch)
             return repo
-        logger.warning(f"Removing invalid git repo at {repo_path}")
+        logger.warning(f"Invalid git repo at {repo_path}")
+        if not prompt_utils.prompt_confirm(f"Remove {repo_path} and re-clone?"):
+            raise typer.Abort()
         shutil.rmtree(repo_path)
     if not dest.repo_url:
         raise ValueError(f"Dest {dest.name} not found at {repo_path} and no repo_url configured")

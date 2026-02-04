@@ -10,7 +10,7 @@ import typer
 from pydantic import BaseModel
 
 from path_sync import sections
-from path_sync._internal import cmd_options, git_ops, header
+from path_sync._internal import cmd_options, git_ops, header, prompt_utils
 from path_sync._internal.file_utils import ensure_parents_write_text
 from path_sync._internal.log_capture import capture_log
 from path_sync._internal.models import (
@@ -29,16 +29,6 @@ logger = logging.getLogger(__name__)
 EXIT_NO_CHANGES = 0
 EXIT_CHANGES = 1
 EXIT_ERROR = 2
-
-
-def _prompt(message: str, no_prompt: bool) -> bool:
-    if no_prompt:
-        return True
-    try:
-        response = input(f"{message} [y/n]: ").strip().lower()
-        return response == "y"
-    except (EOFError, KeyboardInterrupt):
-        return False
 
 
 @dataclass
@@ -212,7 +202,7 @@ def _sync_destination(
         skip_git_ops = True
     elif opts.no_checkout:
         skip_git_ops = False
-    elif _prompt(f"Switch {dest.name} to {copy_branch}?", opts.no_prompt):
+    elif prompt_utils.prompt_confirm(f"Switch {dest.name} to {copy_branch}?", opts.no_prompt):
         git_ops.prepare_copy_branch(
             repo=dest_repo,
             default_branch=dest.default_branch,
@@ -510,20 +500,20 @@ def _commit_and_pr(
 
     copy_branch = dest.resolved_copy_branch(config.name)
 
-    if not _prompt(f"Commit changes to {dest.name}?", opts.no_prompt):
+    if not prompt_utils.prompt_confirm(f"Commit changes to {dest.name}?", opts.no_prompt):
         return
 
     commit_msg = f"chore: sync {config.name} from {sha[:8]}"
     git_ops.commit_changes(repo, commit_msg)
     typer.echo(f"  Committed: {commit_msg}", err=True)
 
-    if not _prompt(f"Push {dest.name} to origin?", opts.no_prompt):
+    if not prompt_utils.prompt_confirm(f"Push {dest.name} to origin?", opts.no_prompt):
         return
 
     git_ops.push_branch(repo, copy_branch, force=True)
     typer.echo(f"  Pushed: {copy_branch} (force)", err=True)
 
-    if opts.no_pr or not _prompt(f"Create PR for {dest.name}?", opts.no_prompt):
+    if opts.no_pr or not prompt_utils.prompt_confirm(f"Create PR for {dest.name}?", opts.no_prompt):
         return
 
     sync_log = read_log()
