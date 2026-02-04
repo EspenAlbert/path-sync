@@ -44,12 +44,6 @@ class CopyOptions(BaseModel):
 
 | Version | Change |
 |---------|--------|
-| unreleased | added optional field 'labels' (default: None) |
-| unreleased | added optional field 'reviewers' (default: None) |
-| unreleased | added optional field 'assignees' (default: None) |
-| unreleased | removed field 'pr_labels' |
-| unreleased | removed field 'pr_assignees' |
-| unreleased | removed field 'pr_reviewers' |
 | unreleased | added base class 'BaseModel' |
 | 0.3.0 | Made public |
 <!-- === OK_EDIT: pkg-ext copyoptions_changes === -->
