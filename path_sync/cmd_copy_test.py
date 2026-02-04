@@ -262,3 +262,30 @@ def test_file_mode_scaffold_skips_existing(tmp_path):
 
     assert changes == 0
     assert (dest_root / ".gitignore").read_text() == "user customized"
+
+
+def test_sync_new_file_respects_skip_sections(tmp_path):
+    """New file should not include skipped sections."""
+    src_root = tmp_path / "src"
+    dest_root = tmp_path / "dest"
+    src_root.mkdir()
+    dest_root.mkdir()
+
+    src_content = """\
+# === DO_NOT_EDIT: path-sync included ===
+keep this
+# === OK_EDIT: path-sync included ===
+# === DO_NOT_EDIT: path-sync skipped ===
+skip this
+# === OK_EDIT: path-sync skipped ==="""
+    (src_root / "file.sh").write_text(src_content)
+
+    dest = _make_dest(skip_sections={"file.sh": ["skipped"]})
+    mapping = PathMapping(src_path="file.sh")
+    changes, _ = _sync_path(mapping, src_root, dest_root, dest, CONFIG_NAME, False, False)
+
+    assert changes == 1
+    result = (dest_root / "file.sh").read_text()
+    assert "keep this" in result
+    assert "skipped" not in result
+    assert "skip this" not in result

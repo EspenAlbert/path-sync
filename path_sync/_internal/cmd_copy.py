@@ -445,6 +445,9 @@ def _handle_sync_sections(
             return 0
         dest_body = header.remove_header(existing)
         new_body = sections.replace_sections(dest_body, src_sections, dest_path, skip_list)
+    elif skip_list:
+        filtered = {k: v for k, v in src_sections.items() if k not in skip_list}
+        new_body = sections.build_sections_content(filtered, dest_path)
     else:
         new_body = src_content
 

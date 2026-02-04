@@ -25,10 +25,14 @@ from zero_3rdparty.sections import (
 from zero_3rdparty.sections import (
     wrap_in_default_section as _wrap_in_default_section,
 )
+from zero_3rdparty.sections import (
+    wrap_section as _wrap_section,
+)
 
 __all__ = [
     "Section",
     "SectionChanges",
+    "build_sections_content",
     "changed_sections",
     "extract_sections",
     "has_sections",
@@ -81,3 +85,10 @@ def changed_sections(
     skip: set[str] | None = None,
 ) -> SectionChanges:
     return _changed_sections(baseline_content, current_content, TOOL_NAME, get_comment_config(path), skip, str(path))
+
+
+def build_sections_content(section_dict: dict[str, str], path: Path) -> str:
+    """Build file content from a dict of section_id -> section_content."""
+    config = get_comment_config(path)
+    parts = [_wrap_section(content, section_id, TOOL_NAME, config) for section_id, content in section_dict.items()]
+    return "\n".join(parts)
