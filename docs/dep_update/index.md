@@ -19,7 +19,7 @@
 <a id="dep_update_def"></a>
 
 ### cli_command: `dep_update`
-- [source](../../path_sync/_internal/cmd_dep_update.py#L60)
+- [source](../../path_sync/_internal/cmd_dep_update.py#L61)
 > **Since:** 0.4.0
 
 ```python
@@ -46,5 +46,7 @@ Run dependency updates across repositories.
 
 | Version | Change |
 |---------|--------|
+| unreleased | fix(dep-update): add user confirmation for removing invalid git repositories |
+| unreleased | fix(dep-update): handle corrupted git repos and reset existing repos to default branch |
 | 0.4.0 | Made public |
 <!-- === OK_EDIT: pkg-ext dep_update_def === -->

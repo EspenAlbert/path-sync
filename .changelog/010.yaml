@@ -253,3 +253,30 @@ type: make_public
 details: promoted from private (_internal.cmd_validate.validate_no_changes)
 full_path: _internal.cmd_validate.validate_no_changes
 group: validate_no_changes
+---
+name: prompt_confirm
+ts: 2026-02-04 09:26:58.469773+00:00
+type: keep_private
+full_path: _internal.prompt_utils.prompt_confirm
+---
+name: fetch_and_reset_to_default
+ts: 2026-02-04 09:27:01.096531+00:00
+type: keep_private
+full_path: _internal.git_ops.fetch_and_reset_to_default
+---
+name: dep_update
+ts: 2026-02-04 09:27:20.297880+00:00
+type: fix
+author: Espen Albert
+changelog_message: 'fix(dep-update): handle corrupted git repos and reset existing repos to default branch'
+message: 'fix(dep-update): handle corrupted git repos and reset existing repos to default branch'
+short_sha: 6be625
+---
+name: dep_update
+ts: 2026-02-04 09:27:29.033930+00:00
+type: fix
+author: Espen Albert
+changelog_message: 'fix(dep-update): add user confirmation for removing invalid git repositories'
+ignored: true
+message: 'fix(dep-update): add user confirmation for removing invalid git repositories'
+short_sha: e3e1af

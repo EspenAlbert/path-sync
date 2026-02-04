@@ -13,7 +13,7 @@
 <a id="copy_def"></a>
 
 ### cli_command: `copy`
-- [source](../../path_sync/_internal/cmd_copy.py#L70)
+- [source](../../path_sync/_internal/cmd_copy.py#L60)
 > **Since:** unreleased
 
 ```python
