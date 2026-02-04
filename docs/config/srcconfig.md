@@ -2,7 +2,7 @@
 
 <!-- === DO_NOT_EDIT: pkg-ext srcconfig_def === -->
 ## class: SrcConfig
-- [source](../../path_sync/_internal/models.py#L133)
+- [source](../../path_sync/_internal/models.py#L138)
 > **Since:** 0.3.0
 
 ```python
@@ -36,6 +36,7 @@ class SrcConfig(BaseModel):
 
 | Version | Change |
 |---------|--------|
+| unreleased | added base class 'BaseModel' |
 | 0.4.0 | field 'name' default removed (was: PydanticUndefined) |
 | 0.3.0 | Made public |
 <!-- === OK_EDIT: pkg-ext srcconfig_changes === -->

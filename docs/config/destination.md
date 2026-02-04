@@ -2,7 +2,7 @@
 
 <!-- === DO_NOT_EDIT: pkg-ext destination_def === -->
 ## class: Destination
-- [source](../../path_sync/_internal/models.py#L117)
+- [source](../../path_sync/_internal/models.py#L122)
 > **Since:** 0.3.0
 
 ```python
@@ -34,6 +34,7 @@ class Destination(BaseModel):
 
 | Version | Change |
 |---------|--------|
+| unreleased | added base class 'BaseModel' |
 | 0.4.0 | field 'name' default removed (was: PydanticUndefined) |
 | 0.4.0 | field 'dest_path_relative' default removed (was: PydanticUndefined) |
 | 0.3.0 | Made public |
