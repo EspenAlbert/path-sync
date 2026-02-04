@@ -34,6 +34,7 @@ class Destination(BaseModel):
 
 | Version | Change |
 |---------|--------|
+| unreleased | added base class 'BaseModel' |
 | 0.4.0 | field 'name' default removed (was: PydanticUndefined) |
 | 0.4.0 | field 'dest_path_relative' default removed (was: PydanticUndefined) |
 | 0.3.0 | Made public |
