@@ -41,6 +41,15 @@ def get_default_branch(repo: Repo) -> str:
     return "main"
 
 
+def fetch_and_reset_to_default(repo: Repo, default_branch: str) -> None:
+    """Fetch latest from remote and reset to default branch."""
+    logger.info(f"Fetching origin and resetting to {default_branch}")
+    repo.remotes.origin.fetch()
+    if repo.head.is_detached or repo.active_branch.name != default_branch:
+        repo.git.checkout(default_branch)
+    repo.git.reset("--hard", f"origin/{default_branch}")
+
+
 def clone_repo(url: str, dest: Path) -> Repo:
     logger.info(f"Cloning {url} to {dest}")
     dest.parent.mkdir(parents=True, exist_ok=True)

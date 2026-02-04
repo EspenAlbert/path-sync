@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import shutil
 import subprocess
 from dataclasses import dataclass, field
 from enum import StrEnum
@@ -140,7 +141,7 @@ def _process_single_repo_inner(
 ) -> RepoResult:
     logger.info(f"Processing {dest.name}...")
     repo_path = _resolve_repo_path(dest, src_root, work_dir)
-    repo = _ensure_repo(dest, repo_path)
+    repo = _ensure_repo(dest, repo_path, dest.default_branch)
     git_ops.prepare_copy_branch(repo, dest.default_branch, config.pr.branch, from_default=True)
 
     if failure := _run_updates(config.updates, repo_path):
@@ -207,9 +208,14 @@ def _resolve_repo_path(dest: Destination, src_root: Path, work_dir: str) -> Path
     raise typer.BadParameter(f"No dest_path_relative for {dest.name}, --work-dir required")
 
 
-def _ensure_repo(dest: Destination, repo_path: Path):
-    if repo_path.exists() and git_ops.is_git_repo(repo_path):
-        return git_ops.get_repo(repo_path)
+def _ensure_repo(dest: Destination, repo_path: Path, default_branch: str) -> Repo:
+    if repo_path.exists():
+        if git_ops.is_git_repo(repo_path):
+            repo = git_ops.get_repo(repo_path)
+            git_ops.fetch_and_reset_to_default(repo, default_branch)
+            return repo
+        logger.warning(f"Removing invalid git repo at {repo_path}")
+        shutil.rmtree(repo_path)
     if not dest.repo_url:
         raise ValueError(f"Dest {dest.name} not found at {repo_path} and no repo_url configured")
     return git_ops.clone_repo(dest.repo_url, repo_path)
