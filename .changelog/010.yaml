@@ -1,0 +1,168 @@
+name: capture_log
+ts: 2026-02-03 20:41:19.135382+00:00
+type: keep_private
+full_path: _internal.log_capture.capture_log
+---
+name: pr_reviewers_option
+ts: 2026-02-03 20:41:24.801942+00:00
+type: keep_private
+full_path: _internal.cmd_options.pr_reviewers_option
+---
+name: pr_assignees_option
+ts: 2026-02-03 20:41:24.802060+00:00
+type: keep_private
+full_path: _internal.cmd_options.pr_assignees_option
+---
+name: pr_labels_option
+ts: 2026-02-03 20:41:24.802071+00:00
+type: keep_private
+full_path: _internal.cmd_options.pr_labels_option
+---
+name: split_csv
+ts: 2026-02-03 20:41:24.802076+00:00
+type: keep_private
+full_path: _internal.cmd_options.split_csv
+---
+name: PRFieldsBase
+ts: 2026-02-03 20:41:33.488441+00:00
+type: keep_private
+full_path: _internal.models.PRFieldsBase
+---
+name: DepUpdateOptions
+ts: 2026-02-03 20:41:56.687766+00:00
+type: keep_private
+full_path: _internal.cmd_dep_update.DepUpdateOptions
+---
+name: PRConfig
+ts: 2026-02-03 20:41:57.110096+00:00
+type: additional_change
+auto_generated: true
+change_kind: optional_field_added
+details: 'added optional field ''reviewers'' (default: ...)'
+field_name: reviewers
+group: dep_update
+---
+name: PRConfig
+ts: 2026-02-03 20:41:57.110104+00:00
+type: additional_change
+auto_generated: true
+change_kind: optional_field_added
+details: 'added optional field ''assignees'' (default: ...)'
+field_name: assignees
+group: dep_update
+---
+name: CopyOptions
+ts: 2026-02-03 20:41:57.110107+00:00
+type: breaking_change
+auto_generated: true
+change_kind: field_removed
+details: removed field 'pr_reviewers'
+field_name: pr_reviewers
+group: copy
+---
+name: CopyOptions
+ts: 2026-02-03 20:41:57.110110+00:00
+type: breaking_change
+auto_generated: true
+change_kind: field_removed
+details: removed field 'pr_assignees'
+field_name: pr_assignees
+group: copy
+---
+name: CopyOptions
+ts: 2026-02-03 20:41:57.110112+00:00
+type: breaking_change
+auto_generated: true
+change_kind: field_removed
+details: removed field 'pr_labels'
+field_name: pr_labels
+group: copy
+---
+name: PRDefaults
+ts: 2026-02-03 21:07:04.736850+00:00
+type: additional_change
+auto_generated: true
+change_kind: base_class_added
+details: added base class 'PRFieldsBase'
+group: config
+---
+name: PRConfig
+ts: 2026-02-03 21:07:04.736853+00:00
+type: additional_change
+auto_generated: true
+change_kind: base_class_added
+details: added base class 'PRFieldsBase'
+group: dep_update
+---
+name: CopyOptions
+ts: 2026-02-04 05:50:42.063237+00:00
+type: additional_change
+auto_generated: true
+change_kind: optional_field_added
+details: 'added optional field ''assignees'' (default: None)'
+field_name: assignees
+group: copy
+---
+name: CopyOptions
+ts: 2026-02-04 05:50:42.063239+00:00
+type: additional_change
+auto_generated: true
+change_kind: optional_field_added
+details: 'added optional field ''labels'' (default: None)'
+field_name: labels
+group: copy
+---
+name: CopyOptions
+ts: 2026-02-04 05:50:42.063241+00:00
+type: additional_change
+auto_generated: true
+change_kind: optional_field_added
+details: 'added optional field ''reviewers'' (default: None)'
+field_name: reviewers
+group: copy
+---
+name: copy
+ts: 2026-02-04 05:50:42.063241+00:00
+type: make_public
+details: CLI command in _internal/cmd_copy.py
+full_path: _internal.cmd_copy.copy
+group: copy
+---
+name: validate_no_changes
+ts: 2026-02-04 06:42:18.031732+00:00
+type: group_module
+module_path: _internal.cmd_validate
+---
+name: validate_no_changes
+ts: 2026-02-04 06:42:18.033653+00:00
+type: make_public
+details: promoted from private (_internal.cmd_validate.validate_no_changes)
+full_path: _internal.cmd_validate.validate_no_changes
+group: validate_no_changes
+---
+name: prompt_confirm
+ts: 2026-02-04 09:26:58.469773+00:00
+type: keep_private
+full_path: _internal.prompt_utils.prompt_confirm
+---
+name: fetch_and_reset_to_default
+ts: 2026-02-04 09:27:01.096531+00:00
+type: keep_private
+full_path: _internal.git_ops.fetch_and_reset_to_default
+---
+name: dep_update
+ts: 2026-02-04 09:27:20.297880+00:00
+type: fix
+author: Espen Albert
+changelog_message: 'fix(dep-update): handle corrupted git repos and reset existing repos to default branch'
+message: 'fix(dep-update): handle corrupted git repos and reset existing repos to default branch'
+short_sha: 6be625
+---
+name: dep_update
+ts: 2026-02-04 09:27:29.033930+00:00
+type: fix
+author: Espen Albert
+changelog_message: 'fix(dep-update): add user confirmation for removing invalid git repositories'
+ignored: true
+message: 'fix(dep-update): add user confirmation for removing invalid git repositories'
+short_sha: e3e1af

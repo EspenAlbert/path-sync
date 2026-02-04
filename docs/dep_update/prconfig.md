@@ -6,10 +6,12 @@
 > **Since:** 0.4.0
 
 ```python
-class PRConfig(BaseModel):
+class PRConfig(PRFieldsBase):
+    labels: list[str] = ...
+    reviewers: list[str] = ...
+    assignees: list[str] = ...
     branch: str
     title: str
-    labels: list[str] = ...
     auto_merge: bool = False
 ```
 <!-- === OK_EDIT: pkg-ext prconfig_def === -->
@@ -31,5 +33,8 @@ class PRConfig(BaseModel):
 | Version | Change |
 |---------|--------|
 | 0.4.1 | added base class 'BaseModel' |
+| 0.4.1 | added base class 'PRFieldsBase' |
+| 0.4.1 | added optional field 'assignees' (default: ...) |
+| 0.4.1 | added optional field 'reviewers' (default: ...) |
 | 0.4.0 | Made public |
 <!-- === OK_EDIT: pkg-ext prconfig_changes === -->

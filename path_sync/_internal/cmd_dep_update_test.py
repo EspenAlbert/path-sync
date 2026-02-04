@@ -7,12 +7,12 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from path_sync._internal.cmd_dep_update import (
+    DepUpdateOptions,
     Status,
     StepFailure,
     _process_single_repo,
     _run_updates,
     _run_verify_steps,
-    _truncate_stderr,
 )
 from path_sync._internal.models import Destination
 from path_sync._internal.models_dep import (
@@ -60,6 +60,7 @@ def config() -> DepConfig:
 
 def test_process_single_repo_no_changes_skips(dest: Destination, config: DepConfig, tmp_path: Path, repo_path: Path):
     mock_repo = MagicMock()
+    opts = DepUpdateOptions()
 
     with (
         patch(f"{MODULE}.git_ops") as git_ops,
@@ -69,7 +70,7 @@ def test_process_single_repo_no_changes_skips(dest: Destination, config: DepConf
         git_ops.is_git_repo.return_value = True
         git_ops.has_changes.return_value = False
 
-        result = _process_single_repo(config, dest, tmp_path, "", skip_verify=False)
+        result = _process_single_repo(config, dest, tmp_path, "", opts)
 
         assert result.status == Status.NO_CHANGES
         git_ops.prepare_copy_branch.assert_called_once_with(mock_repo, "main", "chore/deps", from_default=True)
@@ -79,6 +80,7 @@ def test_process_single_repo_update_fails_returns_skipped(
     dest: Destination, config: DepConfig, tmp_path: Path, repo_path: Path
 ):
     mock_repo = MagicMock()
+    opts = DepUpdateOptions()
 
     with (
         patch(f"{MODULE}.git_ops") as git_ops,
@@ -88,7 +90,7 @@ def test_process_single_repo_update_fails_returns_skipped(
         git_ops.is_git_repo.return_value = True
         run_cmd.side_effect = subprocess.CalledProcessError(1, "uv lock")
 
-        result = _process_single_repo(config, dest, tmp_path, "", skip_verify=False)
+        result = _process_single_repo(config, dest, tmp_path, "", opts)
 
         assert result.status == Status.SKIPPED
         assert len(result.failures) == 1
@@ -100,6 +102,7 @@ def test_process_single_repo_changes_with_skip_verify_passes(
     dest: Destination, config: DepConfig, tmp_path: Path, repo_path: Path
 ):
     mock_repo = MagicMock()
+    opts = DepUpdateOptions(skip_verify=True)
 
     with (
         patch(f"{MODULE}.git_ops") as git_ops,
@@ -109,7 +112,7 @@ def test_process_single_repo_changes_with_skip_verify_passes(
         git_ops.is_git_repo.return_value = True
         git_ops.has_changes.return_value = True
 
-        result = _process_single_repo(config, dest, tmp_path, "", skip_verify=True)
+        result = _process_single_repo(config, dest, tmp_path, "", opts)
 
         assert result.status == Status.PASSED
         git_ops.commit_changes.assert_called_once_with(mock_repo, "chore: update deps")
@@ -124,6 +127,7 @@ def test_process_single_repo_verify_runs_when_changes_present(dest: Destination,
         pr=PRConfig(branch="chore/deps", title="chore: update deps"),
     )
     mock_repo = MagicMock()
+    opts = DepUpdateOptions()
 
     with (
         patch(f"{MODULE}.git_ops") as git_ops,
@@ -133,7 +137,7 @@ def test_process_single_repo_verify_runs_when_changes_present(dest: Destination,
         git_ops.is_git_repo.return_value = True
         git_ops.has_changes.return_value = True
 
-        result = _process_single_repo(config, dest, tmp_path, "", skip_verify=False)
+        result = _process_single_repo(config, dest, tmp_path, "", opts)
 
         assert result.status == Status.PASSED
         assert run_cmd.call_count == 2  # update + verify step
@@ -283,24 +287,3 @@ def test_verify_per_step_on_fail_overrides_verify_level(tmp_path: Path):
         assert status == Status.WARN  # Uses step-level override, not verify-level
         assert len(failures) == 1
         assert failures[0].on_fail == OnFailStrategy.WARN
-
-
-# --- _truncate_stderr tests ---
-
-
-def test_truncate_stderr_short_text_unchanged():
-    text = "line1\nline2\nline3"
-    result = _truncate_stderr(text, max_lines=5)
-    assert result == "line1\nline2\nline3"
-
-
-def test_truncate_stderr_keeps_last_lines():
-    lines = [f"line{i}" for i in range(30)]
-    text = "\n".join(lines)
-
-    result = _truncate_stderr(text, max_lines=5)
-
-    assert result.startswith("... (25 lines skipped)")
-    assert "line25" in result
-    assert "line29" in result
-    assert "line0" not in result

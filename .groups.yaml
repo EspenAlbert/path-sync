@@ -16,6 +16,7 @@ groups:
   - _internal.cmd_copy
   owned_refs:
   - _internal.cmd_copy.CopyOptions
+  - _internal.cmd_copy.copy
 - name: dep_update
   owned_modules:
   - _internal.cmd_dep_update
@@ -29,3 +30,8 @@ groups:
   - _internal.models_dep.UpdateEntry
   - _internal.models_dep.VerifyConfig
   - _internal.models_dep.VerifyStep
+- name: validate_no_changes
+  owned_modules:
+  - _internal.cmd_validate
+  owned_refs:
+  - _internal.cmd_validate.validate_no_changes

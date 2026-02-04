@@ -2,8 +2,7 @@ from __future__ import annotations
 
 import glob
 import logging
-import tempfile
-from contextlib import contextmanager
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -11,10 +10,10 @@ import typer
 from pydantic import BaseModel
 
 from path_sync import sections
-from path_sync._internal import git_ops, header
+from path_sync._internal import cmd_options, git_ops, header, prompt_utils
 from path_sync._internal.file_utils import ensure_parents_write_text
+from path_sync._internal.log_capture import capture_log
 from path_sync._internal.models import (
-    LOG_FORMAT,
     Destination,
     PathMapping,
     SrcConfig,
@@ -32,16 +31,6 @@ EXIT_CHANGES = 1
 EXIT_ERROR = 2
 
 
-def _prompt(message: str, no_prompt: bool) -> bool:
-    if no_prompt:
-        return True
-    try:
-        response = input(f"{message} [y/n]: ").strip().lower()
-        return response == "y"
-    except (EOFError, KeyboardInterrupt):
-        return False
-
-
 @dataclass
 class SyncResult:
     content_changes: int = 0
@@ -51,22 +40,6 @@ class SyncResult:
     @property
     def total(self) -> int:
         return self.content_changes + self.orphans_deleted
-
-
-@contextmanager
-def capture_sync_log(dest_name: str):
-    with tempfile.TemporaryDirectory(prefix="path-sync-") as tmpdir:
-        log_path = Path(tmpdir) / f"{dest_name}.log"
-        file_handler = logging.FileHandler(log_path, mode="w")
-        file_handler.setLevel(logging.INFO)
-        file_handler.setFormatter(logging.Formatter(LOG_FORMAT))
-        root_logger = logging.getLogger("path_sync")
-        root_logger.addHandler(file_handler)
-        try:
-            yield log_path
-        finally:
-            file_handler.close()
-            root_logger.removeHandler(file_handler)
 
 
 class CopyOptions(BaseModel):
@@ -79,9 +52,9 @@ class CopyOptions(BaseModel):
     no_pr: bool = False
     skip_orphan_cleanup: bool = False
     pr_title: str = ""
-    pr_labels: str = ""
-    pr_reviewers: str = ""
-    pr_assignees: str = ""
+    labels: list[str] | None = None
+    reviewers: list[str] | None = None
+    assignees: list[str] | None = None
 
 
 @app.command()
@@ -141,21 +114,9 @@ def copy(
         "--pr-title",
         help="Override PR title (supports {name}, {dest_name})",
     ),
-    pr_labels: str = typer.Option(
-        "",
-        "--pr-labels",
-        help="Comma-separated PR labels",
-    ),
-    pr_reviewers: str = typer.Option(
-        "",
-        "--pr-reviewers",
-        help="Comma-separated PR reviewers",
-    ),
-    pr_assignees: str = typer.Option(
-        "",
-        "--pr-assignees",
-        help="Comma-separated PR assignees",
-    ),
+    pr_labels: str = cmd_options.pr_labels_option(),
+    pr_reviewers: str = cmd_options.pr_reviewers_option(),
+    pr_assignees: str = cmd_options.pr_assignees_option(),
     skip_orphan_cleanup: bool = typer.Option(
         False,
         "--skip-orphan-cleanup",
@@ -192,9 +153,9 @@ def copy(
         no_pr=no_pr,
         skip_orphan_cleanup=skip_orphan_cleanup,
         pr_title=pr_title or config.pr_defaults.title,
-        pr_labels=pr_labels or ",".join(config.pr_defaults.labels),
-        pr_reviewers=pr_reviewers or ",".join(config.pr_defaults.reviewers),
-        pr_assignees=pr_assignees or ",".join(config.pr_defaults.assignees),
+        labels=cmd_options.split_csv(pr_labels) or config.pr_defaults.labels,
+        reviewers=cmd_options.split_csv(pr_reviewers) or config.pr_defaults.reviewers,
+        assignees=cmd_options.split_csv(pr_assignees) or config.pr_defaults.assignees,
     )
 
     destinations = config.destinations
@@ -205,8 +166,8 @@ def copy(
     total_changes = 0
     for dest in destinations:
         try:
-            with capture_sync_log(dest.name) as log_path:
-                changes = _sync_destination(config, dest, src_root, current_sha, src_repo_url, opts, log_path)
+            with capture_log(dest.name) as read_log:
+                changes = _sync_destination(config, dest, src_root, current_sha, src_repo_url, opts, read_log)
             total_changes += changes
         except Exception as e:
             logger.error(f"Failed to sync {dest.name}: {e}")
@@ -225,7 +186,7 @@ def _sync_destination(
     current_sha: str,
     src_repo_url: str,
     opts: CopyOptions,
-    log_path: Path,
+    read_log: Callable[[], str],
 ) -> int:
     dest_root = (src_root / dest.dest_path_relative).resolve()
 
@@ -241,7 +202,7 @@ def _sync_destination(
         skip_git_ops = True
     elif opts.no_checkout:
         skip_git_ops = False
-    elif _prompt(f"Switch {dest.name} to {copy_branch}?", opts.no_prompt):
+    elif prompt_utils.prompt_confirm(f"Switch {dest.name} to {copy_branch}?", opts.no_prompt):
         git_ops.prepare_copy_branch(
             repo=dest_repo,
             default_branch=dest.default_branch,
@@ -262,7 +223,7 @@ def _sync_destination(
     if skip_git_ops:
         return result.total
 
-    _commit_and_pr(config, dest_repo, dest_root, dest, current_sha, src_repo_url, opts, log_path)
+    _commit_and_pr(config, dest_repo, dest_root, dest, current_sha, src_repo_url, opts, read_log)
     return result.total
 
 
@@ -531,7 +492,7 @@ def _commit_and_pr(
     sha: str,
     src_repo_url: str,
     opts: CopyOptions,
-    log_path: Path,
+    read_log: Callable[[], str],
 ) -> None:
     if opts.local:
         logger.info("Local mode: skipping commit/push/PR")
@@ -539,23 +500,23 @@ def _commit_and_pr(
 
     copy_branch = dest.resolved_copy_branch(config.name)
 
-    if not _prompt(f"Commit changes to {dest.name}?", opts.no_prompt):
+    if not prompt_utils.prompt_confirm(f"Commit changes to {dest.name}?", opts.no_prompt):
         return
 
     commit_msg = f"chore: sync {config.name} from {sha[:8]}"
     git_ops.commit_changes(repo, commit_msg)
     typer.echo(f"  Committed: {commit_msg}", err=True)
 
-    if not _prompt(f"Push {dest.name} to origin?", opts.no_prompt):
+    if not prompt_utils.prompt_confirm(f"Push {dest.name} to origin?", opts.no_prompt):
         return
 
     git_ops.push_branch(repo, copy_branch, force=True)
     typer.echo(f"  Pushed: {copy_branch} (force)", err=True)
 
-    if opts.no_pr or not _prompt(f"Create PR for {dest.name}?", opts.no_prompt):
+    if opts.no_pr or not prompt_utils.prompt_confirm(f"Create PR for {dest.name}?", opts.no_prompt):
         return
 
-    sync_log = log_path.read_text() if log_path.exists() else ""
+    sync_log = read_log()
     pr_body = config.pr_defaults.format_body(
         src_repo_url=src_repo_url,
         src_sha=sha,
@@ -569,9 +530,9 @@ def _commit_and_pr(
         copy_branch,
         title,
         pr_body,
-        opts.pr_labels.split(",") if opts.pr_labels else None,
-        opts.pr_reviewers.split(",") if opts.pr_reviewers else None,
-        opts.pr_assignees.split(",") if opts.pr_assignees else None,
+        opts.labels,
+        opts.reviewers,
+        opts.assignees,
     )
     if pr_url:
         typer.echo(f"  Created PR: {pr_url}", err=True)

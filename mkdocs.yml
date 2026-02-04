@@ -33,6 +33,7 @@ nav:
     - UpdateEntry: dep_update/updateentry.md
     - VerifyConfig: dep_update/verifyconfig.md
     - VerifyStep: dep_update/verifystep.md
+  - validate_no_changes: validate_no_changes/index.md
 # === OK_EDIT: pkg-ext nav ===
 
 # === DO_NOT_EDIT: pkg-ext extensions ===

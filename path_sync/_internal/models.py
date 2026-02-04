@@ -85,13 +85,18 @@ Synced from [{src_repo_name}]({src_repo_url}) @ `{src_sha_short}`
 """
 
 
-class PRDefaults(BaseModel):
-    title: str = "chore: sync {name} files"
-    body_template: str = DEFAULT_BODY_TEMPLATE
-    body_suffix: str = ""
+class PRFieldsBase(BaseModel):
+    """Common PR fields shared by copy and dep-update commands."""
+
     labels: list[str] = Field(default_factory=list)
     reviewers: list[str] = Field(default_factory=list)
     assignees: list[str] = Field(default_factory=list)
+
+
+class PRDefaults(PRFieldsBase):
+    title: str = "chore: sync {name} files"
+    body_template: str = DEFAULT_BODY_TEMPLATE
+    body_suffix: str = ""
 
     def format_body(
         self,
