@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.5.0 2026-02-04T09-49Z
+
+### Config
+- `config.PRDefaults`: added base class 'PRFieldsBase'
+
+### Copy
+- BREAKING `copy.CopyOptions`: removed field 'pr_reviewers'
+- BREAKING `copy.CopyOptions`: removed field 'pr_assignees'
+- BREAKING `copy.CopyOptions`: removed field 'pr_labels'
+- New function `copy`
+- `copy.CopyOptions`: added optional field 'assignees' (default: None)
+- `copy.CopyOptions`: added optional field 'labels' (default: None)
+- `copy.CopyOptions`: added optional field 'reviewers' (default: None)
+
+### Dep_Update
+- `dep_update.PRConfig`: added optional field 'reviewers' (default: ...)
+- `dep_update.PRConfig`: added optional field 'assignees' (default: ...)
+- `dep_update.PRConfig`: added base class 'PRFieldsBase'
+- fix(dep-update): handle corrupted git repos and reset existing repos to default branch [6be625](https://github.com/EspenAlbert/path-sync/commit/6be625)
+
+### Validate_No_Changes
+- New function `validate_no_changes`
+
+
 ## 0.4.1 2026-02-04T09-44Z
 
 ### Config

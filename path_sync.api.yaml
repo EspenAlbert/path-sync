@@ -1,12 +1,12 @@
 pkg_import_name: path_sync
-version: 0.4.1
+version: 0.5.0
 groups:
 - name: config
   symbols:
   - name: Destination
     module_path: _internal.models
     docstring: ''
-    line_number: 117
+    line_number: 122
     type: class
     mro_bases:
     - BaseModel
@@ -90,36 +90,13 @@ groups:
   - name: PRDefaults
     module_path: _internal.models
     docstring: ''
-    line_number: 88
+    line_number: 96
     type: class
     mro_bases:
+    - PRFieldsBase
     - BaseModel
     num_direct_bases: 1
     fields:
-    - name: title
-      type_annotation: str
-      type_imports: []
-      default:
-        value_repr: '''chore: sync {name} files'''
-        is_factory: false
-      is_class_var: false
-      is_computed: false
-    - name: body_template
-      type_annotation: str
-      type_imports: []
-      default:
-        value_repr: '''Synced from [{src_repo_name}]({src_repo_url}) @ `{src_sha_short}`\n\n<details>\n<summary>Sync Log</summary>\n\n```\n{sync_log}\n```\n\n</details>\n'''
-        is_factory: false
-      is_class_var: false
-      is_computed: false
-    - name: body_suffix
-      type_annotation: str
-      type_imports: []
-      default:
-        value_repr: ''''''
-        is_factory: false
-      is_class_var: false
-      is_computed: false
     - name: labels
       type_annotation: list[str]
       type_imports: []
@@ -142,6 +119,30 @@ groups:
       default:
         value_repr: '...'
         is_factory: true
+      is_class_var: false
+      is_computed: false
+    - name: title
+      type_annotation: str
+      type_imports: []
+      default:
+        value_repr: '''chore: sync {name} files'''
+        is_factory: false
+      is_class_var: false
+      is_computed: false
+    - name: body_template
+      type_annotation: str
+      type_imports: []
+      default:
+        value_repr: '''Synced from [{src_repo_name}]({src_repo_url}) @ `{src_sha_short}`\n\n<details>\n<summary>Sync Log</summary>\n\n```\n{sync_log}\n```\n\n</details>\n'''
+        is_factory: false
+      is_class_var: false
+      is_computed: false
+    - name: body_suffix
+      type_annotation: str
+      type_imports: []
+      default:
+        value_repr: ''''''
+        is_factory: false
       is_class_var: false
       is_computed: false
   - name: PathMapping
@@ -194,7 +195,7 @@ groups:
   - name: SrcConfig
     module_path: _internal.models
     docstring: ''
-    line_number: 133
+    line_number: 138
     type: class
     mro_bases:
     - BaseModel
@@ -293,7 +294,7 @@ groups:
   - name: CopyOptions
     module_path: _internal.cmd_copy
     docstring: ''
-    line_number: 72
+    line_number: 45
     type: class
     mro_bases:
     - BaseModel
@@ -371,36 +372,322 @@ groups:
         is_factory: false
       is_class_var: false
       is_computed: false
-    - name: pr_labels
-      type_annotation: str
+    - name: labels
+      type_annotation: list[str] | None
       type_imports: []
       default:
-        value_repr: ''''''
+        value_repr: None
         is_factory: false
       is_class_var: false
       is_computed: false
-    - name: pr_reviewers
-      type_annotation: str
+    - name: reviewers
+      type_annotation: list[str] | None
       type_imports: []
       default:
-        value_repr: ''''''
+        value_repr: None
         is_factory: false
       is_class_var: false
       is_computed: false
-    - name: pr_assignees
-      type_annotation: str
+    - name: assignees
+      type_annotation: list[str] | None
       type_imports: []
       default:
-        value_repr: ''''''
+        value_repr: None
         is_factory: false
       is_class_var: false
       is_computed: false
+  - name: copy
+    module_path: _internal.cmd_copy
+    docstring: Copy files from SRC to DEST repositories.
+    line_number: 60
+    type: cli_command
+    signature:
+      parameters:
+      - name: name
+        kind: positional_or_keyword
+        type_annotation: str
+        type_imports: []
+        default:
+          value_repr: <typer.models.OptionInfo object>
+          is_factory: false
+      - name: config_path_opt
+        kind: positional_or_keyword
+        type_annotation: str
+        type_imports: []
+        default:
+          value_repr: <typer.models.OptionInfo object>
+          is_factory: false
+      - name: src_root_opt
+        kind: positional_or_keyword
+        type_annotation: str
+        type_imports: []
+        default:
+          value_repr: <typer.models.OptionInfo object>
+          is_factory: false
+      - name: dest_filter
+        kind: positional_or_keyword
+        type_annotation: str
+        type_imports: []
+        default:
+          value_repr: <typer.models.OptionInfo object>
+          is_factory: false
+      - name: dry_run
+        kind: positional_or_keyword
+        type_annotation: bool
+        type_imports: []
+        default:
+          value_repr: <typer.models.OptionInfo object>
+          is_factory: false
+      - name: force_overwrite
+        kind: positional_or_keyword
+        type_annotation: bool
+        type_imports: []
+        default:
+          value_repr: <typer.models.OptionInfo object>
+          is_factory: false
+      - name: detailed_exit_code
+        kind: positional_or_keyword
+        type_annotation: bool
+        type_imports: []
+        default:
+          value_repr: <typer.models.OptionInfo object>
+          is_factory: false
+      - name: no_checkout
+        kind: positional_or_keyword
+        type_annotation: bool
+        type_imports: []
+        default:
+          value_repr: <typer.models.OptionInfo object>
+          is_factory: false
+      - name: checkout_from_default
+        kind: positional_or_keyword
+        type_annotation: bool
+        type_imports: []
+        default:
+          value_repr: <typer.models.OptionInfo object>
+          is_factory: false
+      - name: local
+        kind: positional_or_keyword
+        type_annotation: bool
+        type_imports: []
+        default:
+          value_repr: <typer.models.OptionInfo object>
+          is_factory: false
+      - name: no_prompt
+        kind: positional_or_keyword
+        type_annotation: bool
+        type_imports: []
+        default:
+          value_repr: <typer.models.OptionInfo object>
+          is_factory: false
+      - name: no_pr
+        kind: positional_or_keyword
+        type_annotation: bool
+        type_imports: []
+        default:
+          value_repr: <typer.models.OptionInfo object>
+          is_factory: false
+      - name: pr_title
+        kind: positional_or_keyword
+        type_annotation: str
+        type_imports: []
+        default:
+          value_repr: <typer.models.OptionInfo object>
+          is_factory: false
+      - name: pr_labels
+        kind: positional_or_keyword
+        type_annotation: str
+        type_imports: []
+        default:
+          value_repr: <typer.models.OptionInfo object>
+          is_factory: false
+      - name: pr_reviewers
+        kind: positional_or_keyword
+        type_annotation: str
+        type_imports: []
+        default:
+          value_repr: <typer.models.OptionInfo object>
+          is_factory: false
+      - name: pr_assignees
+        kind: positional_or_keyword
+        type_annotation: str
+        type_imports: []
+        default:
+          value_repr: <typer.models.OptionInfo object>
+          is_factory: false
+      - name: skip_orphan_cleanup
+        kind: positional_or_keyword
+        type_annotation: bool
+        type_imports: []
+        default:
+          value_repr: <typer.models.OptionInfo object>
+          is_factory: false
+      return_annotation: None
+      return_type_imports: []
+    cli_params:
+    - param_name: name
+      type_annotation: str
+      flags:
+      - -n
+      - --name
+      help: Config name (used with src-root to find config)
+      default_repr: ''''''
+      required: false
+      is_argument: false
+      hidden: false
+    - param_name: config_path_opt
+      type_annotation: str
+      flags:
+      - -c
+      - --config-path
+      help: Full path to config file (alternative to --name)
+      default_repr: ''''''
+      required: false
+      is_argument: false
+      hidden: false
+    - param_name: src_root_opt
+      type_annotation: str
+      flags:
+      - --src-root
+      help: 'Source repo root (default: find git root from cwd)'
+      default_repr: ''''''
+      required: false
+      is_argument: false
+      hidden: false
+    - param_name: dest_filter
+      type_annotation: str
+      flags:
+      - -d
+      - --dest
+      help: Filter destinations (comma-separated)
+      default_repr: ''''''
+      required: false
+      is_argument: false
+      hidden: false
+    - param_name: dry_run
+      type_annotation: bool
+      flags:
+      - --dry-run
+      help: Preview without writing
+      default_repr: 'False'
+      required: false
+      is_argument: false
+      hidden: false
+    - param_name: force_overwrite
+      type_annotation: bool
+      flags:
+      - --force-overwrite
+      help: Overwrite files even if header removed (opted out)
+      default_repr: 'False'
+      required: false
+      is_argument: false
+      hidden: false
+    - param_name: detailed_exit_code
+      type_annotation: bool
+      flags:
+      - --detailed-exit-code
+      help: Exit 0=no changes, 1=changes, 2=error
+      default_repr: 'False'
+      required: false
+      is_argument: false
+      hidden: false
+    - param_name: no_checkout
+      type_annotation: bool
+      flags:
+      - --no-checkout
+      help: Skip branch switching before sync
+      default_repr: 'False'
+      required: false
+      is_argument: false
+      hidden: false
+    - param_name: checkout_from_default
+      type_annotation: bool
+      flags:
+      - --checkout-from-default
+      help: Reset to origin/default before sync (for CI)
+      default_repr: 'False'
+      required: false
+      is_argument: false
+      hidden: false
+    - param_name: local
+      type_annotation: bool
+      flags:
+      - --local
+      help: No git operations after sync (no commit/push/PR)
+      default_repr: 'False'
+      required: false
+      is_argument: false
+      hidden: false
+    - param_name: no_prompt
+      type_annotation: bool
+      flags:
+      - -y
+      - --no-prompt
+      help: Skip confirmations (for CI)
+      default_repr: 'False'
+      required: false
+      is_argument: false
+      hidden: false
+    - param_name: no_pr
+      type_annotation: bool
+      flags:
+      - --no-pr
+      help: Push but skip PR creation
+      default_repr: 'False'
+      required: false
+      is_argument: false
+      hidden: false
+    - param_name: pr_title
+      type_annotation: str
+      flags:
+      - --pr-title
+      help: Override PR title (supports {name}, {dest_name})
+      default_repr: ''''''
+      required: false
+      is_argument: false
+      hidden: false
+    - param_name: pr_labels
+      type_annotation: str
+      flags:
+      - --pr-labels
+      help: Comma-separated PR labels
+      default_repr: ''''''
+      required: false
+      is_argument: false
+      hidden: false
+    - param_name: pr_reviewers
+      type_annotation: str
+      flags:
+      - --pr-reviewers
+      help: Comma-separated PR reviewers
+      default_repr: ''''''
+      required: false
+      is_argument: false
+      hidden: false
+    - param_name: pr_assignees
+      type_annotation: str
+      flags:
+      - --pr-assignees
+      help: Comma-separated PR assignees
+      default_repr: ''''''
+      required: false
+      is_argument: false
+      hidden: false
+    - param_name: skip_orphan_cleanup
+      type_annotation: bool
+      flags:
+      - --skip-orphan-cleanup
+      help: Skip deletion of orphaned synced files
+      default_repr: 'False'
+      required: false
+      is_argument: false
+      hidden: false
 - name: dep_update
   symbols:
   - name: dep_update
     module_path: _internal.cmd_dep_update
     docstring: Run dependency updates across repositories.
-    line_number: 66
+    line_number: 61
     type: cli_command
     signature:
       parameters:
@@ -446,6 +733,20 @@ groups:
         default:
           value_repr: <typer.models.OptionInfo object>
           is_factory: false
+      - name: pr_reviewers
+        kind: positional_or_keyword
+        type_annotation: str
+        type_imports: []
+        default:
+          value_repr: <typer.models.OptionInfo object>
+          is_factory: false
+      - name: pr_assignees
+        kind: positional_or_keyword
+        type_annotation: str
+        type_imports: []
+        default:
+          value_repr: <typer.models.OptionInfo object>
+          is_factory: false
       return_annotation: None
       return_type_imports: []
     cli_params:
@@ -472,7 +773,7 @@ groups:
       type_annotation: str
       flags:
       - --work-dir
-      help: Directory for cloning repos
+      help: Clone repos here (overrides dest_path_relative)
       default_repr: ''''''
       required: false
       is_argument: false
@@ -504,6 +805,24 @@ groups:
       required: false
       is_argument: false
       hidden: false
+    - param_name: pr_reviewers
+      type_annotation: str
+      flags:
+      - --pr-reviewers
+      help: Comma-separated PR reviewers
+      default_repr: ''''''
+      required: false
+      is_argument: false
+      hidden: false
+    - param_name: pr_assignees
+      type_annotation: str
+      flags:
+      - --pr-assignees
+      help: Comma-separated PR assignees
+      default_repr: ''''''
+      required: false
+      is_argument: false
+      hidden: false
   - name: CommitConfig
     module_path: _internal.models_dep
     docstring: ''
@@ -529,7 +848,7 @@ groups:
   - name: DepConfig
     module_path: _internal.models_dep
     docstring: ''
-    line_number: 47
+    line_number: 46
     type: class
     mro_bases:
     - BaseModel
@@ -611,9 +930,34 @@ groups:
     line_number: 40
     type: class
     mro_bases:
+    - PRFieldsBase
     - BaseModel
     num_direct_bases: 1
     fields:
+    - name: labels
+      type_annotation: list[str]
+      type_imports: []
+      default:
+        value_repr: '...'
+        is_factory: true
+      is_class_var: false
+      is_computed: false
+    - name: reviewers
+      type_annotation: list[str]
+      type_imports: []
+      default:
+        value_repr: '...'
+        is_factory: true
+      is_class_var: false
+      is_computed: false
+    - name: assignees
+      type_annotation: list[str]
+      type_imports: []
+      default:
+        value_repr: '...'
+        is_factory: true
+      is_class_var: false
+      is_computed: false
     - name: branch
       type_annotation: str
       type_imports: []
@@ -622,14 +966,6 @@ groups:
     - name: title
       type_annotation: str
       type_imports: []
-      is_class_var: false
-      is_computed: false
-    - name: labels
-      type_annotation: list[str]
-      type_imports: []
-      default:
-        value_repr: '...'
-        is_factory: true
       is_class_var: false
       is_computed: false
     - name: auto_merge
@@ -721,4 +1057,6 @@ groups:
         is_factory: false
       is_class_var: false
       is_computed: false
-dumped_at: 2026-02-04 09:44:43.694232+00:00
+- name: validate_no_changes
+  symbols: []
+dumped_at: 2026-02-04 09:49:53.960236+00:00
