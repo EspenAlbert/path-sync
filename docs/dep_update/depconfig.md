@@ -2,7 +2,7 @@
 
 <!-- === DO_NOT_EDIT: pkg-ext depconfig_def === -->
 ## class: DepConfig
-- [source](../../path_sync/_internal/models_dep.py#L46)
+- [source](../../path_sync/_internal/models_dep.py#L47)
 > **Since:** 0.4.0
 
 ```python

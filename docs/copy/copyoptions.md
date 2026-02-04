@@ -2,7 +2,7 @@
 
 <!-- === DO_NOT_EDIT: pkg-ext copyoptions_def === -->
 ## class: CopyOptions
-- [source](../../path_sync/_internal/cmd_copy.py#L45)
+- [source](../../path_sync/_internal/cmd_copy.py#L72)
 > **Since:** 0.3.0
 
 ```python
@@ -16,9 +16,9 @@ class CopyOptions(BaseModel):
     no_pr: bool = False
     skip_orphan_cleanup: bool = False
     pr_title: str = ''
-    labels: list[str] | None = None
-    reviewers: list[str] | None = None
-    assignees: list[str] | None = None
+    pr_labels: str = ''
+    pr_reviewers: str = ''
+    pr_assignees: str = ''
 ```
 <!-- === OK_EDIT: pkg-ext copyoptions_def === -->
 

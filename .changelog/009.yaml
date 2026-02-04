@@ -69,25 +69,7 @@ ts: 2026-02-04 09:33:47.987450+00:00
 type: additional_change
 auto_generated: true
 change_kind: base_class_added
-details: added base class 'PRFieldsBase'
-group: dep_update
----
-name: PRConfig
-ts: 2026-02-04 09:33:47.987452+00:00
-type: additional_change
-auto_generated: true
-change_kind: optional_field_added
-details: 'added optional field ''assignees'' (default: ...)'
-field_name: assignees
-group: dep_update
----
-name: PRConfig
-ts: 2026-02-04 09:33:47.987454+00:00
-type: additional_change
-auto_generated: true
-change_kind: optional_field_added
-details: 'added optional field ''reviewers'' (default: ...)'
-field_name: reviewers
+details: added base class 'BaseModel'
 group: dep_update
 ---
 name: SyncMode
@@ -127,7 +109,7 @@ ts: 2026-02-04 09:33:47.987464+00:00
 type: additional_change
 auto_generated: true
 change_kind: base_class_added
-details: added base class 'PRFieldsBase'
+details: added base class 'BaseModel'
 group: config
 ---
 name: Destination
@@ -144,58 +126,4 @@ type: additional_change
 auto_generated: true
 change_kind: base_class_added
 details: added base class 'BaseModel'
-group: copy
----
-name: CopyOptions
-ts: 2026-02-04 09:33:47.987472+00:00
-type: breaking_change
-auto_generated: true
-change_kind: field_removed
-details: removed field 'pr_reviewers'
-field_name: pr_reviewers
-group: copy
----
-name: CopyOptions
-ts: 2026-02-04 09:33:47.987476+00:00
-type: breaking_change
-auto_generated: true
-change_kind: field_removed
-details: removed field 'pr_assignees'
-field_name: pr_assignees
-group: copy
----
-name: CopyOptions
-ts: 2026-02-04 09:33:47.987478+00:00
-type: breaking_change
-auto_generated: true
-change_kind: field_removed
-details: removed field 'pr_labels'
-field_name: pr_labels
-group: copy
----
-name: CopyOptions
-ts: 2026-02-04 09:33:47.987480+00:00
-type: additional_change
-auto_generated: true
-change_kind: optional_field_added
-details: 'added optional field ''assignees'' (default: None)'
-field_name: assignees
-group: copy
----
-name: CopyOptions
-ts: 2026-02-04 09:33:47.987482+00:00
-type: additional_change
-auto_generated: true
-change_kind: optional_field_added
-details: 'added optional field ''reviewers'' (default: None)'
-field_name: reviewers
-group: copy
----
-name: CopyOptions
-ts: 2026-02-04 09:33:47.987484+00:00
-type: additional_change
-auto_generated: true
-change_kind: optional_field_added
-details: 'added optional field ''labels'' (default: None)'
-field_name: labels
 group: copy

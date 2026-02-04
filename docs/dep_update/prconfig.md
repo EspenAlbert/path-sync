@@ -6,12 +6,10 @@
 > **Since:** 0.4.0
 
 ```python
-class PRConfig(PRFieldsBase):
-    labels: list[str] = ...
-    reviewers: list[str] = ...
-    assignees: list[str] = ...
+class PRConfig(BaseModel):
     branch: str
     title: str
+    labels: list[str] = ...
     auto_merge: bool = False
 ```
 <!-- === OK_EDIT: pkg-ext prconfig_def === -->
