@@ -16,10 +16,23 @@ nav:
   - config:
     - Overview: config/index.md
     - Destination: config/destination.md
+    - HeaderConfig: config/headerconfig.md
+    - PRDefaults: config/prdefaults.md
     - PathMapping: config/pathmapping.md
     - SrcConfig: config/srcconfig.md
-  - copy: copy/index.md
-  - dep_update: dep_update/index.md
+    - SyncMode: config/syncmode.md
+  - copy:
+    - Overview: copy/index.md
+    - CopyOptions: copy/copyoptions.md
+  - dep_update:
+    - Overview: dep_update/index.md
+    - CommitConfig: dep_update/commitconfig.md
+    - DepConfig: dep_update/depconfig.md
+    - OnFailStrategy: dep_update/onfailstrategy.md
+    - PRConfig: dep_update/prconfig.md
+    - UpdateEntry: dep_update/updateentry.md
+    - VerifyConfig: dep_update/verifyconfig.md
+    - VerifyStep: dep_update/verifystep.md
 # === OK_EDIT: pkg-ext nav ===
 
 # === DO_NOT_EDIT: pkg-ext extensions ===
