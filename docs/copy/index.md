@@ -15,7 +15,7 @@
 <a id="copyoptions_def"></a>
 
 ### class: `CopyOptions`
-- [source](../../path_sync/_internal/cmd_copy.py#L72)
+- [source](../../path_sync/_internal/cmd_copy.py#L45)
 > **Since:** 0.3.0
 
 ```python
@@ -29,9 +29,9 @@ class CopyOptions(BaseModel):
     no_pr: bool = False
     skip_orphan_cleanup: bool = False
     pr_title: str = ''
-    pr_labels: str = ''
-    pr_reviewers: str = ''
-    pr_assignees: str = ''
+    labels: list[str] | None = None
+    reviewers: list[str] | None = None
+    assignees: list[str] | None = None
 ```
 
 | Field | Type | Default | Since |
@@ -45,7 +45,13 @@ class CopyOptions(BaseModel):
 | no_pr | `bool` | `False` | 0.3.0 |
 | skip_orphan_cleanup | `bool` | `False` | 0.3.0 |
 | pr_title | `str` | `''` | 0.3.0 |
-| pr_labels | `str` | `''` | 0.3.0 |
-| pr_reviewers | `str` | `''` | 0.3.0 |
-| pr_assignees | `str` | `''` | 0.3.0 |
+| labels | `list[str] | None` | `None` | 0.3.0 |
+| reviewers | `list[str] | None` | `None` | 0.3.0 |
+| assignees | `list[str] | None` | `None` | 0.3.0 |
+
+### Changes
+
+| Version | Change |
+|---------|--------|
+| 0.3.0 | Made public |
 <!-- === OK_EDIT: pkg-ext copyoptions_def === -->

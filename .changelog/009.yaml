@@ -1,0 +1,201 @@
+name: DepConfig
+ts: 2026-02-04 09:33:47.987419+00:00
+type: additional_change
+auto_generated: true
+change_kind: base_class_added
+details: added base class 'BaseModel'
+group: dep_update
+---
+name: UpdateEntry
+ts: 2026-02-04 09:33:47.987432+00:00
+type: additional_change
+auto_generated: true
+change_kind: base_class_added
+details: added base class 'BaseModel'
+group: dep_update
+---
+name: CommitConfig
+ts: 2026-02-04 09:33:47.987436+00:00
+type: additional_change
+auto_generated: true
+change_kind: base_class_added
+details: added base class 'BaseModel'
+group: dep_update
+---
+name: VerifyStep
+ts: 2026-02-04 09:33:47.987438+00:00
+type: additional_change
+auto_generated: true
+change_kind: base_class_added
+details: added base class 'BaseModel'
+group: dep_update
+---
+name: VerifyStep
+ts: 2026-02-04 09:33:47.987441+00:00
+type: additional_change
+auto_generated: true
+change_kind: default_added
+details: 'field ''commit'' default added: None'
+field_name: commit
+group: dep_update
+---
+name: VerifyStep
+ts: 2026-02-04 09:33:47.987443+00:00
+type: additional_change
+auto_generated: true
+change_kind: default_added
+details: 'field ''on_fail'' default added: None'
+field_name: on_fail
+group: dep_update
+---
+name: OnFailStrategy
+ts: 2026-02-04 09:33:47.987445+00:00
+type: additional_change
+auto_generated: true
+change_kind: base_class_added
+details: added base class 'StrEnum'
+group: dep_update
+---
+name: VerifyConfig
+ts: 2026-02-04 09:33:47.987447+00:00
+type: additional_change
+auto_generated: true
+change_kind: base_class_added
+details: added base class 'BaseModel'
+group: dep_update
+---
+name: PRConfig
+ts: 2026-02-04 09:33:47.987450+00:00
+type: additional_change
+auto_generated: true
+change_kind: base_class_added
+details: added base class 'PRFieldsBase'
+group: dep_update
+---
+name: PRConfig
+ts: 2026-02-04 09:33:47.987452+00:00
+type: additional_change
+auto_generated: true
+change_kind: optional_field_added
+details: 'added optional field ''assignees'' (default: ...)'
+field_name: assignees
+group: dep_update
+---
+name: PRConfig
+ts: 2026-02-04 09:33:47.987454+00:00
+type: additional_change
+auto_generated: true
+change_kind: optional_field_added
+details: 'added optional field ''reviewers'' (default: ...)'
+field_name: reviewers
+group: dep_update
+---
+name: SyncMode
+ts: 2026-02-04 09:33:47.987456+00:00
+type: additional_change
+auto_generated: true
+change_kind: base_class_added
+details: added base class 'StrEnum'
+group: config
+---
+name: SrcConfig
+ts: 2026-02-04 09:33:47.987458+00:00
+type: additional_change
+auto_generated: true
+change_kind: base_class_added
+details: added base class 'BaseModel'
+group: config
+---
+name: HeaderConfig
+ts: 2026-02-04 09:33:47.987460+00:00
+type: additional_change
+auto_generated: true
+change_kind: base_class_added
+details: added base class 'BaseModel'
+group: config
+---
+name: PathMapping
+ts: 2026-02-04 09:33:47.987462+00:00
+type: additional_change
+auto_generated: true
+change_kind: base_class_added
+details: added base class 'BaseModel'
+group: config
+---
+name: PRDefaults
+ts: 2026-02-04 09:33:47.987464+00:00
+type: additional_change
+auto_generated: true
+change_kind: base_class_added
+details: added base class 'PRFieldsBase'
+group: config
+---
+name: Destination
+ts: 2026-02-04 09:33:47.987466+00:00
+type: additional_change
+auto_generated: true
+change_kind: base_class_added
+details: added base class 'BaseModel'
+group: config
+---
+name: CopyOptions
+ts: 2026-02-04 09:33:47.987468+00:00
+type: additional_change
+auto_generated: true
+change_kind: base_class_added
+details: added base class 'BaseModel'
+group: copy
+---
+name: CopyOptions
+ts: 2026-02-04 09:33:47.987472+00:00
+type: breaking_change
+auto_generated: true
+change_kind: field_removed
+details: removed field 'pr_reviewers'
+field_name: pr_reviewers
+group: copy
+---
+name: CopyOptions
+ts: 2026-02-04 09:33:47.987476+00:00
+type: breaking_change
+auto_generated: true
+change_kind: field_removed
+details: removed field 'pr_assignees'
+field_name: pr_assignees
+group: copy
+---
+name: CopyOptions
+ts: 2026-02-04 09:33:47.987478+00:00
+type: breaking_change
+auto_generated: true
+change_kind: field_removed
+details: removed field 'pr_labels'
+field_name: pr_labels
+group: copy
+---
+name: CopyOptions
+ts: 2026-02-04 09:33:47.987480+00:00
+type: additional_change
+auto_generated: true
+change_kind: optional_field_added
+details: 'added optional field ''assignees'' (default: None)'
+field_name: assignees
+group: copy
+---
+name: CopyOptions
+ts: 2026-02-04 09:33:47.987482+00:00
+type: additional_change
+auto_generated: true
+change_kind: optional_field_added
+details: 'added optional field ''reviewers'' (default: None)'
+field_name: reviewers
+group: copy
+---
+name: CopyOptions
+ts: 2026-02-04 09:33:47.987484+00:00
+type: additional_change
+auto_generated: true
+change_kind: optional_field_added
+details: 'added optional field ''labels'' (default: None)'
+field_name: labels
+group: copy
