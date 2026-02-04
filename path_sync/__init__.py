@@ -4,7 +4,7 @@ from path_sync import config
 from path_sync import copy
 from path_sync import dep_update
 
-VERSION = "0.4.0"
+VERSION = "0.4.1"
 __all__ = [
     "config",
     "copy",

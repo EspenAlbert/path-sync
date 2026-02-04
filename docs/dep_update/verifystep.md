@@ -26,8 +26,8 @@ class VerifyStep(BaseModel):
 
 | Version | Change |
 |---------|--------|
-| unreleased | field 'on_fail' default added: None |
-| unreleased | field 'commit' default added: None |
-| unreleased | added base class 'BaseModel' |
+| 0.4.1 | field 'on_fail' default added: None |
+| 0.4.1 | field 'commit' default added: None |
+| 0.4.1 | added base class 'BaseModel' |
 | 0.4.0 | Made public |
 <!-- === OK_EDIT: pkg-ext verifystep_changes === -->

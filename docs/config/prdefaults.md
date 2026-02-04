@@ -32,6 +32,6 @@ class PRDefaults(BaseModel):
 
 | Version | Change |
 |---------|--------|
-| unreleased | added base class 'BaseModel' |
+| 0.4.1 | added base class 'BaseModel' |
 | 0.3.0 | Made public |
 <!-- === OK_EDIT: pkg-ext prdefaults_changes === -->

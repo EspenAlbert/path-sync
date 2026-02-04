@@ -127,3 +127,8 @@ auto_generated: true
 change_kind: base_class_added
 details: added base class 'BaseModel'
 group: copy
+---
+name: 0.4.1
+ts: 2026-02-04 09:44:43.724146+00:00
+type: release
+old_version: 0.4.0
