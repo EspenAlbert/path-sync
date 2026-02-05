@@ -165,8 +165,9 @@ def _run_updates(updates: list[UpdateEntry], repo_path: Path) -> StepFailure | N
         return StepFailure(step=e.cmd, returncode=e.returncode, on_fail=OnFailStrategy.SKIP)
 
 
-def _verify_repo(repo: Repo, repo_path: Path, verify_config: verify.VerifyConfig, dest: Destination) -> RepoResult:
-    result = verify.run_verify_steps(repo, repo_path, verify_config)
+def _verify_repo(repo: Repo, repo_path: Path, fallback_verify: verify.VerifyConfig, dest: Destination) -> RepoResult:
+    effective_verify = dest.resolve_verify(fallback_verify)
+    result = verify.run_verify_steps(repo, repo_path, effective_verify)
     status = Status.from_verify_status(result.status)
     return RepoResult(dest=dest, repo_path=repo_path, status=status, failures=result.failures)
 

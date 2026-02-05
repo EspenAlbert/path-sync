@@ -149,13 +149,16 @@ class Destination(BaseModel):
     default_branch: str = "main"
     skip_sections: dict[str, list[str]] = Field(default_factory=dict)
     skip_file_patterns: set[str] = Field(default_factory=set)
-    verify: VerifyConfig = Field(default_factory=VerifyConfig)
+    verify: VerifyConfig | None = None
 
     def resolved_copy_branch(self, config_name: str) -> str:
         return self.copy_branch or f"sync/{config_name}"
 
     def is_skipped(self, dest_key: str) -> bool:
         return any(fnmatch.fnmatch(dest_key, pat) for pat in self.skip_file_patterns)
+
+    def resolve_verify(self, fallback: VerifyConfig | None) -> VerifyConfig:
+        return self.verify if self.verify is not None else (fallback or VerifyConfig())
 
 
 class SrcConfig(BaseModel):
@@ -169,6 +172,7 @@ class SrcConfig(BaseModel):
     pr_defaults: PRDefaults = Field(default_factory=PRDefaults)
     paths: list[PathMapping] = Field(default_factory=list)
     destinations: list[Destination] = Field(default_factory=list)
+    verify: VerifyConfig | None = None
 
     def find_destination(self, name: str) -> Destination:
         for dest in self.destinations:

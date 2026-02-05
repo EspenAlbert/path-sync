@@ -232,8 +232,9 @@ def _sync_destination(
         return result.total
 
     verify_result = VerifyResult()
-    if not opts.skip_verify and dest.verify.steps:
-        verify_result = verify.run_verify_steps(dest_repo, dest_root, dest.verify)
+    effective_verify = dest.resolve_verify(config.verify)
+    if not opts.skip_verify and effective_verify.steps:
+        verify_result = verify.run_verify_steps(dest_repo, dest_root, effective_verify)
         _print_verify_summary(dest, verify_result)
 
         if verify_result.status == VerifyStatus.FAILED:
