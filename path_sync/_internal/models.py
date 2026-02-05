@@ -53,7 +53,7 @@ class VerifyStep(BaseModel):
 
 
 class VerifyConfig(BaseModel):
-    on_fail: OnFailStrategy = OnFailStrategy.SKIP
+    on_fail: OnFailStrategy = OnFailStrategy.WARN
     steps: list[VerifyStep] = Field(default_factory=list)
 
 

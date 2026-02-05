@@ -7,10 +7,8 @@ from git import Repo
 from path_sync._internal import git_ops
 from path_sync._internal.cmd_copy import (
     CopyOptions,
-    VerifyStatus,
     _cleanup_orphans,
     _ensure_dest_repo,
-    _run_verify_steps,
     _sync_path,
 )
 from path_sync._internal.header import add_header, has_header
@@ -23,6 +21,7 @@ from path_sync._internal.models import (
     VerifyConfig,
     VerifyStep,
 )
+from path_sync._internal.verify import VerifyStatus, run_verify_steps
 
 CONFIG_NAME = "test-config"
 
@@ -306,13 +305,13 @@ skip this
     assert "skip this" not in result
 
 
-MODULE = _run_verify_steps.__module__
+MODULE = run_verify_steps.__module__
 
 
 def test_verify_steps_empty_returns_passed():
     mock_repo = MagicMock(spec=Repo)
     verify = VerifyConfig(steps=[])
-    result = _run_verify_steps(mock_repo, Path("/tmp"), verify)
+    result = run_verify_steps(mock_repo, Path("/tmp"), verify)
     assert result.status == VerifyStatus.PASSED
     assert not result.failures
 
@@ -320,7 +319,7 @@ def test_verify_steps_empty_returns_passed():
 def test_verify_steps_all_pass(tmp_path: Path):
     mock_repo = MagicMock(spec=Repo)
     verify = VerifyConfig(steps=[VerifyStep(run="echo hello"), VerifyStep(run="true")])
-    result = _run_verify_steps(mock_repo, tmp_path, verify)
+    result = run_verify_steps(mock_repo, tmp_path, verify)
     assert result.status == VerifyStatus.PASSED
     assert not result.failures
 
@@ -331,7 +330,7 @@ def test_verify_step_fails_with_skip_strategy(tmp_path: Path):
         on_fail=OnFailStrategy.SKIP,
         steps=[VerifyStep(run="false")],
     )
-    result = _run_verify_steps(mock_repo, tmp_path, verify)
+    result = run_verify_steps(mock_repo, tmp_path, verify)
     assert result.status == VerifyStatus.SKIPPED
     assert len(result.failures) == 1
     assert result.failures[0].on_fail == OnFailStrategy.SKIP
@@ -343,7 +342,7 @@ def test_verify_step_fails_with_fail_strategy(tmp_path: Path):
         on_fail=OnFailStrategy.FAIL,
         steps=[VerifyStep(run="false")],
     )
-    result = _run_verify_steps(mock_repo, tmp_path, verify)
+    result = run_verify_steps(mock_repo, tmp_path, verify)
     assert result.status == VerifyStatus.FAILED
     assert len(result.failures) == 1
     assert result.failures[0].on_fail == OnFailStrategy.FAIL
@@ -355,7 +354,7 @@ def test_verify_step_fails_with_warn_strategy_continues(tmp_path: Path):
         on_fail=OnFailStrategy.WARN,
         steps=[VerifyStep(run="false"), VerifyStep(run="echo after-warn")],
     )
-    result = _run_verify_steps(mock_repo, tmp_path, verify)
+    result = run_verify_steps(mock_repo, tmp_path, verify)
     assert result.status == VerifyStatus.WARN
     assert len(result.failures) == 1
     assert result.failures[0].on_fail == OnFailStrategy.WARN
@@ -373,7 +372,7 @@ def test_verify_step_with_commit_stages_and_commits(tmp_path: Path):
     )
     git_ops_module = git_ops.stage_and_commit.__module__
     with patch(f"{git_ops_module}.{git_ops.stage_and_commit.__name__}") as mock_stage:
-        result = _run_verify_steps(mock_repo, tmp_path, verify)
+        result = run_verify_steps(mock_repo, tmp_path, verify)
         assert result.status == VerifyStatus.PASSED
         mock_stage.assert_called_once_with(mock_repo, [".", "!.venv"], "style: format")
 
@@ -384,7 +383,7 @@ def test_verify_per_step_on_fail_overrides_verify_level(tmp_path: Path):
         on_fail=OnFailStrategy.FAIL,
         steps=[VerifyStep(run="false", on_fail=OnFailStrategy.WARN)],
     )
-    result = _run_verify_steps(mock_repo, tmp_path, verify)
+    result = run_verify_steps(mock_repo, tmp_path, verify)
     assert result.status == VerifyStatus.WARN
     assert len(result.failures) == 1
     assert result.failures[0].on_fail == OnFailStrategy.WARN

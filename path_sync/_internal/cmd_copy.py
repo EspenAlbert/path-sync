@@ -2,31 +2,27 @@ from __future__ import annotations
 
 import glob
 import logging
-import subprocess
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from enum import StrEnum
 from pathlib import Path
 
 import typer
-from git import Repo
 from pydantic import BaseModel
 
 from path_sync import sections
-from path_sync._internal import cmd_options, git_ops, header, prompt_utils
+from path_sync._internal import cmd_options, git_ops, header, prompt_utils, verify
 from path_sync._internal.file_utils import ensure_parents_write_text
 from path_sync._internal.log_capture import capture_log
 from path_sync._internal.models import (
     Destination,
-    OnFailStrategy,
     PathMapping,
     SrcConfig,
     SyncMode,
-    VerifyConfig,
     find_repo_root,
     resolve_config_path,
 )
 from path_sync._internal.typer_app import app
+from path_sync._internal.verify import StepFailure, VerifyResult, VerifyStatus
 from path_sync._internal.yaml_utils import load_yaml_model
 
 logger = logging.getLogger(__name__)
@@ -34,26 +30,6 @@ logger = logging.getLogger(__name__)
 EXIT_NO_CHANGES = 0
 EXIT_CHANGES = 1
 EXIT_ERROR = 2
-
-
-class VerifyStatus(StrEnum):
-    PASSED = "passed"
-    SKIPPED = "skipped"
-    WARN = "warn"
-    FAILED = "failed"
-
-
-@dataclass
-class StepFailure:
-    step: str
-    returncode: int
-    on_fail: OnFailStrategy
-
-
-@dataclass
-class VerifyResult:
-    status: VerifyStatus = VerifyStatus.PASSED
-    failures: list[StepFailure] = field(default_factory=list)
 
 
 @dataclass
@@ -257,7 +233,7 @@ def _sync_destination(
 
     verify_result = VerifyResult()
     if not opts.skip_verify and dest.verify.steps:
-        verify_result = _run_verify_steps(dest_repo, dest_root, dest.verify)
+        verify_result = verify.run_verify_steps(dest_repo, dest_root, dest.verify)
         _print_verify_summary(dest, verify_result)
 
         if verify_result.status == VerifyStatus.FAILED:
@@ -543,50 +519,6 @@ def _find_files_with_config(dest_root: Path, config_name: str) -> list[Path]:
         if header.file_get_config_name(path) == config_name:
             result.append(path)
     return result
-
-
-def _run_command(cmd: str, cwd: Path) -> None:
-    logger.info(f"Running: {cmd}")
-    result = subprocess.run(cmd, shell=True, cwd=cwd, capture_output=True, text=True)
-    prefix = cmd.split()[0]
-    for line in result.stdout.strip().splitlines():
-        logger.info(f"[{prefix}] {line}")
-    for line in result.stderr.strip().splitlines():
-        if result.returncode != 0:
-            logger.error(f"[{prefix}] {line}")
-        else:
-            logger.info(f"[{prefix}] {line}")
-    if result.returncode != 0:
-        raise subprocess.CalledProcessError(result.returncode, cmd, output=result.stdout, stderr=result.stderr)
-
-
-def _run_verify_steps(repo: Repo, repo_path: Path, verify: VerifyConfig) -> VerifyResult:
-    if not verify.steps:
-        return VerifyResult()
-
-    failures: list[StepFailure] = []
-
-    for step in verify.steps:
-        on_fail = step.on_fail or verify.on_fail
-
-        try:
-            _run_command(step.run, repo_path)
-        except subprocess.CalledProcessError as e:
-            failure = StepFailure(step=step.run, returncode=e.returncode, on_fail=on_fail)
-            match on_fail:
-                case OnFailStrategy.FAIL:
-                    return VerifyResult(status=VerifyStatus.FAILED, failures=[failure])
-                case OnFailStrategy.SKIP:
-                    return VerifyResult(status=VerifyStatus.SKIPPED, failures=[failure])
-                case OnFailStrategy.WARN:
-                    failures.append(failure)
-                    continue
-
-        if step.commit:
-            git_ops.stage_and_commit(repo, step.commit.add_paths, step.commit.message)
-
-    status = VerifyStatus.WARN if failures else VerifyStatus.PASSED
-    return VerifyResult(status=status, failures=failures)
 
 
 def _commit_and_pr(
