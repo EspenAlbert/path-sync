@@ -76,3 +76,17 @@ def run_verify_steps(repo: Repo, repo_path: Path, verify: VerifyConfig) -> Verif
 
     status = VerifyStatus.WARN if failures else VerifyStatus.PASSED
     return VerifyResult(status=status, failures=failures)
+
+
+def log_verify_summary(name: str, result: VerifyResult) -> None:
+    match result.status:
+        case VerifyStatus.PASSED:
+            logger.info(f"Verification passed for {name}")
+        case VerifyStatus.WARN:
+            logger.warning(f"Verification completed with warnings for {name}")
+            for f in result.failures:
+                logger.warning(f"  {f.step} failed (exit {f.returncode})")
+        case VerifyStatus.SKIPPED:
+            logger.warning(f"Verification skipped for {name}")
+        case VerifyStatus.FAILED:
+            logger.error(f"Verification failed for {name}")

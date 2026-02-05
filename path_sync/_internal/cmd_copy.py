@@ -235,7 +235,7 @@ def _sync_destination(
     effective_verify = dest.resolve_verify(config.verify)
     if not opts.skip_verify and effective_verify.steps:
         verify_result = verify.run_verify_steps(dest_repo, dest_root, effective_verify)
-        _print_verify_summary(dest, verify_result)
+        verify.log_verify_summary(dest.name, verify_result)
 
         if verify_result.status == VerifyStatus.FAILED:
             logger.error(f"{dest.name}: Verification failed, stopping")
@@ -247,19 +247,6 @@ def _sync_destination(
 
     _commit_and_pr(config, dest_repo, dest_root, dest, current_sha, src_repo_url, opts, read_log, verify_result)
     return result.total
-
-
-def _print_verify_summary(dest: Destination, result: VerifyResult) -> None:
-    if result.status == VerifyStatus.PASSED:
-        typer.echo(f"  Verification passed for {dest.name}", err=True)
-    elif result.status == VerifyStatus.WARN:
-        typer.echo(f"  Verification completed with warnings for {dest.name}", err=True)
-        for f in result.failures:
-            typer.echo(f"    - {f.step} failed (exit {f.returncode})", err=True)
-    elif result.status == VerifyStatus.SKIPPED:
-        typer.echo(f"  Verification skipped for {dest.name}", err=True)
-    elif result.status == VerifyStatus.FAILED:
-        typer.echo(f"  Verification failed for {dest.name}", err=True)
 
 
 def _print_sync_summary(dest: Destination, result: SyncResult) -> None:
