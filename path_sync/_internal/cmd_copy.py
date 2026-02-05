@@ -231,6 +231,10 @@ def _sync_destination(
     if skip_git_ops:
         return result.total
 
+    # Commit synced files before verify so they get proper commit message
+    sync_commit_msg = f"chore: sync {config.name} from {current_sha[:8]}"
+    git_ops.commit_changes(dest_repo, sync_commit_msg)
+
     verify_result = VerifyResult()
     effective_verify = dest.resolve_verify(config.verify)
     if not opts.skip_verify and effective_verify.steps:
@@ -245,7 +249,7 @@ def _sync_destination(
             logger.warning(f"{dest.name}: Verification skipped due to failure")
             return result.total
 
-    _commit_and_pr(config, dest_repo, dest_root, dest, current_sha, src_repo_url, opts, read_log, verify_result)
+    _push_and_pr(config, dest_repo, dest_root, dest, current_sha, src_repo_url, opts, read_log, verify_result)
     return result.total
 
 
@@ -509,7 +513,7 @@ def _find_files_with_config(dest_root: Path, config_name: str) -> list[Path]:
     return result
 
 
-def _commit_and_pr(
+def _push_and_pr(
     config: SrcConfig,
     repo,
     dest_root: Path,
@@ -521,17 +525,18 @@ def _commit_and_pr(
     verify_result: VerifyResult,
 ) -> None:
     if opts.local:
-        logger.info("Local mode: skipping commit/push/PR")
+        logger.info("Local mode: skipping push/PR")
         return
 
     copy_branch = dest.resolved_copy_branch(config.name)
 
-    if not prompt_utils.prompt_confirm(f"Commit changes to {dest.name}?", opts.no_prompt):
-        return
-
-    commit_msg = f"chore: sync {config.name} from {sha[:8]}"
-    git_ops.commit_changes(repo, commit_msg)
-    typer.echo(f"  Committed: {commit_msg}", err=True)
+    # Commit any remaining changes from verify steps without their own commit config
+    if git_ops.has_changes(repo):
+        if not prompt_utils.prompt_confirm(f"Commit remaining changes to {dest.name}?", opts.no_prompt):
+            return
+        commit_msg = f"chore: post-sync changes for {config.name}"
+        git_ops.commit_changes(repo, commit_msg)
+        typer.echo(f"  Committed: {commit_msg}", err=True)
 
     if not prompt_utils.prompt_confirm(f"Push {dest.name} to origin?", opts.no_prompt):
         return
