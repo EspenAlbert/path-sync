@@ -2,7 +2,7 @@
 
 <!-- === DO_NOT_EDIT: pkg-ext headerconfig_def === -->
 ## class: HeaderConfig
-- [source](../../path_sync/_internal/models.py#L69)
+- [source](../../path_sync/_internal/models.py#L91)
 > **Since:** 0.3.0
 
 ```python

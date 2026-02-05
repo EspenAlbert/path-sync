@@ -2,7 +2,7 @@
 
 <!-- === DO_NOT_EDIT: pkg-ext srcconfig_def === -->
 ## class: SrcConfig
-- [source](../../path_sync/_internal/models.py#L138)
+- [source](../../path_sync/_internal/models.py#L164)
 > **Since:** 0.3.0
 
 ```python
@@ -15,6 +15,7 @@ class SrcConfig(BaseModel):
     pr_defaults: PRDefaults = ...
     paths: list[PathMapping] = ...
     destinations: list[Destination] = ...
+    verify: VerifyConfig | None = None
 ```
 <!-- === OK_EDIT: pkg-ext srcconfig_def === -->
 
@@ -36,6 +37,7 @@ class SrcConfig(BaseModel):
 
 | Version | Change |
 |---------|--------|
+| unreleased | added optional field 'verify' (default: None) |
 | 0.4.1 | added base class 'BaseModel' |
 | 0.4.0 | field 'name' default removed (was: PydanticUndefined) |
 | 0.3.0 | Made public |

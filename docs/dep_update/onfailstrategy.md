@@ -2,7 +2,7 @@
 
 <!-- === DO_NOT_EDIT: pkg-ext onfailstrategy_def === -->
 ## class: OnFailStrategy
-- [source](../../path_sync/_internal/models_dep.py#L13)
+- [source](../../path_sync/_internal/models.py#L38)
 > **Since:** 0.4.0
 
 ```python

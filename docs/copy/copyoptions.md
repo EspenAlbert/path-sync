@@ -2,7 +2,7 @@
 
 <!-- === DO_NOT_EDIT: pkg-ext copyoptions_def === -->
 ## class: CopyOptions
-- [source](../../path_sync/_internal/cmd_copy.py#L45)
+- [source](../../path_sync/_internal/cmd_copy.py#L46)
 > **Since:** 0.3.0
 
 ```python
@@ -15,6 +15,7 @@ class CopyOptions(BaseModel):
     no_prompt: bool = False
     no_pr: bool = False
     skip_orphan_cleanup: bool = False
+    skip_verify: bool = False
     pr_title: str = ''
     labels: list[str] | None = None
     reviewers: list[str] | None = None
@@ -44,6 +45,7 @@ class CopyOptions(BaseModel):
 
 | Version | Change |
 |---------|--------|
+| unreleased | added optional field 'skip_verify' (default: False) |
 | 0.4.1 | added base class 'BaseModel' |
 | 0.4.1 | added optional field 'reviewers' (default: None) |
 | 0.4.1 | added optional field 'labels' (default: None) |

@@ -10,9 +10,9 @@ from path_sync._internal.models_dep import UpdateEntry as _UpdateEntry
 
 dep_update = _dep_update
 CommitConfig = _CommitConfig
-DepConfig = _DepConfig
 OnFailStrategy = _OnFailStrategy
-PRConfig = _PRConfig
-UpdateEntry = _UpdateEntry
 VerifyConfig = _VerifyConfig
 VerifyStep = _VerifyStep
+DepConfig = _DepConfig
+PRConfig = _PRConfig
+UpdateEntry = _UpdateEntry

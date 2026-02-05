@@ -1,0 +1,73 @@
+name: build_sections_content
+ts: 2026-02-05 09:34:10.313499+00:00
+type: keep_private
+full_path: sections.build_sections_content
+---
+name: run_command
+ts: 2026-02-05 09:34:18.669205+00:00
+type: keep_private
+full_path: _internal.verify.run_command
+---
+name: run_verify_steps
+ts: 2026-02-05 09:34:18.669343+00:00
+type: keep_private
+full_path: _internal.verify.run_verify_steps
+---
+name: log_verify_summary
+ts: 2026-02-05 09:34:18.669350+00:00
+type: keep_private
+full_path: _internal.verify.log_verify_summary
+---
+name: VerifyStatus
+ts: 2026-02-05 09:34:21.781445+00:00
+type: keep_private
+full_path: _internal.verify.VerifyStatus
+---
+name: VerifyResult
+ts: 2026-02-05 09:34:21.781583+00:00
+type: keep_private
+full_path: _internal.verify.VerifyResult
+---
+name: copy
+ts: 2026-02-05 09:34:34.384009+00:00
+type: fix
+author: Espen Albert
+changelog_message: 'fix(copy): apply skip_sections when creating new files with sections'
+message: 'fix(copy): apply skip_sections when creating new files with sections'
+short_sha: cd5ad3
+---
+name: VerifyConfig
+ts: 2026-02-05 10:55:38.456819+00:00
+type: additional_change
+auto_generated: true
+change_kind: default_changed
+details: 'field ''on_fail'' default: <OnFailStrategy.SKIP: ''skip''> -> <OnFailStrategy.WARN: ''warn''>'
+field_name: on_fail
+group: dep_update
+---
+name: CopyOptions
+ts: 2026-02-05 10:55:38.456833+00:00
+type: additional_change
+auto_generated: true
+change_kind: optional_field_added
+details: 'added optional field ''skip_verify'' (default: False)'
+field_name: skip_verify
+group: copy
+---
+name: Destination
+ts: 2026-02-05 10:55:38.456837+00:00
+type: additional_change
+auto_generated: true
+change_kind: optional_field_added
+details: 'added optional field ''verify'' (default: None)'
+field_name: verify
+group: config
+---
+name: SrcConfig
+ts: 2026-02-05 10:55:38.456840+00:00
+type: additional_change
+auto_generated: true
+change_kind: optional_field_added
+details: 'added optional field ''verify'' (default: None)'
+field_name: verify
+group: config
