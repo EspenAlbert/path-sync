@@ -35,6 +35,28 @@ class SyncMode(StrEnum):
     SCAFFOLD = "scaffold"
 
 
+class OnFailStrategy(StrEnum):
+    SKIP = "skip"
+    FAIL = "fail"
+    WARN = "warn"
+
+
+class CommitConfig(BaseModel):
+    message: str
+    add_paths: list[str] = Field(default_factory=lambda: ["."])
+
+
+class VerifyStep(BaseModel):
+    run: str
+    commit: CommitConfig | None = None
+    on_fail: OnFailStrategy | None = None
+
+
+class VerifyConfig(BaseModel):
+    on_fail: OnFailStrategy = OnFailStrategy.SKIP
+    steps: list[VerifyStep] = Field(default_factory=list)
+
+
 class PathMapping(BaseModel):
     src_path: str
     dest_path: str = ""
@@ -127,6 +149,7 @@ class Destination(BaseModel):
     default_branch: str = "main"
     skip_sections: dict[str, list[str]] = Field(default_factory=dict)
     skip_file_patterns: set[str] = Field(default_factory=set)
+    verify: VerifyConfig = Field(default_factory=VerifyConfig)
 
     def resolved_copy_branch(self, config_name: str) -> str:
         return self.copy_branch or f"sync/{config_name}"

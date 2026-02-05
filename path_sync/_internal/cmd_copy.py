@@ -2,11 +2,14 @@ from __future__ import annotations
 
 import glob
 import logging
+import subprocess
 from collections.abc import Callable
 from dataclasses import dataclass, field
+from enum import StrEnum
 from pathlib import Path
 
 import typer
+from git import Repo
 from pydantic import BaseModel
 
 from path_sync import sections
@@ -15,9 +18,11 @@ from path_sync._internal.file_utils import ensure_parents_write_text
 from path_sync._internal.log_capture import capture_log
 from path_sync._internal.models import (
     Destination,
+    OnFailStrategy,
     PathMapping,
     SrcConfig,
     SyncMode,
+    VerifyConfig,
     find_repo_root,
     resolve_config_path,
 )
@@ -29,6 +34,26 @@ logger = logging.getLogger(__name__)
 EXIT_NO_CHANGES = 0
 EXIT_CHANGES = 1
 EXIT_ERROR = 2
+
+
+class VerifyStatus(StrEnum):
+    PASSED = "passed"
+    SKIPPED = "skipped"
+    WARN = "warn"
+    FAILED = "failed"
+
+
+@dataclass
+class StepFailure:
+    step: str
+    returncode: int
+    on_fail: OnFailStrategy
+
+
+@dataclass
+class VerifyResult:
+    status: VerifyStatus = VerifyStatus.PASSED
+    failures: list[StepFailure] = field(default_factory=list)
 
 
 @dataclass
@@ -51,6 +76,7 @@ class CopyOptions(BaseModel):
     no_prompt: bool = False
     no_pr: bool = False
     skip_orphan_cleanup: bool = False
+    skip_verify: bool = False
     pr_title: str = ""
     labels: list[str] | None = None
     reviewers: list[str] | None = None
@@ -122,6 +148,11 @@ def copy(
         "--skip-orphan-cleanup",
         help="Skip deletion of orphaned synced files",
     ),
+    skip_verify: bool = typer.Option(
+        False,
+        "--skip-verify",
+        help="Skip verification steps after syncing",
+    ),
 ) -> None:
     """Copy files from SRC to DEST repositories."""
     if name and config_path_opt:
@@ -152,6 +183,7 @@ def copy(
         no_prompt=no_prompt,
         no_pr=no_pr,
         skip_orphan_cleanup=skip_orphan_cleanup,
+        skip_verify=skip_verify,
         pr_title=pr_title or config.pr_defaults.title,
         labels=cmd_options.split_csv(pr_labels) or config.pr_defaults.labels,
         reviewers=cmd_options.split_csv(pr_reviewers) or config.pr_defaults.reviewers,
@@ -223,8 +255,34 @@ def _sync_destination(
     if skip_git_ops:
         return result.total
 
-    _commit_and_pr(config, dest_repo, dest_root, dest, current_sha, src_repo_url, opts, read_log)
+    verify_result = VerifyResult()
+    if not opts.skip_verify and dest.verify.steps:
+        verify_result = _run_verify_steps(dest_repo, dest_root, dest.verify)
+        _print_verify_summary(dest, verify_result)
+
+        if verify_result.status == VerifyStatus.FAILED:
+            logger.error(f"{dest.name}: Verification failed, stopping")
+            raise typer.Exit(EXIT_ERROR)
+
+        if verify_result.status == VerifyStatus.SKIPPED:
+            logger.warning(f"{dest.name}: Verification skipped due to failure")
+            return result.total
+
+    _commit_and_pr(config, dest_repo, dest_root, dest, current_sha, src_repo_url, opts, read_log, verify_result)
     return result.total
+
+
+def _print_verify_summary(dest: Destination, result: VerifyResult) -> None:
+    if result.status == VerifyStatus.PASSED:
+        typer.echo(f"  Verification passed for {dest.name}", err=True)
+    elif result.status == VerifyStatus.WARN:
+        typer.echo(f"  Verification completed with warnings for {dest.name}", err=True)
+        for f in result.failures:
+            typer.echo(f"    - {f.step} failed (exit {f.returncode})", err=True)
+    elif result.status == VerifyStatus.SKIPPED:
+        typer.echo(f"  Verification skipped for {dest.name}", err=True)
+    elif result.status == VerifyStatus.FAILED:
+        typer.echo(f"  Verification failed for {dest.name}", err=True)
 
 
 def _print_sync_summary(dest: Destination, result: SyncResult) -> None:
@@ -487,6 +545,50 @@ def _find_files_with_config(dest_root: Path, config_name: str) -> list[Path]:
     return result
 
 
+def _run_command(cmd: str, cwd: Path) -> None:
+    logger.info(f"Running: {cmd}")
+    result = subprocess.run(cmd, shell=True, cwd=cwd, capture_output=True, text=True)
+    prefix = cmd.split()[0]
+    for line in result.stdout.strip().splitlines():
+        logger.info(f"[{prefix}] {line}")
+    for line in result.stderr.strip().splitlines():
+        if result.returncode != 0:
+            logger.error(f"[{prefix}] {line}")
+        else:
+            logger.info(f"[{prefix}] {line}")
+    if result.returncode != 0:
+        raise subprocess.CalledProcessError(result.returncode, cmd, output=result.stdout, stderr=result.stderr)
+
+
+def _run_verify_steps(repo: Repo, repo_path: Path, verify: VerifyConfig) -> VerifyResult:
+    if not verify.steps:
+        return VerifyResult()
+
+    failures: list[StepFailure] = []
+
+    for step in verify.steps:
+        on_fail = step.on_fail or verify.on_fail
+
+        try:
+            _run_command(step.run, repo_path)
+        except subprocess.CalledProcessError as e:
+            failure = StepFailure(step=step.run, returncode=e.returncode, on_fail=on_fail)
+            match on_fail:
+                case OnFailStrategy.FAIL:
+                    return VerifyResult(status=VerifyStatus.FAILED, failures=[failure])
+                case OnFailStrategy.SKIP:
+                    return VerifyResult(status=VerifyStatus.SKIPPED, failures=[failure])
+                case OnFailStrategy.WARN:
+                    failures.append(failure)
+                    continue
+
+        if step.commit:
+            git_ops.stage_and_commit(repo, step.commit.add_paths, step.commit.message)
+
+    status = VerifyStatus.WARN if failures else VerifyStatus.PASSED
+    return VerifyResult(status=status, failures=failures)
+
+
 def _commit_and_pr(
     config: SrcConfig,
     repo,
@@ -496,6 +598,7 @@ def _commit_and_pr(
     src_repo_url: str,
     opts: CopyOptions,
     read_log: Callable[[], str],
+    verify_result: VerifyResult,
 ) -> None:
     if opts.local:
         logger.info("Local mode: skipping commit/push/PR")
@@ -527,6 +630,9 @@ def _commit_and_pr(
         dest_name=dest.name,
     )
 
+    if verify_result.failures:
+        pr_body = _append_verify_warnings(pr_body, verify_result.failures)
+
     title = opts.pr_title.format(name=config.name, dest_name=dest.name)
     pr_url = git_ops.create_or_update_pr(
         dest_root,
@@ -539,3 +645,10 @@ def _commit_and_pr(
     )
     if pr_url:
         typer.echo(f"  Created PR: {pr_url}", err=True)
+
+
+def _append_verify_warnings(body: str, failures: list[StepFailure]) -> str:
+    body += "\n\n---\n## Verification Warnings\n"
+    for f in failures:
+        body += f"\n- `{f.step}` failed (exit code {f.returncode}, strategy: {f.on_fail})"
+    return body

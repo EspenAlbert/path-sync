@@ -14,15 +14,17 @@ from path_sync._internal.cmd_dep_update import (
     _run_updates,
     _run_verify_steps,
 )
-from path_sync._internal.models import Destination
-from path_sync._internal.models_dep import (
+from path_sync._internal.models import (
     CommitConfig,
-    DepConfig,
+    Destination,
     OnFailStrategy,
-    PRConfig,
-    UpdateEntry,
     VerifyConfig,
     VerifyStep,
+)
+from path_sync._internal.models_dep import (
+    DepConfig,
+    PRConfig,
+    UpdateEntry,
 )
 
 MODULE = _process_single_repo.__module__

@@ -12,12 +12,10 @@ from git import Repo
 
 from path_sync._internal import cmd_options, git_ops, prompt_utils
 from path_sync._internal.log_capture import capture_log
-from path_sync._internal.models import Destination, find_repo_root
+from path_sync._internal.models import Destination, OnFailStrategy, VerifyConfig, find_repo_root
 from path_sync._internal.models_dep import (
     DepConfig,
-    OnFailStrategy,
     UpdateEntry,
-    VerifyConfig,
     resolve_dep_config_path,
 )
 from path_sync._internal.typer_app import app
