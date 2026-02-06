@@ -48,7 +48,7 @@ class CopyOptions(BaseModel):
     force_overwrite: bool = False
     no_checkout: bool = False
     checkout_from_default: bool = False
-    local: bool = False
+    skip_commit: bool = False
     no_prompt: bool = False
     no_pr: bool = False
     skip_orphan_cleanup: bool = False
@@ -95,8 +95,9 @@ def copy(
         "--checkout-from-default",
         help="Reset to origin/default before sync (for CI)",
     ),
-    local: bool = typer.Option(
+    skip_commit: bool = typer.Option(
         False,
+        "--skip-commit",
         "--local",
         help="No git operations after sync (no commit/push/PR)",
     ),
@@ -155,7 +156,7 @@ def copy(
         force_overwrite=force_overwrite,
         no_checkout=no_checkout,
         checkout_from_default=checkout_from_default,
-        local=local,
+        skip_commit=skip_commit,
         no_prompt=no_prompt,
         no_pr=no_pr,
         skip_orphan_cleanup=skip_orphan_cleanup,
@@ -219,16 +220,18 @@ def _sync_destination(
         logger.info(f"{dest.name}: No changes")
         return 0
 
-    # --local and --dry-run skip commit; otherwise prompt
-    skip_commit = opts.local or opts.dry_run
-    if not skip_commit and prompt_utils.prompt_confirm(f"Commit changes to {dest.name}?", opts.no_prompt):
+    # --skip-commit and --dry-run skip commit; otherwise prompt
+    should_skip_commit = opts.skip_commit or opts.dry_run
+    if not should_skip_commit and prompt_utils.prompt_confirm(f"Commit changes to {dest.name}?", opts.no_prompt):
         sync_commit_msg = f"chore: sync {config.name} from {current_sha[:8]}"
         git_ops.commit_changes(dest_repo, sync_commit_msg)
 
     verify_result = VerifyResult()
     effective_verify = dest.resolve_verify(config.verify)
     if not opts.skip_verify and effective_verify.steps:
-        verify_result = verify.run_verify_steps(dest_repo, dest_root, effective_verify, dry_run=opts.dry_run)
+        verify_result = verify.run_verify_steps(
+            dest_repo, dest_root, effective_verify, dry_run=opts.dry_run, skip_commit=opts.skip_commit
+        )
         verify.log_verify_summary(dest.name, verify_result)
 
         if verify_result.status == VerifyStatus.FAILED:
@@ -524,8 +527,8 @@ def _push_and_pr(
     read_log: Callable[[], str],
     verify_result: VerifyResult,
 ) -> None:
-    if opts.local or opts.dry_run:
-        logger.info("Local mode: skipping push/PR")
+    if opts.skip_commit or opts.dry_run:
+        logger.info("Skipping push/PR (--skip-commit or --dry-run)")
         return
 
     copy_branch = dest.resolved_copy_branch(config.name)

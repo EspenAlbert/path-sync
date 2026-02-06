@@ -59,7 +59,7 @@ By default, prompts before each git operation. See [Usage Scenarios](#usage-scen
 | `-d dest1,dest2` | Filter specific destinations |
 | `--dry-run` | Preview without writing (requires existing repos) |
 | `-y, --no-prompt` | Skip confirmations (for CI) |
-| `--local` | No git ops after sync (no commit/push/PR) |
+| `--skip-commit` | No git ops after sync (no commit/push/PR). Alias: `--local` |
 | `--no-checkout` | Skip branch switching (assumes already on correct branch) |
 | `--checkout-from-default` | Reset to origin/default before sync |
 | `--no-pr` | Push but skip PR creation |
@@ -89,12 +89,12 @@ Options:
 | Interactive sync | `copy -n cfg` |
 | CI fresh sync | `copy -n cfg --checkout-from-default -y` |
 | Local preview | `copy -n cfg --dry-run` |
-| Local test files | `copy -n cfg --local` |
+| Local test files | `copy -n cfg --skip-commit` |
 | Already on branch | `copy -n cfg --no-checkout` |
 | Push, manual PR | `copy -n cfg --no-pr -y` |
 | Force opted-out | `copy -n cfg --force-overwrite` |
 
-**Interactive prompt behavior**: Each git operation (checkout, commit, push, PR) prompts independently. Use `--no-checkout` to skip the branch switch prompt. Use `--local` to skip all git operations after sync.
+**Interactive prompt behavior**: Each git operation (checkout, commit, push, PR) prompts independently. Use `--no-checkout` to skip the branch switch prompt. Use `--skip-commit` to skip all git operations after sync.
 
 ## Section Markers
 

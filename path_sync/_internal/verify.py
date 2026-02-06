@@ -52,7 +52,9 @@ def run_command(cmd: str, cwd: Path, dry_run: bool = False) -> None:
         raise subprocess.CalledProcessError(result.returncode, cmd, output=result.stdout, stderr=result.stderr)
 
 
-def run_verify_steps(repo: Repo, repo_path: Path, verify: VerifyConfig, dry_run: bool = False, skip_commit: bool = False) -> VerifyResult:
+def run_verify_steps(
+    repo: Repo, repo_path: Path, verify: VerifyConfig, dry_run: bool = False, skip_commit: bool = False
+) -> VerifyResult:
     if not verify.steps:
         return VerifyResult()
 
