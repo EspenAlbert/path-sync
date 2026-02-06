@@ -33,3 +33,5 @@ groups:
 - name: validate_no_changes
   owned_modules:
   - _internal.cmd_validate
+  owned_refs:
+  - _internal.cmd_validate.validate_no_changes
