@@ -2,14 +2,16 @@ from pathlib import Path
 
 import yaml
 
-from path_sync._internal.models_dep import (
+from path_sync._internal.models import (
     CommitConfig,
-    DepConfig,
     OnFailStrategy,
-    PRConfig,
-    UpdateEntry,
     VerifyConfig,
     VerifyStep,
+)
+from path_sync._internal.models_dep import (
+    DepConfig,
+    PRConfig,
+    UpdateEntry,
     resolve_dep_config_path,
 )
 

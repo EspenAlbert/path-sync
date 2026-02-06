@@ -10,7 +10,7 @@ import typer
 from pydantic import BaseModel
 
 from path_sync import sections
-from path_sync._internal import cmd_options, git_ops, header, prompt_utils
+from path_sync._internal import cmd_options, git_ops, header, prompt_utils, verify
 from path_sync._internal.file_utils import ensure_parents_write_text
 from path_sync._internal.log_capture import capture_log
 from path_sync._internal.models import (
@@ -22,6 +22,7 @@ from path_sync._internal.models import (
     resolve_config_path,
 )
 from path_sync._internal.typer_app import app
+from path_sync._internal.verify import StepFailure, VerifyResult, VerifyStatus
 from path_sync._internal.yaml_utils import load_yaml_model
 
 logger = logging.getLogger(__name__)
@@ -47,10 +48,11 @@ class CopyOptions(BaseModel):
     force_overwrite: bool = False
     no_checkout: bool = False
     checkout_from_default: bool = False
-    local: bool = False
+    skip_commit: bool = False
     no_prompt: bool = False
     no_pr: bool = False
     skip_orphan_cleanup: bool = False
+    skip_verify: bool = False
     pr_title: str = ""
     labels: list[str] | None = None
     reviewers: list[str] | None = None
@@ -93,8 +95,9 @@ def copy(
         "--checkout-from-default",
         help="Reset to origin/default before sync (for CI)",
     ),
-    local: bool = typer.Option(
+    skip_commit: bool = typer.Option(
         False,
+        "--skip-commit",
         "--local",
         help="No git operations after sync (no commit/push/PR)",
     ),
@@ -122,6 +125,11 @@ def copy(
         "--skip-orphan-cleanup",
         help="Skip deletion of orphaned synced files",
     ),
+    skip_verify: bool = typer.Option(
+        False,
+        "--skip-verify",
+        help="Skip verification steps after syncing",
+    ),
 ) -> None:
     """Copy files from SRC to DEST repositories."""
     if name and config_path_opt:
@@ -148,10 +156,11 @@ def copy(
         force_overwrite=force_overwrite,
         no_checkout=no_checkout,
         checkout_from_default=checkout_from_default,
-        local=local,
+        skip_commit=skip_commit,
         no_prompt=no_prompt,
         no_pr=no_pr,
         skip_orphan_cleanup=skip_orphan_cleanup,
+        skip_verify=skip_verify,
         pr_title=pr_title or config.pr_defaults.title,
         labels=cmd_options.split_csv(pr_labels) or config.pr_defaults.labels,
         reviewers=cmd_options.split_csv(pr_reviewers) or config.pr_defaults.reviewers,
@@ -196,23 +205,14 @@ def _sync_destination(
     dest_repo = _ensure_dest_repo(dest, dest_root, opts.dry_run)
     copy_branch = dest.resolved_copy_branch(config.name)
 
-    # --no-checkout means "I'm already on the right branch"
-    # Prompt decline means "skip git operations for this run"
-    if opts.dry_run:
-        skip_git_ops = True
-    elif opts.no_checkout:
-        skip_git_ops = False
-    elif prompt_utils.prompt_confirm(f"Switch {dest.name} to {copy_branch}?", opts.no_prompt):
+    # --no-checkout skips branch switching (assumes already on correct branch)
+    if not opts.no_checkout and prompt_utils.prompt_confirm(f"Switch {dest.name} to {copy_branch}?", opts.no_prompt):
         git_ops.prepare_copy_branch(
             repo=dest_repo,
             default_branch=dest.default_branch,
             copy_branch=copy_branch,
             from_default=opts.checkout_from_default,
         )
-        skip_git_ops = False
-    else:
-        skip_git_ops = True
-
     result = _sync_paths(config, dest, src_root, dest_root, opts)
     _print_sync_summary(dest, result)
 
@@ -220,10 +220,29 @@ def _sync_destination(
         logger.info(f"{dest.name}: No changes")
         return 0
 
-    if skip_git_ops:
-        return result.total
+    # --skip-commit and --dry-run skip commit; otherwise prompt
+    should_skip_commit = opts.skip_commit or opts.dry_run
+    if not should_skip_commit and prompt_utils.prompt_confirm(f"Commit changes to {dest.name}?", opts.no_prompt):
+        sync_commit_msg = f"chore: sync {config.name} from {current_sha[:8]}"
+        git_ops.commit_changes(dest_repo, sync_commit_msg)
 
-    _commit_and_pr(config, dest_repo, dest_root, dest, current_sha, src_repo_url, opts, read_log)
+    verify_result = VerifyResult()
+    effective_verify = dest.resolve_verify(config.verify)
+    if not opts.skip_verify and effective_verify.steps:
+        verify_result = verify.run_verify_steps(
+            dest_repo, dest_root, effective_verify, dry_run=opts.dry_run, skip_commit=opts.skip_commit
+        )
+        verify.log_verify_summary(dest.name, verify_result)
+
+        if verify_result.status == VerifyStatus.FAILED:
+            logger.error(f"{dest.name}: Verification failed, stopping")
+            raise typer.Exit(EXIT_ERROR)
+
+        if verify_result.status == VerifyStatus.SKIPPED:
+            logger.warning(f"{dest.name}: Verification skipped due to failure")
+            return result.total
+
+    _push_and_pr(config, dest_repo, dest_root, dest, current_sha, src_repo_url, opts, read_log, verify_result)
     return result.total
 
 
@@ -264,6 +283,7 @@ def _sync_paths(
             config.name,
             opts.dry_run,
             opts.force_overwrite,
+            config.wrap_synced_files,
         )
         result.content_changes += changes
         result.synced_paths.update(paths)
@@ -314,10 +334,12 @@ def _sync_path(
     config_name: str,
     dry_run: bool,
     force_overwrite: bool,
+    wrap_synced_files: bool = False,
 ) -> tuple[int, set[Path]]:
     changes = 0
     synced: set[Path] = set()
 
+    should_wrap = mapping.should_wrap(wrap_synced_files)
     for src_path, dest_key, dest_path in _iter_sync_files(mapping, src_root, dest_root):
         if dest.is_skipped(dest_key):
             continue
@@ -330,6 +352,7 @@ def _sync_path(
             mapping.sync_mode,
             dry_run,
             force_overwrite,
+            should_wrap,
         )
         synced.add(dest_path)
 
@@ -345,6 +368,7 @@ def _copy_file(
     sync_mode: SyncMode,
     dry_run: bool,
     force_overwrite: bool = False,
+    should_wrap: bool = False,
 ) -> int:
     try:
         src_content = header.remove_header(src.read_text())
@@ -358,7 +382,7 @@ def _copy_file(
             return _handle_replace(src_content, dest_path, dry_run)
         case SyncMode.SYNC:
             skip_list = dest.skip_sections.get(dest_key, [])
-            return _handle_sync(src_content, dest_path, skip_list, config_name, dry_run, force_overwrite)
+            return _handle_sync(src_content, dest_path, skip_list, config_name, dry_run, force_overwrite, should_wrap)
 
 
 def _copy_binary_file(src: Path, dest_path: Path, sync_mode: SyncMode, dry_run: bool) -> int:
@@ -402,9 +426,14 @@ def _handle_sync(
     config_name: str,
     dry_run: bool,
     force_overwrite: bool,
+    should_wrap: bool = False,
 ) -> int:
     if sections.has_sections(src_content, dest_path):
         return _handle_sync_sections(src_content, dest_path, skip_list, config_name, dry_run, force_overwrite)
+
+    if should_wrap:
+        wrapped = sections.wrap_in_synced_section(src_content, dest_path)
+        return _handle_sync_sections(wrapped, dest_path, skip_list, config_name, dry_run, force_overwrite)
 
     if dest_path.exists():
         existing = dest_path.read_text()
@@ -436,7 +465,7 @@ def _handle_sync_sections(
     dry_run: bool,
     force_overwrite: bool,
 ) -> int:
-    src_sections = sections.extract_sections(src_content, dest_path)
+    src_sections = sections.parse_sections(src_content, dest_path)
 
     if dest_path.exists():
         existing = dest_path.read_text()
@@ -445,6 +474,9 @@ def _handle_sync_sections(
             return 0
         dest_body = header.remove_header(existing)
         new_body = sections.replace_sections(dest_body, src_sections, dest_path, skip_list)
+    elif skip_list:
+        filtered = [s for s in src_sections if s.id not in skip_list]
+        new_body = sections.build_sections_content(filtered, dest_path)
     else:
         new_body = src_content
 
@@ -484,7 +516,7 @@ def _find_files_with_config(dest_root: Path, config_name: str) -> list[Path]:
     return result
 
 
-def _commit_and_pr(
+def _push_and_pr(
     config: SrcConfig,
     repo,
     dest_root: Path,
@@ -493,19 +525,21 @@ def _commit_and_pr(
     src_repo_url: str,
     opts: CopyOptions,
     read_log: Callable[[], str],
+    verify_result: VerifyResult,
 ) -> None:
-    if opts.local:
-        logger.info("Local mode: skipping commit/push/PR")
+    if opts.skip_commit or opts.dry_run:
+        logger.info("Skipping push/PR (--skip-commit or --dry-run)")
         return
 
     copy_branch = dest.resolved_copy_branch(config.name)
 
-    if not prompt_utils.prompt_confirm(f"Commit changes to {dest.name}?", opts.no_prompt):
-        return
-
-    commit_msg = f"chore: sync {config.name} from {sha[:8]}"
-    git_ops.commit_changes(repo, commit_msg)
-    typer.echo(f"  Committed: {commit_msg}", err=True)
+    # Commit any remaining changes from verify steps without their own commit config
+    if git_ops.has_changes(repo):
+        if not prompt_utils.prompt_confirm(f"Commit remaining changes to {dest.name}?", opts.no_prompt):
+            return
+        commit_msg = f"chore: post-sync changes for {config.name}"
+        git_ops.commit_changes(repo, commit_msg)
+        typer.echo(f"  Committed: {commit_msg}", err=True)
 
     if not prompt_utils.prompt_confirm(f"Push {dest.name} to origin?", opts.no_prompt):
         return
@@ -524,6 +558,9 @@ def _commit_and_pr(
         dest_name=dest.name,
     )
 
+    if verify_result.failures:
+        pr_body = _append_verify_warnings(pr_body, verify_result.failures)
+
     title = opts.pr_title.format(name=config.name, dest_name=dest.name)
     pr_url = git_ops.create_or_update_pr(
         dest_root,
@@ -536,3 +573,10 @@ def _commit_and_pr(
     )
     if pr_url:
         typer.echo(f"  Created PR: {pr_url}", err=True)
+
+
+def _append_verify_warnings(body: str, failures: list[StepFailure]) -> str:
+    body += "\n\n---\n## Verification Warnings\n"
+    for f in failures:
+        body += f"\n- `{f.step}` failed (exit code {f.returncode}, strategy: {f.on_fail})"
+    return body

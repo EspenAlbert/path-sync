@@ -19,7 +19,7 @@
 <a id="dep_update_def"></a>
 
 ### cli_command: `dep_update`
-- [source](../../path_sync/_internal/cmd_dep_update.py#L61)
+- [source](../../path_sync/_internal/cmd_dep_update.py#L57)
 > **Since:** 0.4.0
 
 ```python

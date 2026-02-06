@@ -2,7 +2,7 @@
 
 <!-- === DO_NOT_EDIT: pkg-ext prconfig_def === -->
 ## class: PRConfig
-- [source](../../path_sync/_internal/models_dep.py#L40)
+- [source](../../path_sync/_internal/models_dep.py#L23)
 > **Since:** 0.4.0
 
 ```python

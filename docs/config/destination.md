@@ -2,7 +2,7 @@
 
 <!-- === DO_NOT_EDIT: pkg-ext destination_def === -->
 ## class: Destination
-- [source](../../path_sync/_internal/models.py#L122)
+- [source](../../path_sync/_internal/models.py#L148)
 > **Since:** 0.3.0
 
 ```python
@@ -14,6 +14,7 @@ class Destination(BaseModel):
     default_branch: str = 'main'
     skip_sections: dict[str, list[str]] = ...
     skip_file_patterns: set[str] = ...
+    verify: VerifyConfig | None = None
 ```
 <!-- === OK_EDIT: pkg-ext destination_def === -->
 
@@ -34,6 +35,7 @@ class Destination(BaseModel):
 
 | Version | Change |
 |---------|--------|
+| unreleased | added optional field 'verify' (default: None) |
 | 0.4.1 | added base class 'BaseModel' |
 | 0.4.0 | field 'name' default removed (was: PydanticUndefined) |
 | 0.4.0 | field 'dest_path_relative' default removed (was: PydanticUndefined) |

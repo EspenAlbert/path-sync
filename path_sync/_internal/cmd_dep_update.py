@@ -10,17 +10,16 @@ from pathlib import Path
 import typer
 from git import Repo
 
-from path_sync._internal import cmd_options, git_ops, prompt_utils
+from path_sync._internal import cmd_options, git_ops, prompt_utils, verify
 from path_sync._internal.log_capture import capture_log
-from path_sync._internal.models import Destination, find_repo_root
+from path_sync._internal.models import Destination, OnFailStrategy, find_repo_root
 from path_sync._internal.models_dep import (
     DepConfig,
-    OnFailStrategy,
     UpdateEntry,
-    VerifyConfig,
     resolve_dep_config_path,
 )
 from path_sync._internal.typer_app import app
+from path_sync._internal.verify import StepFailure, VerifyStatus
 from path_sync._internal.yaml_utils import load_yaml_model
 
 logger = logging.getLogger(__name__)
@@ -33,12 +32,9 @@ class Status(StrEnum):
     NO_CHANGES = "no_changes"
     FAILED = "failed"
 
-
-@dataclass
-class StepFailure:
-    step: str
-    returncode: int
-    on_fail: OnFailStrategy
+    @classmethod
+    def from_verify_status(cls, vs: VerifyStatus) -> Status:
+        return cls(vs.value)
 
 
 @dataclass
@@ -163,15 +159,17 @@ def _process_single_repo_inner(
 def _run_updates(updates: list[UpdateEntry], repo_path: Path) -> StepFailure | None:
     try:
         for update in updates:
-            _run_command(update.command, repo_path / update.workdir)
+            verify.run_command(update.command, repo_path / update.workdir)
         return None
     except subprocess.CalledProcessError as e:
         return StepFailure(step=e.cmd, returncode=e.returncode, on_fail=OnFailStrategy.SKIP)
 
 
-def _verify_repo(repo: Repo, repo_path: Path, verify: VerifyConfig, dest: Destination) -> RepoResult:
-    status, failures = _run_verify_steps(repo, repo_path, verify)
-    return RepoResult(dest=dest, repo_path=repo_path, status=status, failures=failures)
+def _verify_repo(repo: Repo, repo_path: Path, fallback_verify: verify.VerifyConfig, dest: Destination) -> RepoResult:
+    effective_verify = dest.resolve_verify(fallback_verify)
+    result = verify.run_verify_steps(repo, repo_path, effective_verify)
+    status = Status.from_verify_status(result.status)
+    return RepoResult(dest=dest, repo_path=repo_path, status=status, failures=result.failures)
 
 
 def _create_prs(config: DepConfig, results: list[RepoResult], opts: DepUpdateOptions) -> None:
@@ -221,46 +219,6 @@ def _ensure_repo(dest: Destination, repo_path: Path, default_branch: str) -> Rep
     if not dest.repo_url:
         raise ValueError(f"Dest {dest.name} not found at {repo_path} and no repo_url configured")
     return git_ops.clone_repo(dest.repo_url, repo_path)
-
-
-def _run_command(cmd: str, cwd: Path) -> None:
-    logger.info(f"Running: {cmd}")
-    result = subprocess.run(cmd, shell=True, cwd=cwd, capture_output=True, text=True)
-    prefix = cmd.split()[0]
-    for line in result.stdout.strip().splitlines():
-        logger.info(f"[{prefix}] {line}")
-    for line in result.stderr.strip().splitlines():
-        if result.returncode != 0:
-            logger.error(f"[{prefix}] {line}")
-        else:
-            logger.info(f"[{prefix}] {line}")
-    if result.returncode != 0:
-        raise subprocess.CalledProcessError(result.returncode, cmd, output=result.stdout, stderr=result.stderr)
-
-
-def _run_verify_steps(repo: Repo, repo_path: Path, verify: VerifyConfig) -> tuple[Status, list[StepFailure]]:
-    failures: list[StepFailure] = []
-
-    for step in verify.steps:
-        on_fail = step.on_fail or verify.on_fail
-
-        try:
-            _run_command(step.run, repo_path)
-        except subprocess.CalledProcessError as e:
-            failure = StepFailure(step=step.run, returncode=e.returncode, on_fail=on_fail)
-            match on_fail:
-                case OnFailStrategy.FAIL:
-                    return (Status.FAILED, [failure])
-                case OnFailStrategy.SKIP:
-                    return (Status.SKIPPED, [failure])
-                case OnFailStrategy.WARN:
-                    failures.append(failure)
-                    continue
-
-        if step.commit:
-            git_ops.stage_and_commit(repo, step.commit.add_paths, step.commit.message)
-
-    return (Status.WARN if failures else Status.PASSED, failures)
 
 
 def _build_pr_body(log_content: str, failures: list[StepFailure]) -> str:

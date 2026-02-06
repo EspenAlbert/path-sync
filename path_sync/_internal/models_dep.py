@@ -1,35 +1,18 @@
 from __future__ import annotations
 
-from enum import StrEnum
 from pathlib import Path
 from typing import ClassVar
 
 from pydantic import BaseModel, Field
 
-from path_sync._internal.models import Destination, PRFieldsBase, SrcConfig, resolve_config_path
+from path_sync._internal.models import (
+    Destination,
+    PRFieldsBase,
+    SrcConfig,
+    VerifyConfig,
+    resolve_config_path,
+)
 from path_sync._internal.yaml_utils import load_yaml_model
-
-
-class OnFailStrategy(StrEnum):
-    SKIP = "skip"
-    FAIL = "fail"
-    WARN = "warn"
-
-
-class CommitConfig(BaseModel):
-    message: str
-    add_paths: list[str] = Field(default_factory=lambda: ["."])
-
-
-class VerifyStep(BaseModel):
-    run: str
-    commit: CommitConfig | None = None
-    on_fail: OnFailStrategy | None = None
-
-
-class VerifyConfig(BaseModel):
-    on_fail: OnFailStrategy = OnFailStrategy.SKIP
-    steps: list[VerifyStep] = Field(default_factory=list)
 
 
 class UpdateEntry(BaseModel):

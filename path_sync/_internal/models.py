@@ -35,12 +35,38 @@ class SyncMode(StrEnum):
     SCAFFOLD = "scaffold"
 
 
+class OnFailStrategy(StrEnum):
+    SKIP = "skip"
+    FAIL = "fail"
+    WARN = "warn"
+
+
+class CommitConfig(BaseModel):
+    message: str
+    add_paths: list[str] = Field(default_factory=lambda: ["."])
+
+
+class VerifyStep(BaseModel):
+    run: str
+    commit: CommitConfig | None = None
+    on_fail: OnFailStrategy | None = None
+
+
+class VerifyConfig(BaseModel):
+    on_fail: OnFailStrategy = OnFailStrategy.WARN
+    steps: list[VerifyStep] = Field(default_factory=list)
+
+
 class PathMapping(BaseModel):
     src_path: str
     dest_path: str = ""
     sync_mode: SyncMode = SyncMode.SYNC
     exclude_dirs: set[str] = Field(default_factory=_default_exclude_dirs)
     exclude_file_patterns: set[str] = Field(default_factory=set)
+    wrap: bool | None = None
+
+    def should_wrap(self, config_default: bool) -> bool:
+        return self.wrap if self.wrap is not None else config_default
 
     def resolved_dest_path(self) -> str:
         return self.dest_path or self.src_path
@@ -127,12 +153,16 @@ class Destination(BaseModel):
     default_branch: str = "main"
     skip_sections: dict[str, list[str]] = Field(default_factory=dict)
     skip_file_patterns: set[str] = Field(default_factory=set)
+    verify: VerifyConfig | None = None
 
     def resolved_copy_branch(self, config_name: str) -> str:
         return self.copy_branch or f"sync/{config_name}"
 
     def is_skipped(self, dest_key: str) -> bool:
         return any(fnmatch.fnmatch(dest_key, pat) for pat in self.skip_file_patterns)
+
+    def resolve_verify(self, fallback: VerifyConfig | None) -> VerifyConfig:
+        return self.verify if self.verify is not None else (fallback or VerifyConfig())
 
 
 class SrcConfig(BaseModel):
@@ -146,6 +176,8 @@ class SrcConfig(BaseModel):
     pr_defaults: PRDefaults = Field(default_factory=PRDefaults)
     paths: list[PathMapping] = Field(default_factory=list)
     destinations: list[Destination] = Field(default_factory=list)
+    verify: VerifyConfig | None = None
+    wrap_synced_files: bool = False
 
     def find_destination(self, name: str) -> Destination:
         for dest in self.destinations:

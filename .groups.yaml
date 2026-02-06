@@ -23,13 +23,13 @@ groups:
   - _internal.models_dep
   owned_refs:
   - _internal.cmd_dep_update.dep_update
-  - _internal.models_dep.CommitConfig
+  - _internal.models.CommitConfig
+  - _internal.models.OnFailStrategy
+  - _internal.models.VerifyConfig
+  - _internal.models.VerifyStep
   - _internal.models_dep.DepConfig
-  - _internal.models_dep.OnFailStrategy
   - _internal.models_dep.PRConfig
   - _internal.models_dep.UpdateEntry
-  - _internal.models_dep.VerifyConfig
-  - _internal.models_dep.VerifyStep
 - name: validate_no_changes
   owned_modules:
   - _internal.cmd_validate

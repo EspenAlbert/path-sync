@@ -5,6 +5,7 @@ from pathlib import Path
 from zero_3rdparty.sections import (
     Section,
     SectionChanges,
+    SectionPart,
     get_comment_config,
 )
 from zero_3rdparty.sections import (
@@ -25,16 +26,22 @@ from zero_3rdparty.sections import (
 from zero_3rdparty.sections import (
     wrap_in_default_section as _wrap_in_default_section,
 )
+from zero_3rdparty.sections import (
+    wrap_section as _wrap_section,
+)
 
 __all__ = [
     "Section",
     "SectionChanges",
+    "SectionPart",
+    "build_sections_content",
     "changed_sections",
     "extract_sections",
     "has_sections",
     "parse_sections",
     "replace_sections",
     "wrap_in_default_section",
+    "wrap_in_synced_section",
 ]
 
 TOOL_NAME = "path-sync"
@@ -52,13 +59,17 @@ def wrap_in_default_section(content: str, path: Path) -> str:
     return _wrap_in_default_section(content, TOOL_NAME, get_comment_config(path))
 
 
+def wrap_in_synced_section(content: str, path: Path) -> str:
+    return _wrap_section(content, "synced", TOOL_NAME, get_comment_config(path))
+
+
 def extract_sections(content: str, path: Path) -> dict[str, str]:
     return _extract_sections(content, TOOL_NAME, get_comment_config(path), str(path))
 
 
 def replace_sections(
     dest_content: str,
-    src_sections: dict[str, str],
+    src_sections: list[Section],
     path: Path,
     skip_sections: list[str] | None = None,
     *,
@@ -81,3 +92,10 @@ def changed_sections(
     skip: set[str] | None = None,
 ) -> SectionChanges:
     return _changed_sections(baseline_content, current_content, TOOL_NAME, get_comment_config(path), skip, str(path))
+
+
+def build_sections_content(section_list: list[Section], path: Path) -> str:
+    """Build file content from a list of Section objects."""
+    config = get_comment_config(path)
+    parts = [_wrap_section(s.content, s.id, TOOL_NAME, config) for s in section_list]
+    return "\n".join(parts)

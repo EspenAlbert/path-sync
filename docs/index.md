@@ -59,13 +59,14 @@ By default, prompts before each git operation. See [Usage Scenarios](#usage-scen
 | `-d dest1,dest2` | Filter specific destinations |
 | `--dry-run` | Preview without writing (requires existing repos) |
 | `-y, --no-prompt` | Skip confirmations (for CI) |
-| `--local` | No git ops after sync (no commit/push/PR) |
+| `--skip-commit` | No git ops after sync (no commit/push/PR). Alias: `--local` |
 | `--no-checkout` | Skip branch switching (assumes already on correct branch) |
 | `--checkout-from-default` | Reset to origin/default before sync |
 | `--no-pr` | Push but skip PR creation |
 | `--force-overwrite` | Overwrite files even if header removed (opted out) |
 | `--detailed-exit-code` | Exit 0=no changes, 1=changes, 2=error |
 | `--skip-orphan-cleanup` | Skip deletion of orphaned synced files |
+| `--skip-verify` | Skip verification steps after syncing |
 | `--pr-title` | Override PR title (supports `{name}`, `{dest_name}`) |
 | `--pr-labels` | Comma-separated PR labels |
 | `--pr-reviewers` | Comma-separated PR reviewers |
@@ -88,12 +89,12 @@ Options:
 | Interactive sync | `copy -n cfg` |
 | CI fresh sync | `copy -n cfg --checkout-from-default -y` |
 | Local preview | `copy -n cfg --dry-run` |
-| Local test files | `copy -n cfg --local` |
+| Local test files | `copy -n cfg --skip-commit` |
 | Already on branch | `copy -n cfg --no-checkout` |
 | Push, manual PR | `copy -n cfg --no-pr -y` |
 | Force opted-out | `copy -n cfg --force-overwrite` |
 
-**Interactive prompt behavior**: Declining the checkout prompt syncs files but skips commit/push/PR (same as `--local`). Use `--no-checkout` when you're already on the correct branch and want to proceed with git operations.
+**Interactive prompt behavior**: Each git operation (checkout, commit, push, PR) prompts independently. Use `--no-checkout` to skip the branch switch prompt. Use `--skip-commit` to skip all git operations after sync.
 
 ## Section Markers
 
@@ -119,6 +120,36 @@ destinations:
     dest_path_relative: ../dest1
     skip_sections:
       justfile: [coverage]  # keep local coverage recipe
+```
+
+## Wrapping Synced Files
+
+For files without section markers, `wrap_synced_files` automatically wraps content in a `synced` section. This lets destinations add content before/after the synced content.
+
+**Without wrapping** (default):
+```python
+# path-sync copy -n myconfig
+def hello():
+    pass
+```
+
+**With wrapping** (`wrap_synced_files: true`):
+```python
+# path-sync copy -n myconfig
+# === DO_NOT_EDIT: path-sync synced ===
+def hello():
+    pass
+# === OK_EDIT: path-sync synced ===
+```
+
+Destinations can add content outside the section markers. Per-path override via `wrap: false`:
+
+```yaml
+wrap_synced_files: true
+paths:
+  - src_path: templates/base.py     # wrapped
+  - src_path: .editorconfig
+    wrap: false                     # not wrapped
 ```
 
 ## Skipping Files per Destination
@@ -177,6 +208,8 @@ destinations:
 | `destinations` | Target repos with sync settings |
 | `header_config` | Comment style per extension (has defaults) |
 | `pr_defaults` | PR title, labels, reviewers, assignees |
+| `wrap_synced_files` | Wrap synced files in section markers (default: `false`) |
+| `verify` | Verification steps to run after syncing (see [Verify Steps](#verify-steps-in-copy)) |
 
 **Path options**:
 
@@ -187,6 +220,7 @@ destinations:
 | `sync_mode` | `sync` (default), `replace`, or `scaffold` |
 | `exclude_dirs` | Directory names to skip (defaults: `__pycache__`, `.git`, `.venv`, etc.) |
 | `exclude_file_patterns` | Filename patterns to skip, supports globs (`*.pyc`, `test_*.py`) |
+| `wrap` | Override global `wrap_synced_files` for this path (`true`/`false`) |
 
 **Destination options**:
 
@@ -199,6 +233,37 @@ destinations:
 | `default_branch` | Default branch to compare against (defaults to `main`) |
 | `skip_sections` | Map of `{dest_path: [section_ids]}` to preserve locally |
 | `skip_file_patterns` | Patterns to skip for this destination (matches dest path, fnmatch syntax) |
+| `verify` | Per-destination verify config (overrides source-level verify) |
+
+## Verify Steps in Copy
+
+Run verification steps after syncing files. Synced files are committed first, then verify steps run and can make additional commits.
+
+```yaml
+name: myconfig
+verify:
+  on_fail: warn  # default: warn (also: skip, fail)
+  steps:
+    - run: just fmt
+      commit:
+        message: "style: format synced files"
+        add_paths: ["."]
+      on_fail: warn
+    - run: just test
+```
+
+Per-destination override:
+
+```yaml
+destinations:
+  - name: dest1
+    dest_path_relative: ../dest1
+    verify:
+      steps:
+        - run: npm run build
+```
+
+Use `--skip-verify` to disable verification steps.
 
 ## Header Format
 

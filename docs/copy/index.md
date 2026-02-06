@@ -13,11 +13,11 @@
 <a id="copy_def"></a>
 
 ### cli_command: `copy`
-- [source](../../path_sync/_internal/cmd_copy.py#L60)
+- [source](../../path_sync/_internal/cmd_copy.py#L62)
 > **Since:** 0.4.1
 
 ```python
-def copy(*, name: str = '', config_path_opt: str = '', src_root_opt: str = '', dest_filter: str = '', dry_run: bool = False, force_overwrite: bool = False, detailed_exit_code: bool = False, no_checkout: bool = False, checkout_from_default: bool = False, local: bool = False, no_prompt: bool = False, no_pr: bool = False, pr_title: str = '', pr_labels: str = '', pr_reviewers: str = '', pr_assignees: str = '', skip_orphan_cleanup: bool = False) -> None:
+def copy(*, name: str = '', config_path_opt: str = '', src_root_opt: str = '', dest_filter: str = '', dry_run: bool = False, force_overwrite: bool = False, detailed_exit_code: bool = False, no_checkout: bool = False, checkout_from_default: bool = False, skip_commit: bool = False, no_prompt: bool = False, no_pr: bool = False, pr_title: str = '', pr_labels: str = '', pr_reviewers: str = '', pr_assignees: str = '', skip_orphan_cleanup: bool = False, skip_verify: bool = False) -> None:
     ...
 ```
 
@@ -36,7 +36,7 @@ Copy files from SRC to DEST repositories.
 | `--detailed-exit-code` | `bool` | `False` | Exit 0=no changes, 1=changes, 2=error |
 | `--no-checkout` | `bool` | `False` | Skip branch switching before sync |
 | `--checkout-from-default` | `bool` | `False` | Reset to origin/default before sync (for CI) |
-| `--local` | `bool` | `False` | No git operations after sync (no commit/push/PR) |
+| `--skip-commit`, `--local` | `bool` | `False` | No git operations after sync (no commit/push/PR) |
 | `-y`, `--no-prompt` | `bool` | `False` | Skip confirmations (for CI) |
 | `--no-pr` | `bool` | `False` | Push but skip PR creation |
 | `--pr-title` | `str` | `''` | Override PR title (supports {name}, {dest_name}) |
@@ -44,11 +44,14 @@ Copy files from SRC to DEST repositories.
 | `--pr-reviewers` | `str` | `''` | Comma-separated PR reviewers |
 | `--pr-assignees` | `str` | `''` | Comma-separated PR assignees |
 | `--skip-orphan-cleanup` | `bool` | `False` | Skip deletion of orphaned synced files |
+| `--skip-verify` | `bool` | `False` | Skip verification steps after syncing |
 
 ### Changes
 
 | Version | Change |
 |---------|--------|
+| unreleased | fix(copy): apply skip_sections when creating new files with sections |
+| unreleased | fix(copy): commit synced files before running verify steps |
 | 0.4.1 | Made public |
 | 0.3.5 | fix: --no-checkout was checked before --dry-run, so the dry-run flag was ignored when both were passed. |
 | 0.3.2 | fix: handle binary file copying and improve error handling for text reading |

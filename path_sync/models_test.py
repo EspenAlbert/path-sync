@@ -5,6 +5,8 @@ from path_sync._internal.models import (
     PathMapping,
     PRDefaults,
     SrcConfig,
+    VerifyConfig,
+    VerifyStep,
     find_repo_root,
     resolve_config_path,
 )
@@ -100,3 +102,15 @@ def test_path_mapping_is_excluded():
     # Not excluded
     assert not mapping.is_excluded(Path("src/module.py"))
     assert not mapping.is_excluded(Path("src/models_test.py"))
+
+
+def test_destination_resolve_verify():
+    fallback = VerifyConfig(steps=[VerifyStep(run="just test")])
+    override = VerifyConfig(steps=[VerifyStep(run="just lint")])
+
+    dest_no_verify = Destination(name="d1", dest_path_relative="../d1")
+    assert dest_no_verify.resolve_verify(fallback).steps[0].run == "just test"
+    assert dest_no_verify.resolve_verify(None).steps == []
+
+    dest_with_verify = Destination(name="d2", dest_path_relative="../d2", verify=override)
+    assert dest_with_verify.resolve_verify(fallback).steps[0].run == "just lint"

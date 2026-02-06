@@ -2,7 +2,7 @@
 
 <!-- === DO_NOT_EDIT: pkg-ext pathmapping_def === -->
 ## class: PathMapping
-- [source](../../path_sync/_internal/models.py#L38)
+- [source](../../path_sync/_internal/models.py#L60)
 > **Since:** 0.3.0
 
 ```python
@@ -12,6 +12,7 @@ class PathMapping(BaseModel):
     sync_mode: SyncMode = <SyncMode.SYNC: 'sync'>
     exclude_dirs: set[str] = ...
     exclude_file_patterns: set[str] = ...
+    wrap: bool | None = None
 ```
 <!-- === OK_EDIT: pkg-ext pathmapping_def === -->
 
@@ -30,6 +31,7 @@ class PathMapping(BaseModel):
 
 | Version | Change |
 |---------|--------|
+| unreleased | added optional field 'wrap' (default: None) |
 | 0.4.1 | added base class 'BaseModel' |
 | 0.4.0 | field 'src_path' default removed (was: PydanticUndefined) |
 | 0.3.0 | Made public |
