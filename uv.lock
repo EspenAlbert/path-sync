@@ -516,7 +516,7 @@ wheels = [
 
 [[package]]
 name = "pkg-ext"
-version = "0.3.2"
+version = "0.3.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "ask-shell" },
@@ -525,9 +525,9 @@ dependencies = [
     { name = "tomlkit" },
     { name = "zero-3rdparty" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/8d/57/fd137f69dc656b1bf18516501a81ff8e10537b367951bf62ca16f2f3ae91/pkg_ext-0.3.2.tar.gz", hash = "sha256:8fffedd43feb32b8d1eea9aa90282c78bbf2e91f6d9491b343265f63b317a843", size = 76327, upload-time = "2026-02-06T06:11:20.389Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/32/09/6b048a43051b4c4cc6fbdfd398b50327b538721ffff366c2e53461a06322/pkg_ext-0.3.3.tar.gz", hash = "sha256:c63c4590b3eafb682d7997d1d8f907f1fb160898611fd13300f9016bd3a5548a", size = 76328, upload-time = "2026-02-06T10:51:09.517Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/88/b2/8ce3ce022747ec62c8af4734243379ea9afebfa265c562ea465f47bcfe34/pkg_ext-0.3.2-py3-none-any.whl", hash = "sha256:6733aac02dc0bc6836bfeecd1b264db6a5ecb802aee914af5e95a3ab82ae68e9", size = 110308, upload-time = "2026-02-06T06:11:19.071Z" },
+    { url = "https://files.pythonhosted.org/packages/e5/87/ccf5316b2b05971e39dfc02dec3bbd26bda1c35bf239d5c348359dc612a6/pkg_ext-0.3.3-py3-none-any.whl", hash = "sha256:006609865a8f12f2fedb4a3644b14c70c8458c1347a6e72d5b603905b007c90c", size = 110309, upload-time = "2026-02-06T10:51:08.298Z" },
 ]
 
 [[package]]
@@ -1001,9 +1001,9 @@ wheels = [
 
 [[package]]
 name = "zero-3rdparty"
-version = "0.104.0"
+version = "0.104.1"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/40/ae/c48e69e81dce4aa456ad0504ede0d9b2390aded4aba229a7ee1bf7685c04/zero_3rdparty-0.104.0.tar.gz", hash = "sha256:a7724e258c41b10335f320670e5b854364928f09cf53e91bec6fe9b5aba2f4de", size = 35341, upload-time = "2026-02-06T07:00:45.755Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/2f/bb/7568e65358d26fbb60609bd805aa14dd6126f2014887326750cf8340e6f6/zero_3rdparty-0.104.1.tar.gz", hash = "sha256:9da1edb7aa20cc615657c5e04d9d06bf51767a5d7a4034b5878f9be72b2a04e6", size = 35456, upload-time = "2026-02-06T09:57:02.669Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/2b/d7/e561fcb8a218e529a5f5b54e9cb1bdc18c364b2677135afb33fc1d3e35ed/zero_3rdparty-0.104.0-py3-none-any.whl", hash = "sha256:b0db3e226a3a19d4ed4ca297f06d1abae5d9efd0388bc7a03175f97d4da4cf6d", size = 44444, upload-time = "2026-02-06T07:00:44.297Z" },
+    { url = "https://files.pythonhosted.org/packages/a2/0b/306a4b821693300a58e5599125755cfb9a07a67fc3eb9bb77cc7e208c858/zero_3rdparty-0.104.1-py3-none-any.whl", hash = "sha256:8f5b6d7282b3739dcc45d609aa19f017f94d97115eb430ea4aa740785a5303ad", size = 44554, upload-time = "2026-02-06T09:57:01.02Z" },
 ]
