@@ -94,7 +94,7 @@ Options:
 | Push, manual PR | `copy -n cfg --no-pr -y` |
 | Force opted-out | `copy -n cfg --force-overwrite` |
 
-**Interactive prompt behavior**: Declining the checkout prompt syncs files but skips commit/push/PR (same as `--local`). Use `--no-checkout` when you're already on the correct branch and want to proceed with git operations.
+**Interactive prompt behavior**: Each git operation (checkout, commit, push, PR) prompts independently. Use `--no-checkout` to skip the branch switch prompt. Use `--local` to skip all git operations after sync.
 
 ## Section Markers
 

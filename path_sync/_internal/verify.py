@@ -34,7 +34,10 @@ class VerifyResult:
     failures: list[StepFailure] = field(default_factory=list)
 
 
-def run_command(cmd: str, cwd: Path) -> None:
+def run_command(cmd: str, cwd: Path, dry_run: bool = False) -> None:
+    if dry_run:
+        logger.info(f"[DRY RUN] Would run: {cmd} from {cwd}")
+        return
     logger.info(f"Running: {cmd}")
     result = subprocess.run(cmd, shell=True, cwd=cwd, capture_output=True, text=True)
     prefix = cmd.split()[0]
@@ -49,7 +52,7 @@ def run_command(cmd: str, cwd: Path) -> None:
         raise subprocess.CalledProcessError(result.returncode, cmd, output=result.stdout, stderr=result.stderr)
 
 
-def run_verify_steps(repo: Repo, repo_path: Path, verify: VerifyConfig) -> VerifyResult:
+def run_verify_steps(repo: Repo, repo_path: Path, verify: VerifyConfig, dry_run: bool = False, skip_commit: bool = False) -> VerifyResult:
     if not verify.steps:
         return VerifyResult()
 
@@ -59,7 +62,7 @@ def run_verify_steps(repo: Repo, repo_path: Path, verify: VerifyConfig) -> Verif
         on_fail = step.on_fail or verify.on_fail
 
         try:
-            run_command(step.run, repo_path)
+            run_command(step.run, repo_path, dry_run=dry_run)
         except subprocess.CalledProcessError as e:
             failure = StepFailure(step=step.run, returncode=e.returncode, on_fail=on_fail)
             match on_fail:
@@ -71,7 +74,7 @@ def run_verify_steps(repo: Repo, repo_path: Path, verify: VerifyConfig) -> Verif
                     failures.append(failure)
                     continue
 
-        if step.commit:
+        if step.commit and not dry_run and not skip_commit:
             git_ops.stage_and_commit(repo, step.commit.add_paths, step.commit.message)
 
     status = VerifyStatus.WARN if failures else VerifyStatus.PASSED

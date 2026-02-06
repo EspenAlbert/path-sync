@@ -204,23 +204,14 @@ def _sync_destination(
     dest_repo = _ensure_dest_repo(dest, dest_root, opts.dry_run)
     copy_branch = dest.resolved_copy_branch(config.name)
 
-    # --no-checkout means "I'm already on the right branch"
-    # Prompt decline means "skip git operations for this run"
-    if opts.dry_run:
-        skip_git_ops = True
-    elif opts.no_checkout:
-        skip_git_ops = False
-    elif prompt_utils.prompt_confirm(f"Switch {dest.name} to {copy_branch}?", opts.no_prompt):
+    # --no-checkout skips branch switching (assumes already on correct branch)
+    if not opts.no_checkout and prompt_utils.prompt_confirm(f"Switch {dest.name} to {copy_branch}?", opts.no_prompt):
         git_ops.prepare_copy_branch(
             repo=dest_repo,
             default_branch=dest.default_branch,
             copy_branch=copy_branch,
             from_default=opts.checkout_from_default,
         )
-        skip_git_ops = False
-    else:
-        skip_git_ops = True
-
     result = _sync_paths(config, dest, src_root, dest_root, opts)
     _print_sync_summary(dest, result)
 
@@ -228,17 +219,16 @@ def _sync_destination(
         logger.info(f"{dest.name}: No changes")
         return 0
 
-    if skip_git_ops:
-        return result.total
-
-    # Commit synced files before verify so they get proper commit message
-    sync_commit_msg = f"chore: sync {config.name} from {current_sha[:8]}"
-    git_ops.commit_changes(dest_repo, sync_commit_msg)
+    # --local and --dry-run skip commit; otherwise prompt
+    skip_commit = opts.local or opts.dry_run
+    if not skip_commit and prompt_utils.prompt_confirm(f"Commit changes to {dest.name}?", opts.no_prompt):
+        sync_commit_msg = f"chore: sync {config.name} from {current_sha[:8]}"
+        git_ops.commit_changes(dest_repo, sync_commit_msg)
 
     verify_result = VerifyResult()
     effective_verify = dest.resolve_verify(config.verify)
     if not opts.skip_verify and effective_verify.steps:
-        verify_result = verify.run_verify_steps(dest_repo, dest_root, effective_verify)
+        verify_result = verify.run_verify_steps(dest_repo, dest_root, effective_verify, dry_run=opts.dry_run)
         verify.log_verify_summary(dest.name, verify_result)
 
         if verify_result.status == VerifyStatus.FAILED:
@@ -534,7 +524,7 @@ def _push_and_pr(
     read_log: Callable[[], str],
     verify_result: VerifyResult,
 ) -> None:
-    if opts.local:
+    if opts.local or opts.dry_run:
         logger.info("Local mode: skipping push/PR")
         return
 
