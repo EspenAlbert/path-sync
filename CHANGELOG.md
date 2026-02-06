@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.6.0 2026-02-06T11-00Z
+
+### Config
+- `config.Destination`: added optional field 'verify' (default: None)
+- `config.SrcConfig`: added optional field 'verify' (default: None)
+- `config.SrcConfig`: added optional field 'wrap_synced_files' (default: False)
+- `config.PathMapping`: added optional field 'wrap' (default: None)
+
+### Copy
+- BREAKING `copy.CopyOptions`: removed field 'local'
+- `copy.CopyOptions`: added optional field 'skip_verify' (default: False)
+- fix(copy): apply skip_sections when creating new files with sections [15a9e3](https://github.com/EspenAlbert/path-sync/commit/15a9e3)
+- `copy.CopyOptions`: added optional field 'skip_commit' (default: False)
+
+### Dep_Update
+- `dep_update.VerifyConfig`: field 'on_fail' default: <OnFailStrategy.SKIP: 'skip'> -> <OnFailStrategy.WARN: 'warn'>
+
+
 ## 0.5.0 2026-02-04T09-49Z
 
 ### Config

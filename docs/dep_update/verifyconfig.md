@@ -24,7 +24,7 @@ class VerifyConfig(BaseModel):
 
 | Version | Change |
 |---------|--------|
-| unreleased | field 'on_fail' default: <OnFailStrategy.SKIP: 'skip'> -> <OnFailStrategy.WARN: 'warn'> |
+| 0.6.0 | field 'on_fail' default: <OnFailStrategy.SKIP: 'skip'> -> <OnFailStrategy.WARN: 'warn'> |
 | 0.4.1 | added base class 'BaseModel' |
 | 0.4.0 | Made public |
 <!-- === OK_EDIT: pkg-ext verifyconfig_changes === -->

@@ -35,7 +35,7 @@ class Destination(BaseModel):
 
 | Version | Change |
 |---------|--------|
-| unreleased | added optional field 'verify' (default: None) |
+| 0.6.0 | added optional field 'verify' (default: None) |
 | 0.4.1 | added base class 'BaseModel' |
 | 0.4.0 | field 'name' default removed (was: PydanticUndefined) |
 | 0.4.0 | field 'dest_path_relative' default removed (was: PydanticUndefined) |

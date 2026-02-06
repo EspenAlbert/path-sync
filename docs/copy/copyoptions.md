@@ -45,9 +45,9 @@ class CopyOptions(BaseModel):
 
 | Version | Change |
 |---------|--------|
-| unreleased | added optional field 'skip_commit' (default: False) |
-| unreleased | removed field 'local' |
-| unreleased | added optional field 'skip_verify' (default: False) |
+| 0.6.0 | added optional field 'skip_commit' (default: False) |
+| 0.6.0 | removed field 'local' |
+| 0.6.0 | added optional field 'skip_verify' (default: False) |
 | 0.4.1 | added base class 'BaseModel' |
 | 0.4.1 | added optional field 'reviewers' (default: None) |
 | 0.4.1 | added optional field 'labels' (default: None) |

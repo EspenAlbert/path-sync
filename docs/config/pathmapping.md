@@ -31,7 +31,7 @@ class PathMapping(BaseModel):
 
 | Version | Change |
 |---------|--------|
-| unreleased | added optional field 'wrap' (default: None) |
+| 0.6.0 | added optional field 'wrap' (default: None) |
 | 0.4.1 | added base class 'BaseModel' |
 | 0.4.0 | field 'src_path' default removed (was: PydanticUndefined) |
 | 0.3.0 | Made public |

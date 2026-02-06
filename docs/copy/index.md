@@ -50,8 +50,8 @@ Copy files from SRC to DEST repositories.
 
 | Version | Change |
 |---------|--------|
-| unreleased | fix(copy): apply skip_sections when creating new files with sections |
-| unreleased | fix(copy): commit synced files before running verify steps |
+| 0.6.0 | fix(copy): apply skip_sections when creating new files with sections |
+| 0.6.0 | fix(copy): commit synced files before running verify steps |
 | 0.4.1 | Made public |
 | 0.3.5 | fix: --no-checkout was checked before --dry-run, so the dry-run flag was ignored when both were passed. |
 | 0.3.2 | fix: handle binary file copying and improve error handling for text reading |

@@ -129,3 +129,8 @@ change_kind: optional_field_added
 details: 'added optional field ''skip_commit'' (default: False)'
 field_name: skip_commit
 group: copy
+---
+name: 0.6.0
+ts: 2026-02-06 11:00:48.670866+00:00
+type: release
+old_version: 0.5.0

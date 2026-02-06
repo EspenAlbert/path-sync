@@ -1,12 +1,12 @@
 pkg_import_name: path_sync
-version: 0.5.0
+version: 0.6.0
 groups:
 - name: config
   symbols:
   - name: Destination
     module_path: _internal.models
     docstring: ''
-    line_number: 122
+    line_number: 148
     type: class
     mro_bases:
     - BaseModel
@@ -62,10 +62,19 @@ groups:
         is_factory: true
       is_class_var: false
       is_computed: false
+    - name: verify
+      type_annotation: VerifyConfig | None
+      type_imports:
+      - path_sync._internal.models.VerifyConfig
+      default:
+        value_repr: None
+        is_factory: false
+      is_class_var: false
+      is_computed: false
   - name: HeaderConfig
     module_path: _internal.models
     docstring: ''
-    line_number: 69
+    line_number: 95
     type: class
     mro_bases:
     - BaseModel
@@ -90,7 +99,7 @@ groups:
   - name: PRDefaults
     module_path: _internal.models
     docstring: ''
-    line_number: 96
+    line_number: 122
     type: class
     mro_bases:
     - PRFieldsBase
@@ -148,7 +157,7 @@ groups:
   - name: PathMapping
     module_path: _internal.models
     docstring: ''
-    line_number: 38
+    line_number: 60
     type: class
     mro_bases:
     - BaseModel
@@ -192,10 +201,18 @@ groups:
         is_factory: true
       is_class_var: false
       is_computed: false
+    - name: wrap
+      type_annotation: bool | None
+      type_imports: []
+      default:
+        value_repr: None
+        is_factory: false
+      is_class_var: false
+      is_computed: false
   - name: SrcConfig
     module_path: _internal.models
     docstring: ''
-    line_number: 138
+    line_number: 168
     type: class
     mro_bases:
     - BaseModel
@@ -266,6 +283,23 @@ groups:
         is_factory: true
       is_class_var: false
       is_computed: false
+    - name: verify
+      type_annotation: VerifyConfig | None
+      type_imports:
+      - path_sync._internal.models.VerifyConfig
+      default:
+        value_repr: None
+        is_factory: false
+      is_class_var: false
+      is_computed: false
+    - name: wrap_synced_files
+      type_annotation: bool
+      type_imports: []
+      default:
+        value_repr: 'False'
+        is_factory: false
+      is_class_var: false
+      is_computed: false
   - name: SyncMode
     module_path: _internal.models
     docstring: ''
@@ -294,7 +328,7 @@ groups:
   - name: CopyOptions
     module_path: _internal.cmd_copy
     docstring: ''
-    line_number: 45
+    line_number: 46
     type: class
     mro_bases:
     - BaseModel
@@ -332,7 +366,7 @@ groups:
         is_factory: false
       is_class_var: false
       is_computed: false
-    - name: local
+    - name: skip_commit
       type_annotation: bool
       type_imports: []
       default:
@@ -357,6 +391,14 @@ groups:
       is_class_var: false
       is_computed: false
     - name: skip_orphan_cleanup
+      type_annotation: bool
+      type_imports: []
+      default:
+        value_repr: 'False'
+        is_factory: false
+      is_class_var: false
+      is_computed: false
+    - name: skip_verify
       type_annotation: bool
       type_imports: []
       default:
@@ -399,7 +441,7 @@ groups:
   - name: copy
     module_path: _internal.cmd_copy
     docstring: Copy files from SRC to DEST repositories.
-    line_number: 60
+    line_number: 62
     type: cli_command
     signature:
       parameters:
@@ -466,7 +508,7 @@ groups:
         default:
           value_repr: <typer.models.OptionInfo object>
           is_factory: false
-      - name: local
+      - name: skip_commit
         kind: positional_or_keyword
         type_annotation: bool
         type_imports: []
@@ -516,6 +558,13 @@ groups:
           value_repr: <typer.models.OptionInfo object>
           is_factory: false
       - name: skip_orphan_cleanup
+        kind: positional_or_keyword
+        type_annotation: bool
+        type_imports: []
+        default:
+          value_repr: <typer.models.OptionInfo object>
+          is_factory: false
+      - name: skip_verify
         kind: positional_or_keyword
         type_annotation: bool
         type_imports: []
@@ -609,9 +658,10 @@ groups:
       required: false
       is_argument: false
       hidden: false
-    - param_name: local
+    - param_name: skip_commit
       type_annotation: bool
       flags:
+      - --skip-commit
       - --local
       help: No git operations after sync (no commit/push/PR)
       default_repr: 'False'
@@ -682,12 +732,21 @@ groups:
       required: false
       is_argument: false
       hidden: false
+    - param_name: skip_verify
+      type_annotation: bool
+      flags:
+      - --skip-verify
+      help: Skip verification steps after syncing
+      default_repr: 'False'
+      required: false
+      is_argument: false
+      hidden: false
 - name: dep_update
   symbols:
   - name: dep_update
     module_path: _internal.cmd_dep_update
     docstring: Run dependency updates across repositories.
-    line_number: 61
+    line_number: 57
     type: cli_command
     signature:
       parameters:
@@ -824,9 +883,9 @@ groups:
       is_argument: false
       hidden: false
   - name: CommitConfig
-    module_path: _internal.models_dep
+    module_path: _internal.models
     docstring: ''
-    line_number: 19
+    line_number: 44
     type: class
     mro_bases:
     - BaseModel
@@ -845,10 +904,92 @@ groups:
         is_factory: true
       is_class_var: false
       is_computed: false
+  - name: OnFailStrategy
+    module_path: _internal.models
+    docstring: ''
+    line_number: 38
+    type: class
+    mro_bases:
+    - StrEnum
+    - str
+    - ReprEnum
+    - Enum
+    num_direct_bases: 1
+    init_signature:
+      parameters:
+      - name: self
+        kind: positional_or_keyword
+        type_imports: []
+      - name: args
+        kind: var_positional
+        type_imports: []
+      - name: kwds
+        kind: var_keyword
+        type_imports: []
+      return_type_imports: []
+  - name: VerifyConfig
+    module_path: _internal.models
+    docstring: ''
+    line_number: 55
+    type: class
+    mro_bases:
+    - BaseModel
+    num_direct_bases: 1
+    fields:
+    - name: on_fail
+      type_annotation: OnFailStrategy
+      type_imports:
+      - path_sync._internal.models.OnFailStrategy
+      default:
+        value_repr: '<OnFailStrategy.WARN: ''warn''>'
+        is_factory: false
+      is_class_var: false
+      is_computed: false
+    - name: steps
+      type_annotation: list[VerifyStep]
+      type_imports:
+      - path_sync._internal.models.VerifyStep
+      default:
+        value_repr: '...'
+        is_factory: true
+      is_class_var: false
+      is_computed: false
+  - name: VerifyStep
+    module_path: _internal.models
+    docstring: ''
+    line_number: 49
+    type: class
+    mro_bases:
+    - BaseModel
+    num_direct_bases: 1
+    fields:
+    - name: run
+      type_annotation: str
+      type_imports: []
+      is_class_var: false
+      is_computed: false
+    - name: commit
+      type_annotation: CommitConfig | None
+      type_imports:
+      - path_sync._internal.models.CommitConfig
+      default:
+        value_repr: None
+        is_factory: false
+      is_class_var: false
+      is_computed: false
+    - name: on_fail
+      type_annotation: OnFailStrategy | None
+      type_imports:
+      - path_sync._internal.models.OnFailStrategy
+      default:
+        value_repr: None
+        is_factory: false
+      is_class_var: false
+      is_computed: false
   - name: DepConfig
     module_path: _internal.models_dep
     docstring: ''
-    line_number: 46
+    line_number: 29
     type: class
     mro_bases:
     - BaseModel
@@ -889,7 +1030,7 @@ groups:
     - name: verify
       type_annotation: VerifyConfig
       type_imports:
-      - path_sync._internal.models_dep.VerifyConfig
+      - path_sync._internal.models.VerifyConfig
       default:
         value_repr: '...'
         is_factory: true
@@ -901,33 +1042,10 @@ groups:
       - path_sync._internal.models_dep.PRConfig
       is_class_var: false
       is_computed: false
-  - name: OnFailStrategy
-    module_path: _internal.models_dep
-    docstring: ''
-    line_number: 13
-    type: class
-    mro_bases:
-    - StrEnum
-    - str
-    - ReprEnum
-    - Enum
-    num_direct_bases: 1
-    init_signature:
-      parameters:
-      - name: self
-        kind: positional_or_keyword
-        type_imports: []
-      - name: args
-        kind: var_positional
-        type_imports: []
-      - name: kwds
-        kind: var_keyword
-        type_imports: []
-      return_type_imports: []
   - name: PRConfig
     module_path: _internal.models_dep
     docstring: ''
-    line_number: 40
+    line_number: 23
     type: class
     mro_bases:
     - PRFieldsBase
@@ -979,7 +1097,7 @@ groups:
   - name: UpdateEntry
     module_path: _internal.models_dep
     docstring: ''
-    line_number: 35
+    line_number: 18
     type: class
     mro_bases:
     - BaseModel
@@ -998,65 +1116,65 @@ groups:
       type_imports: []
       is_class_var: false
       is_computed: false
-  - name: VerifyConfig
-    module_path: _internal.models_dep
-    docstring: ''
-    line_number: 30
-    type: class
-    mro_bases:
-    - BaseModel
-    num_direct_bases: 1
-    fields:
-    - name: on_fail
-      type_annotation: OnFailStrategy
-      type_imports:
-      - path_sync._internal.models_dep.OnFailStrategy
-      default:
-        value_repr: '<OnFailStrategy.SKIP: ''skip''>'
-        is_factory: false
-      is_class_var: false
-      is_computed: false
-    - name: steps
-      type_annotation: list[VerifyStep]
-      type_imports:
-      - path_sync._internal.models_dep.VerifyStep
-      default:
-        value_repr: '...'
-        is_factory: true
-      is_class_var: false
-      is_computed: false
-  - name: VerifyStep
-    module_path: _internal.models_dep
-    docstring: ''
-    line_number: 24
-    type: class
-    mro_bases:
-    - BaseModel
-    num_direct_bases: 1
-    fields:
-    - name: run
-      type_annotation: str
-      type_imports: []
-      is_class_var: false
-      is_computed: false
-    - name: commit
-      type_annotation: CommitConfig | None
-      type_imports:
-      - path_sync._internal.models_dep.CommitConfig
-      default:
-        value_repr: None
-        is_factory: false
-      is_class_var: false
-      is_computed: false
-    - name: on_fail
-      type_annotation: OnFailStrategy | None
-      type_imports:
-      - path_sync._internal.models_dep.OnFailStrategy
-      default:
-        value_repr: None
-        is_factory: false
-      is_class_var: false
-      is_computed: false
 - name: validate_no_changes
-  symbols: []
-dumped_at: 2026-02-04 09:49:53.960236+00:00
+  symbols:
+  - name: validate_no_changes
+    module_path: _internal.cmd_validate
+    docstring: Validate no unauthorized changes to synced files.
+    line_number: 16
+    type: cli_command
+    signature:
+      parameters:
+      - name: branch
+        kind: positional_or_keyword
+        type_annotation: str
+        type_imports: []
+        default:
+          value_repr: <typer.models.OptionInfo object>
+          is_factory: false
+      - name: skip_sections_opt
+        kind: positional_or_keyword
+        type_annotation: str
+        type_imports: []
+        default:
+          value_repr: <typer.models.OptionInfo object>
+          is_factory: false
+      - name: src_root_opt
+        kind: positional_or_keyword
+        type_annotation: str
+        type_imports: []
+        default:
+          value_repr: <typer.models.OptionInfo object>
+          is_factory: false
+      return_annotation: None
+      return_type_imports: []
+    cli_params:
+    - param_name: branch
+      type_annotation: str
+      flags:
+      - -b
+      - --branch
+      help: Default branch to compare against
+      default_repr: '''main'''
+      required: false
+      is_argument: false
+      hidden: false
+    - param_name: skip_sections_opt
+      type_annotation: str
+      flags:
+      - --skip-sections
+      help: Comma-separated path:section_id pairs to skip (e.g., 'justfile:coverage,pyproject.toml:default')
+      default_repr: ''''''
+      required: false
+      is_argument: false
+      hidden: false
+    - param_name: src_root_opt
+      type_annotation: str
+      flags:
+      - --src-root
+      help: 'Source repo root (default: find git root from cwd)'
+      default_repr: ''''''
+      required: false
+      is_argument: false
+      hidden: false
+dumped_at: 2026-02-06 11:00:48.592213+00:00
