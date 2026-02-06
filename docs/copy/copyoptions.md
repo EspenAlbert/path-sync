@@ -11,7 +11,7 @@ class CopyOptions(BaseModel):
     force_overwrite: bool = False
     no_checkout: bool = False
     checkout_from_default: bool = False
-    local: bool = False
+    skip_commit: bool = False
     no_prompt: bool = False
     no_pr: bool = False
     skip_orphan_cleanup: bool = False

@@ -111,3 +111,21 @@ author: Espen Albert
 changelog_message: 'fix(copy): apply skip_sections when creating new files with sections'
 message: 'fix(copy): apply skip_sections when creating new files with sections'
 short_sha: 15a9e3
+---
+name: CopyOptions
+ts: 2026-02-06 10:58:51.855621+00:00
+type: breaking_change
+auto_generated: true
+change_kind: field_removed
+details: removed field 'local'
+field_name: local
+group: copy
+---
+name: CopyOptions
+ts: 2026-02-06 10:58:51.855634+00:00
+type: additional_change
+auto_generated: true
+change_kind: optional_field_added
+details: 'added optional field ''skip_commit'' (default: False)'
+field_name: skip_commit
+group: copy
