@@ -129,7 +129,7 @@ def test_replace_sections_keeps_dest_only():
 # === DO_NOT_EDIT: path-sync custom ===
 my custom section
 # === OK_EDIT: path-sync custom ==="""
-    result = sections.replace_sections(dest, {}, JUSTFILE, keep_deleted_sections=True)
+    result = sections.replace_sections(dest, [], JUSTFILE, keep_deleted_sections=True)
     assert "my custom section" in result
     assert "DO_NOT_EDIT: path-sync custom" in result
 
@@ -190,9 +190,7 @@ def test_parse_resumable_section():
 
 def test_replace_resumable_section_preserves_user_content():
     """Replace sections should preserve user content between resumable parts."""
-    src_sections = {
-        "job-snapshot": sections.parse_sections(RESUMABLE_SECTION_CONTENT, JUSTFILE),
-    }
+    src_sections = sections.parse_sections(RESUMABLE_SECTION_CONTENT, JUSTFILE)
     # Destination with user-modified gap content
     dest = """\
 # === DO_NOT_EDIT: path-sync job-snapshot ===
@@ -208,7 +206,7 @@ plan-snapshot-tests:
     - uses: actions/checkout@v4
 # === OK_EDIT: path-sync job-snapshot ===
 """
-    result = sections.replace_sections(dest, src_sections["job-snapshot"], JUSTFILE)
+    result = sections.replace_sections(dest, src_sections, JUSTFILE)
     # User's additional secret should be preserved
     assert "DB_PASSWORD" in result
     # Managed content should still be present
