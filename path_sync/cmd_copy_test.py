@@ -181,7 +181,7 @@ def test_copy_options_defaults():
     assert not opts.dry_run
     assert not opts.force_overwrite
     assert not opts.no_checkout
-    assert not opts.local
+    assert not opts.skip_commit
     assert not opts.no_prompt
     assert not opts.no_pr
 
