@@ -66,6 +66,7 @@ By default, prompts before each git operation. See [Usage Scenarios](#usage-scen
 | `--force-overwrite` | Overwrite files even if header removed (opted out) |
 | `--detailed-exit-code` | Exit 0=no changes, 1=changes, 2=error |
 | `--skip-orphan-cleanup` | Skip deletion of orphaned synced files |
+| `--skip-verify` | Skip verification steps after syncing |
 | `--pr-title` | Override PR title (supports `{name}`, `{dest_name}`) |
 | `--pr-labels` | Comma-separated PR labels |
 | `--pr-reviewers` | Comma-separated PR reviewers |
@@ -208,6 +209,7 @@ destinations:
 | `header_config` | Comment style per extension (has defaults) |
 | `pr_defaults` | PR title, labels, reviewers, assignees |
 | `wrap_synced_files` | Wrap synced files in section markers (default: `false`) |
+| `verify` | Verification steps to run after syncing (see [Verify Steps](#verify-steps-in-copy)) |
 
 **Path options**:
 
@@ -231,6 +233,37 @@ destinations:
 | `default_branch` | Default branch to compare against (defaults to `main`) |
 | `skip_sections` | Map of `{dest_path: [section_ids]}` to preserve locally |
 | `skip_file_patterns` | Patterns to skip for this destination (matches dest path, fnmatch syntax) |
+| `verify` | Per-destination verify config (overrides source-level verify) |
+
+## Verify Steps in Copy
+
+Run verification steps after syncing files. Synced files are committed first, then verify steps run and can make additional commits.
+
+```yaml
+name: myconfig
+verify:
+  on_fail: warn  # default: warn (also: skip, fail)
+  steps:
+    - run: just fmt
+      commit:
+        message: "style: format synced files"
+        add_paths: ["."]
+      on_fail: warn
+    - run: just test
+```
+
+Per-destination override:
+
+```yaml
+destinations:
+  - name: dest1
+    dest_path_relative: ../dest1
+    verify:
+      steps:
+        - run: npm run build
+```
+
+Use `--skip-verify` to disable verification steps.
 
 ## Header Format
 

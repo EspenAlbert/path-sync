@@ -28,14 +28,6 @@ ts: 2026-02-05 09:34:21.781583+00:00
 type: keep_private
 full_path: _internal.verify.VerifyResult
 ---
-name: copy
-ts: 2026-02-05 09:34:34.384009+00:00
-type: fix
-author: Espen Albert
-changelog_message: 'fix(copy): apply skip_sections when creating new files with sections'
-message: 'fix(copy): apply skip_sections when creating new files with sections'
-short_sha: cd5ad3
----
 name: VerifyConfig
 ts: 2026-02-05 10:55:38.456819+00:00
 type: additional_change
@@ -77,22 +69,6 @@ ts: 2026-02-06 08:18:19.916347+00:00
 type: keep_private
 full_path: sections.wrap_in_synced_section
 ---
-name: copy
-ts: 2026-02-06 08:18:28.679750+00:00
-type: fix
-author: Espen Albert
-changelog_message: 'fix(copy): commit synced files before running verify steps'
-message: 'fix(copy): commit synced files before running verify steps
-
-
-  Previously, verify steps with `add_paths: ["."]` would commit all
-
-  uncommitted changes including synced files. Now synced files are
-
-  committed first with proper "sync from" message before verify runs.'
-rephrased: true
-short_sha: d33ecf
----
 name: SrcConfig
 ts: 2026-02-06 08:18:57.240506+00:00
 type: additional_change
@@ -110,3 +86,28 @@ change_kind: optional_field_added
 details: 'added optional field ''wrap'' (default: None)'
 field_name: wrap
 group: config
+---
+name: copy
+ts: 2026-02-06 08:40:32.310238+00:00
+type: fix
+author: Espen Albert
+changelog_message: 'fix(copy): commit synced files before running verify steps'
+ignored: true
+message: 'fix(copy): commit synced files before running verify steps
+
+
+  Previously, verify steps with `add_paths: ["."]` would commit all
+
+  uncommitted changes including synced files. Now synced files are
+
+  committed first with proper "sync from" message before verify runs.'
+rephrased: true
+short_sha: 2a6cbb
+---
+name: copy
+ts: 2026-02-06 08:40:52.489108+00:00
+type: fix
+author: Espen Albert
+changelog_message: 'fix(copy): apply skip_sections when creating new files with sections'
+message: 'fix(copy): apply skip_sections when creating new files with sections'
+short_sha: 15a9e3
