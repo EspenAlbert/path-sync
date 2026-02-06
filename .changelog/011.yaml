@@ -71,3 +71,42 @@ change_kind: optional_field_added
 details: 'added optional field ''verify'' (default: None)'
 field_name: verify
 group: config
+---
+name: wrap_in_synced_section
+ts: 2026-02-06 08:18:19.916347+00:00
+type: keep_private
+full_path: sections.wrap_in_synced_section
+---
+name: copy
+ts: 2026-02-06 08:18:28.679750+00:00
+type: fix
+author: Espen Albert
+changelog_message: 'fix(copy): commit synced files before running verify steps'
+message: 'fix(copy): commit synced files before running verify steps
+
+
+  Previously, verify steps with `add_paths: ["."]` would commit all
+
+  uncommitted changes including synced files. Now synced files are
+
+  committed first with proper "sync from" message before verify runs.'
+rephrased: true
+short_sha: d33ecf
+---
+name: SrcConfig
+ts: 2026-02-06 08:18:57.240506+00:00
+type: additional_change
+auto_generated: true
+change_kind: optional_field_added
+details: 'added optional field ''wrap_synced_files'' (default: False)'
+field_name: wrap_synced_files
+group: config
+---
+name: PathMapping
+ts: 2026-02-06 08:18:57.240514+00:00
+type: additional_change
+auto_generated: true
+change_kind: optional_field_added
+details: 'added optional field ''wrap'' (default: None)'
+field_name: wrap
+group: config
