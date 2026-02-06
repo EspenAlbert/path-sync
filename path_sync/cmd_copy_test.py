@@ -482,3 +482,52 @@ already has sections
     result = (dest_root / "file.sh").read_text()
     assert result.count("DO_NOT_EDIT") == 1
     assert "synced" not in result
+
+
+def test_sync_preserves_dest_trailing_when_adding_new_sections(tmp_path):
+    """When source has new sections not in dest, dest's trailing content is preserved."""
+    src_root = tmp_path / "src"
+    dest_root = tmp_path / "dest"
+    src_root.mkdir()
+    dest_root.mkdir()
+
+    src_content = """\
+# === DO_NOT_EDIT: path-sync core ===
+core content
+# === OK_EDIT: path-sync core ===
+
+# === DO_NOT_EDIT: path-sync checks ===
+checks content
+# === OK_EDIT: path-sync checks ===
+# source trailing
+src-recipe:
+    echo source
+"""
+    (src_root / "justfile").write_text(src_content)
+
+    dest_content = add_header(
+        """\
+# === DO_NOT_EDIT: path-sync standard ===
+old standard
+# === OK_EDIT: path-sync standard ===
+# dest trailing
+dest-recipe:
+    echo dest
+""",
+        dest_root / "justfile",
+        CONFIG_NAME,
+    )
+    (dest_root / "justfile").write_text(dest_content)
+
+    mapping = PathMapping(src_path="justfile")
+    changes, _ = _sync_path(mapping, src_root, dest_root, _make_dest(), CONFIG_NAME, False, False)
+
+    assert changes == 1
+    result = (dest_root / "justfile").read_text()
+    assert "core content" in result
+    assert "checks content" in result
+    assert "old standard" not in result
+    assert "dest trailing" in result
+    assert "dest-recipe" in result
+    assert "source trailing" not in result
+    assert "src-recipe" not in result
