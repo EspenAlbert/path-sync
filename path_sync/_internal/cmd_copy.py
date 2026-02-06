@@ -462,7 +462,7 @@ def _handle_sync_sections(
     dry_run: bool,
     force_overwrite: bool,
 ) -> int:
-    src_sections = sections.extract_sections(src_content, dest_path)
+    src_sections = sections.parse_sections(src_content, dest_path)
 
     if dest_path.exists():
         existing = dest_path.read_text()
@@ -472,7 +472,7 @@ def _handle_sync_sections(
         dest_body = header.remove_header(existing)
         new_body = sections.replace_sections(dest_body, src_sections, dest_path, skip_list)
     elif skip_list:
-        filtered = {k: v for k, v in src_sections.items() if k not in skip_list}
+        filtered = [s for s in src_sections if s.id not in skip_list]
         new_body = sections.build_sections_content(filtered, dest_path)
     else:
         new_body = src_content

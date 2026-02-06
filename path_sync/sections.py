@@ -5,6 +5,7 @@ from pathlib import Path
 from zero_3rdparty.sections import (
     Section,
     SectionChanges,
+    SectionPart,
     get_comment_config,
 )
 from zero_3rdparty.sections import (
@@ -32,6 +33,7 @@ from zero_3rdparty.sections import (
 __all__ = [
     "Section",
     "SectionChanges",
+    "SectionPart",
     "build_sections_content",
     "changed_sections",
     "extract_sections",
@@ -62,7 +64,7 @@ def extract_sections(content: str, path: Path) -> dict[str, str]:
 
 def replace_sections(
     dest_content: str,
-    src_sections: dict[str, str],
+    src_sections: list[Section],
     path: Path,
     skip_sections: list[str] | None = None,
     *,
@@ -87,8 +89,8 @@ def changed_sections(
     return _changed_sections(baseline_content, current_content, TOOL_NAME, get_comment_config(path), skip, str(path))
 
 
-def build_sections_content(section_dict: dict[str, str], path: Path) -> str:
-    """Build file content from a dict of section_id -> section_content."""
+def build_sections_content(section_list: list[Section], path: Path) -> str:
+    """Build file content from a list of Section objects."""
     config = get_comment_config(path)
-    parts = [_wrap_section(content, section_id, TOOL_NAME, config) for section_id, content in section_dict.items()]
+    parts = [_wrap_section(s.content, s.id, TOOL_NAME, config) for s in section_list]
     return "\n".join(parts)
