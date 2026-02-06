@@ -41,6 +41,7 @@ __all__ = [
     "parse_sections",
     "replace_sections",
     "wrap_in_default_section",
+    "wrap_in_synced_section",
 ]
 
 TOOL_NAME = "path-sync"
@@ -56,6 +57,10 @@ def parse_sections(content: str, path: Path) -> list[Section]:
 
 def wrap_in_default_section(content: str, path: Path) -> str:
     return _wrap_in_default_section(content, TOOL_NAME, get_comment_config(path))
+
+
+def wrap_in_synced_section(content: str, path: Path) -> str:
+    return _wrap_section(content, "synced", TOOL_NAME, get_comment_config(path))
 
 
 def extract_sections(content: str, path: Path) -> dict[str, str]:

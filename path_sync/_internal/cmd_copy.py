@@ -290,6 +290,7 @@ def _sync_paths(
             config.name,
             opts.dry_run,
             opts.force_overwrite,
+            config.wrap_synced_files,
         )
         result.content_changes += changes
         result.synced_paths.update(paths)
@@ -340,10 +341,12 @@ def _sync_path(
     config_name: str,
     dry_run: bool,
     force_overwrite: bool,
+    wrap_synced_files: bool = False,
 ) -> tuple[int, set[Path]]:
     changes = 0
     synced: set[Path] = set()
 
+    should_wrap = mapping.should_wrap(wrap_synced_files)
     for src_path, dest_key, dest_path in _iter_sync_files(mapping, src_root, dest_root):
         if dest.is_skipped(dest_key):
             continue
@@ -356,6 +359,7 @@ def _sync_path(
             mapping.sync_mode,
             dry_run,
             force_overwrite,
+            should_wrap,
         )
         synced.add(dest_path)
 
@@ -371,6 +375,7 @@ def _copy_file(
     sync_mode: SyncMode,
     dry_run: bool,
     force_overwrite: bool = False,
+    should_wrap: bool = False,
 ) -> int:
     try:
         src_content = header.remove_header(src.read_text())
@@ -384,7 +389,7 @@ def _copy_file(
             return _handle_replace(src_content, dest_path, dry_run)
         case SyncMode.SYNC:
             skip_list = dest.skip_sections.get(dest_key, [])
-            return _handle_sync(src_content, dest_path, skip_list, config_name, dry_run, force_overwrite)
+            return _handle_sync(src_content, dest_path, skip_list, config_name, dry_run, force_overwrite, should_wrap)
 
 
 def _copy_binary_file(src: Path, dest_path: Path, sync_mode: SyncMode, dry_run: bool) -> int:
@@ -428,9 +433,14 @@ def _handle_sync(
     config_name: str,
     dry_run: bool,
     force_overwrite: bool,
+    should_wrap: bool = False,
 ) -> int:
     if sections.has_sections(src_content, dest_path):
         return _handle_sync_sections(src_content, dest_path, skip_list, config_name, dry_run, force_overwrite)
+
+    if should_wrap:
+        wrapped = sections.wrap_in_synced_section(src_content, dest_path)
+        return _handle_sync_sections(wrapped, dest_path, skip_list, config_name, dry_run, force_overwrite)
 
     if dest_path.exists():
         existing = dest_path.read_text()

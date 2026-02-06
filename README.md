@@ -121,6 +121,36 @@ destinations:
       justfile: [coverage]  # keep local coverage recipe
 ```
 
+## Wrapping Synced Files
+
+For files without section markers, `wrap_synced_files` automatically wraps content in a `synced` section. This lets destinations add content before/after the synced content.
+
+**Without wrapping** (default):
+```python
+# path-sync copy -n myconfig
+def hello():
+    pass
+```
+
+**With wrapping** (`wrap_synced_files: true`):
+```python
+# path-sync copy -n myconfig
+# === DO_NOT_EDIT: path-sync synced ===
+def hello():
+    pass
+# === OK_EDIT: path-sync synced ===
+```
+
+Destinations can add content outside the section markers. Per-path override via `wrap: false`:
+
+```yaml
+wrap_synced_files: true
+paths:
+  - src_path: templates/base.py     # wrapped
+  - src_path: .editorconfig
+    wrap: false                     # not wrapped
+```
+
 ## Skipping Files per Destination
 
 Use `skip_file_patterns` to exclude files for specific destinations. Patterns match against the **destination path** (after `dest_path` remapping):
@@ -177,6 +207,7 @@ destinations:
 | `destinations` | Target repos with sync settings |
 | `header_config` | Comment style per extension (has defaults) |
 | `pr_defaults` | PR title, labels, reviewers, assignees |
+| `wrap_synced_files` | Wrap synced files in section markers (default: `false`) |
 
 **Path options**:
 
@@ -187,6 +218,7 @@ destinations:
 | `sync_mode` | `sync` (default), `replace`, or `scaffold` |
 | `exclude_dirs` | Directory names to skip (defaults: `__pycache__`, `.git`, `.venv`, etc.) |
 | `exclude_file_patterns` | Filename patterns to skip, supports globs (`*.pyc`, `test_*.py`) |
+| `wrap` | Override global `wrap_synced_files` for this path (`true`/`false`) |
 
 **Destination options**:
 

@@ -63,6 +63,10 @@ class PathMapping(BaseModel):
     sync_mode: SyncMode = SyncMode.SYNC
     exclude_dirs: set[str] = Field(default_factory=_default_exclude_dirs)
     exclude_file_patterns: set[str] = Field(default_factory=set)
+    wrap: bool | None = None
+
+    def should_wrap(self, config_default: bool) -> bool:
+        return self.wrap if self.wrap is not None else config_default
 
     def resolved_dest_path(self) -> str:
         return self.dest_path or self.src_path
@@ -173,6 +177,7 @@ class SrcConfig(BaseModel):
     paths: list[PathMapping] = Field(default_factory=list)
     destinations: list[Destination] = Field(default_factory=list)
     verify: VerifyConfig | None = None
+    wrap_synced_files: bool = False
 
     def find_destination(self, name: str) -> Destination:
         for dest in self.destinations:

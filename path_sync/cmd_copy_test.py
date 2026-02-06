@@ -387,3 +387,98 @@ def test_verify_per_step_on_fail_overrides_verify_level(tmp_path: Path):
     assert result.status == VerifyStatus.WARN
     assert len(result.failures) == 1
     assert result.failures[0].on_fail == OnFailStrategy.WARN
+
+
+def test_wrap_synced_files_wraps_content_in_section(tmp_path):
+    src_root = tmp_path / "src"
+    dest_root = tmp_path / "dest"
+    src_root.mkdir()
+    dest_root.mkdir()
+
+    (src_root / "file.py").write_text("def hello(): pass")
+
+    mapping = PathMapping(src_path="file.py")
+    changes, _ = _sync_path(
+        mapping, src_root, dest_root, _make_dest(), CONFIG_NAME, False, False, wrap_synced_files=True
+    )
+
+    assert changes == 1
+    result = (dest_root / "file.py").read_text()
+    assert "# === DO_NOT_EDIT: path-sync synced ===" in result
+    assert "def hello(): pass" in result
+    assert "# === OK_EDIT: path-sync synced ===" in result
+
+
+def test_wrap_per_path_override_disables(tmp_path):
+    src_root = tmp_path / "src"
+    dest_root = tmp_path / "dest"
+    src_root.mkdir()
+    dest_root.mkdir()
+
+    (src_root / "file.py").write_text("content")
+
+    mapping = PathMapping(src_path="file.py", wrap=False)
+    changes, _ = _sync_path(
+        mapping, src_root, dest_root, _make_dest(), CONFIG_NAME, False, False, wrap_synced_files=True
+    )
+
+    assert changes == 1
+    result = (dest_root / "file.py").read_text()
+    assert "DO_NOT_EDIT" not in result
+
+
+def test_wrapped_file_preserves_dest_content_around_section(tmp_path):
+    src_root = tmp_path / "src"
+    dest_root = tmp_path / "dest"
+    src_root.mkdir()
+    dest_root.mkdir()
+
+    (src_root / "file.py").write_text("managed content v2")
+
+    dest_file = dest_root / "file.py"
+    dest_content = add_header(
+        """\
+# before section
+# === DO_NOT_EDIT: path-sync synced ===
+managed content v1
+# === OK_EDIT: path-sync synced ===
+# after section""",
+        dest_file,
+        CONFIG_NAME,
+    )
+    dest_file.write_text(dest_content)
+
+    mapping = PathMapping(src_path="file.py")
+    changes, _ = _sync_path(
+        mapping, src_root, dest_root, _make_dest(), CONFIG_NAME, False, False, wrap_synced_files=True
+    )
+
+    assert changes == 1
+    result = (dest_root / "file.py").read_text()
+    assert "# before section" in result
+    assert "managed content v2" in result
+    assert "managed content v1" not in result
+    assert "# after section" in result
+
+
+def test_file_with_existing_sections_not_double_wrapped(tmp_path):
+    src_root = tmp_path / "src"
+    dest_root = tmp_path / "dest"
+    src_root.mkdir()
+    dest_root.mkdir()
+
+    src_content = """\
+# === DO_NOT_EDIT: path-sync standard ===
+already has sections
+# === OK_EDIT: path-sync standard ==="""
+    (src_root / "file.sh").write_text(src_content)
+
+    mapping = PathMapping(src_path="file.sh")
+    changes, _ = _sync_path(
+        mapping, src_root, dest_root, _make_dest(), CONFIG_NAME, False, False, wrap_synced_files=True
+    )
+
+    assert changes == 1
+    result = (dest_root / "file.sh").read_text()
+    assert result.count("DO_NOT_EDIT") == 1
+    assert "synced" not in result
