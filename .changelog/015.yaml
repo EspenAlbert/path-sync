@@ -5,3 +5,8 @@ author: Espen Albert
 changelog_message: 'fix: ignore submodule dirty state and reduce token scope for PR updates'
 message: 'fix: ignore submodule dirty state and reduce token scope for PR updates'
 short_sha: 007dcf
+---
+name: 0.6.1
+ts: 2026-02-09 09:09:32.979192+00:00
+type: release
+old_version: 0.6.0

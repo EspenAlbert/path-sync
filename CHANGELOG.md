@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.6.1 2026-02-09T09-09Z
+
+### __Root__
+- fix: ignore submodule dirty state and reduce token scope for PR updates [007dcf](https://github.com/EspenAlbert/path-sync/commit/007dcf)
+
+
 ## 0.6.0 2026-02-06T11-00Z
 
 ### Config

@@ -2,7 +2,7 @@
 
 [project]
 name = "path-sync"
-version = "0.6.0"
+version = "0.6.1"
 description = "Sync files from a source repo to multiple destination repos"
 requires-python = ">=3.13"
 license = "MIT"
