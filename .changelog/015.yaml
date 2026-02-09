@@ -1,0 +1,7 @@
+name: __ROOT__
+ts: 2026-02-09 09:00:30.292898+00:00
+type: fix
+author: Espen Albert
+changelog_message: 'fix: ignore submodule dirty state and reduce token scope for PR updates'
+message: 'fix: ignore submodule dirty state and reduce token scope for PR updates'
+short_sha: 007dcf

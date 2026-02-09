@@ -105,12 +105,12 @@ def get_remote_url(repo: Repo, remote_name: str = "origin") -> str:
 
 
 def has_changes(repo: Repo) -> bool:
-    return repo.is_dirty() or len(repo.untracked_files) > 0
+    return repo.is_dirty(submodules=False) or len(repo.untracked_files) > 0
 
 
 def commit_changes(repo: Repo, message: str) -> None:
     repo.git.add("-A")
-    if repo.is_dirty():
+    if repo.is_dirty(submodules=False):
         _ensure_git_user(repo)
         repo.git.commit("-m", message)
         logger.info(f"Committed: {message}")
@@ -124,7 +124,7 @@ def stage_and_commit(repo: Repo, add_paths: list[str], message: str) -> bool:
         repo.git.add(path)
     for path in exclude:
         repo.git.reset("HEAD", "--", path)
-    if not repo.is_dirty(index=True):
+    if not repo.is_dirty(index=True, submodules=False):
         return False
     _ensure_git_user(repo)
     repo.git.commit("-m", message)
@@ -147,8 +147,53 @@ def push_branch(repo: Repo, branch: str, force: bool = True) -> None:
     repo.git.push(*args)
 
 
+def _get_repo_full_name(repo_path: Path) -> str | None:
+    """Get owner/repo from gh CLI."""
+    cmd = [
+        "gh",
+        "repo",
+        "view",
+        "--json",
+        "owner,name",
+        "-q",
+        '.owner.login + "/" + .name',
+    ]
+    result = subprocess.run(cmd, cwd=repo_path, capture_output=True, text=True)
+    if result.returncode != 0:
+        logger.warning(f"Failed to get repo info: {result.stderr}")
+        return None
+    return result.stdout.strip()
+
+
+def _get_pr_number(repo_path: Path, branch: str) -> str | None:
+    """Get PR number for a branch."""
+    cmd = ["gh", "pr", "view", branch, "--json", "number", "-q", ".number"]
+    result = subprocess.run(cmd, cwd=repo_path, capture_output=True, text=True)
+    if result.returncode != 0:
+        logger.warning(f"Failed to get PR number: {result.stderr}")
+        return None
+    return result.stdout.strip()
+
+
 def update_pr_body(repo_path: Path, branch: str, body: str) -> bool:
-    cmd = ["gh", "pr", "edit", branch, "--body", body]
+    """Update PR body using REST API (only requires 'repo' scope, not 'read:org')."""
+    repo_full = _get_repo_full_name(repo_path)
+    if not repo_full:
+        return False
+
+    pr_number = _get_pr_number(repo_path, branch)
+    if not pr_number:
+        return False
+
+    cmd = [
+        "gh",
+        "api",
+        "-X",
+        "PATCH",
+        f"repos/{repo_full}/pulls/{pr_number}",
+        "-f",
+        f"body={body}",
+    ]
     result = subprocess.run(cmd, cwd=repo_path, capture_output=True, text=True)
     if result.returncode != 0:
         logger.warning(f"Failed to update PR body: {result.stderr}")
