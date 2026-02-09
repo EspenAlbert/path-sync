@@ -124,7 +124,7 @@ def stage_and_commit(repo: Repo, add_paths: list[str], message: str) -> bool:
         repo.git.add(path)
     for path in exclude:
         repo.git.reset("HEAD", "--", path)
-    if not repo.is_dirty(index=True):
+    if not repo.is_dirty(index=True, submodules=False):
         return False
     _ensure_git_user(repo)
     repo.git.commit("-m", message)
