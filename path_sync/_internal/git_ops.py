@@ -105,12 +105,12 @@ def get_remote_url(repo: Repo, remote_name: str = "origin") -> str:
 
 
 def has_changes(repo: Repo) -> bool:
-    return repo.is_dirty() or len(repo.untracked_files) > 0
+    return repo.is_dirty(submodules=False) or len(repo.untracked_files) > 0
 
 
 def commit_changes(repo: Repo, message: str) -> None:
     repo.git.add("-A")
-    if repo.is_dirty():
+    if repo.is_dirty(submodules=False):
         _ensure_git_user(repo)
         repo.git.commit("-m", message)
         logger.info(f"Committed: {message}")
