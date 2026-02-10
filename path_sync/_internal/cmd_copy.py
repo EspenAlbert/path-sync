@@ -11,6 +11,7 @@ from pydantic import BaseModel
 
 from path_sync import sections
 from path_sync._internal import cmd_options, git_ops, header, prompt_utils, verify
+from path_sync._internal.auto_merge import PRRef, handle_auto_merge
 from path_sync._internal.file_utils import ensure_parents_write_text
 from path_sync._internal.log_capture import capture_log
 from path_sync._internal.models import (
@@ -53,6 +54,7 @@ class CopyOptions(BaseModel):
     no_pr: bool = False
     skip_orphan_cleanup: bool = False
     skip_verify: bool = False
+    no_wait: bool = False
     pr_title: str = ""
     labels: list[str] | None = None
     reviewers: list[str] | None = None
@@ -130,6 +132,11 @@ def copy(
         "--skip-verify",
         help="Skip verification steps after syncing",
     ),
+    no_wait: bool = typer.Option(
+        False,
+        "--no-wait",
+        help="Enable auto-merge but skip polling for merge completion",
+    ),
 ) -> None:
     """Copy files from SRC to DEST repositories."""
     if name and config_path_opt:
@@ -147,9 +154,6 @@ def copy(
         raise typer.Exit(EXIT_ERROR if detailed_exit_code else 1)
 
     config = load_yaml_model(config_path, SrcConfig)
-    src_repo = git_ops.get_repo(src_root)
-    current_sha = git_ops.get_current_sha(src_repo)
-    src_repo_url = git_ops.get_remote_url(src_repo, config.git_remote)
 
     opts = CopyOptions(
         dry_run=dry_run,
@@ -161,11 +165,29 @@ def copy(
         no_pr=no_pr,
         skip_orphan_cleanup=skip_orphan_cleanup,
         skip_verify=skip_verify,
+        no_wait=no_wait,
         pr_title=pr_title or config.pr_defaults.title,
         labels=cmd_options.split_csv(pr_labels) or config.pr_defaults.labels,
         reviewers=cmd_options.split_csv(pr_reviewers) or config.pr_defaults.reviewers,
         assignees=cmd_options.split_csv(pr_assignees) or config.pr_defaults.assignees,
     )
+
+    try:
+        total_changes = _run_copy(config, src_root, dest_filter, opts)
+    except Exception as e:
+        if detailed_exit_code:
+            logger.error(f"Copy failed: {e}")
+            raise typer.Exit(EXIT_ERROR)
+        raise
+
+    if detailed_exit_code:
+        raise typer.Exit(EXIT_CHANGES if total_changes > 0 else EXIT_NO_CHANGES)
+
+
+def _run_copy(config: SrcConfig, src_root: Path, dest_filter: str, opts: CopyOptions) -> int:
+    src_repo = git_ops.get_repo(src_root)
+    current_sha = git_ops.get_current_sha(src_repo)
+    src_repo_url = git_ops.get_remote_url(src_repo, config.git_remote)
 
     destinations = config.destinations
     if dest_filter:
@@ -173,19 +195,18 @@ def copy(
         destinations = [d for d in destinations if d.name in filter_names]
 
     total_changes = 0
+    pr_refs: list[PRRef] = []
     for dest in destinations:
-        try:
-            with capture_log(dest.name) as read_log:
-                changes = _sync_destination(config, dest, src_root, current_sha, src_repo_url, opts, read_log)
-            total_changes += changes
-        except Exception as e:
-            logger.error(f"Failed to sync {dest.name}: {e}")
-            if detailed_exit_code:
-                raise typer.Exit(EXIT_ERROR)
-            raise
+        with capture_log(dest.name) as read_log:
+            changes, pr_ref = _sync_destination(config, dest, src_root, current_sha, src_repo_url, opts, read_log)
+        total_changes += changes
+        if pr_ref:
+            pr_refs.append(pr_ref)
 
-    if detailed_exit_code:
-        raise typer.Exit(EXIT_CHANGES if total_changes > 0 else EXIT_NO_CHANGES)
+    if config.auto_merge and pr_refs:
+        handle_auto_merge(pr_refs, config.auto_merge, no_wait=opts.no_wait)
+
+    return total_changes
 
 
 def _sync_destination(
@@ -196,7 +217,7 @@ def _sync_destination(
     src_repo_url: str,
     opts: CopyOptions,
     read_log: Callable[[], str],
-) -> int:
+) -> tuple[int, PRRef | None]:
     dest_root = (src_root / dest.dest_path_relative).resolve()
 
     if opts.dry_run and not dest_root.exists():
@@ -205,7 +226,6 @@ def _sync_destination(
     dest_repo = _ensure_dest_repo(dest, dest_root, opts.dry_run)
     copy_branch = dest.resolved_copy_branch(config.name)
 
-    # --no-checkout skips branch switching (assumes already on correct branch)
     if not opts.no_checkout and prompt_utils.prompt_confirm(f"Switch {dest.name} to {copy_branch}?", opts.no_prompt):
         git_ops.prepare_copy_branch(
             repo=dest_repo,
@@ -218,9 +238,8 @@ def _sync_destination(
 
     if result.total == 0:
         logger.info(f"{dest.name}: No changes")
-        return 0
+        return 0, None
 
-    # --skip-commit and --dry-run skip commit; otherwise prompt
     should_skip_commit = opts.skip_commit or opts.dry_run
     if not should_skip_commit and prompt_utils.prompt_confirm(f"Commit changes to {dest.name}?", opts.no_prompt):
         sync_commit_msg = f"chore: sync {config.name} from {current_sha[:8]}"
@@ -240,10 +259,10 @@ def _sync_destination(
 
         if verify_result.status == VerifyStatus.SKIPPED:
             logger.warning(f"{dest.name}: Verification skipped due to failure")
-            return result.total
+            return result.total, None
 
-    _push_and_pr(config, dest_repo, dest_root, dest, current_sha, src_repo_url, opts, read_log, verify_result)
-    return result.total
+    pr_ref = _push_and_pr(config, dest_repo, dest_root, dest, current_sha, src_repo_url, opts, read_log, verify_result)
+    return result.total, pr_ref
 
 
 def _print_sync_summary(dest: Destination, result: SyncResult) -> None:
@@ -526,29 +545,28 @@ def _push_and_pr(
     opts: CopyOptions,
     read_log: Callable[[], str],
     verify_result: VerifyResult,
-) -> None:
+) -> PRRef | None:
     if opts.skip_commit or opts.dry_run:
         logger.info("Skipping push/PR (--skip-commit or --dry-run)")
-        return
+        return None
 
     copy_branch = dest.resolved_copy_branch(config.name)
 
-    # Commit any remaining changes from verify steps without their own commit config
     if git_ops.has_changes(repo):
         if not prompt_utils.prompt_confirm(f"Commit remaining changes to {dest.name}?", opts.no_prompt):
-            return
+            return None
         commit_msg = f"chore: post-sync changes for {config.name}"
         git_ops.commit_changes(repo, commit_msg)
         typer.echo(f"  Committed: {commit_msg}", err=True)
 
     if not prompt_utils.prompt_confirm(f"Push {dest.name} to origin?", opts.no_prompt):
-        return
+        return None
 
     git_ops.push_branch(repo, copy_branch, force=True)
     typer.echo(f"  Pushed: {copy_branch} (force)", err=True)
 
     if opts.no_pr or not prompt_utils.prompt_confirm(f"Create PR for {dest.name}?", opts.no_prompt):
-        return
+        return None
 
     sync_log = read_log()
     pr_body = config.pr_defaults.format_body(
@@ -573,6 +591,9 @@ def _push_and_pr(
     )
     if pr_url:
         typer.echo(f"  Created PR: {pr_url}", err=True)
+
+    branch_or_url = pr_url or copy_branch
+    return PRRef(dest_name=dest.name, repo_path=dest_root, branch_or_url=branch_or_url)
 
 
 def _append_verify_warnings(body: str, failures: list[StepFailure]) -> str:

@@ -29,6 +29,19 @@ def _default_exclude_dirs() -> set[str]:
     return set(DEFAULT_EXCLUDE_DIRS)
 
 
+class MergeMethod(StrEnum):
+    SQUASH = "squash"
+    MERGE = "merge"
+    REBASE = "rebase"
+
+
+class AutoMergeConfig(BaseModel):
+    method: MergeMethod = MergeMethod.SQUASH
+    delete_branch: bool = True
+    poll_interval_seconds: int = 30
+    timeout_seconds: int = 900
+
+
 class SyncMode(StrEnum):
     SYNC = "sync"
     REPLACE = "replace"
@@ -178,6 +191,7 @@ class SrcConfig(BaseModel):
     destinations: list[Destination] = Field(default_factory=list)
     verify: VerifyConfig | None = None
     wrap_synced_files: bool = False
+    auto_merge: AutoMergeConfig | None = None
 
     def find_destination(self, name: str) -> Destination:
         for dest in self.destinations:

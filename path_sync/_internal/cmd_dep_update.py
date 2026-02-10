@@ -11,6 +11,7 @@ import typer
 from git import Repo
 
 from path_sync._internal import cmd_options, git_ops, prompt_utils, verify
+from path_sync._internal.auto_merge import PRRef, handle_auto_merge
 from path_sync._internal.log_capture import capture_log
 from path_sync._internal.models import Destination, OnFailStrategy, find_repo_root
 from path_sync._internal.models_dep import (
@@ -50,6 +51,7 @@ class RepoResult:
 class DepUpdateOptions:
     dry_run: bool = False
     skip_verify: bool = False
+    no_wait: bool = False
     reviewers: list[str] | None = None
     assignees: list[str] | None = None
 
@@ -61,6 +63,7 @@ def dep_update(
     work_dir: str = typer.Option("", "--work-dir", help="Clone repos here (overrides dest_path_relative)"),
     dry_run: bool = typer.Option(False, "--dry-run", help="Preview without creating PRs"),
     skip_verify: bool = typer.Option(False, "--skip-verify", help="Skip verification steps"),
+    no_wait: bool = typer.Option(False, "--no-wait", help="Enable auto-merge but skip polling for merge completion"),
     src_root_opt: str = typer.Option("", "--src-root", help="Source repo root"),
     pr_reviewers: str = cmd_options.pr_reviewers_option(),
     pr_assignees: str = cmd_options.pr_assignees_option(),
@@ -82,12 +85,16 @@ def dep_update(
     opts = DepUpdateOptions(
         dry_run=dry_run,
         skip_verify=skip_verify,
+        no_wait=no_wait,
         reviewers=cmd_options.split_csv(pr_reviewers) or config.pr.reviewers,
         assignees=cmd_options.split_csv(pr_assignees) or config.pr.assignees,
     )
 
     results = _update_and_validate(config, destinations, src_root, work_dir, opts)
-    _create_prs(config, results, opts)
+    pr_refs = _create_prs(config, results, opts)
+
+    if config.auto_merge and pr_refs:
+        handle_auto_merge(pr_refs, config.auto_merge, no_wait=opts.no_wait)
 
     if any(r.status == Status.SKIPPED for r in results):
         raise typer.Exit(1)
@@ -172,7 +179,8 @@ def _verify_repo(repo: Repo, repo_path: Path, fallback_verify: verify.VerifyConf
     return RepoResult(dest=dest, repo_path=repo_path, status=status, failures=result.failures)
 
 
-def _create_prs(config: DepConfig, results: list[RepoResult], opts: DepUpdateOptions) -> None:
+def _create_prs(config: DepConfig, results: list[RepoResult], opts: DepUpdateOptions) -> list[PRRef]:
+    pr_refs: list[PRRef] = []
     for result in results:
         if result.status == Status.SKIPPED:
             continue
@@ -185,7 +193,7 @@ def _create_prs(config: DepConfig, results: list[RepoResult], opts: DepUpdateOpt
         git_ops.push_branch(repo, config.pr.branch, force=True)
 
         body = _build_pr_body(result.log_content, result.failures)
-        git_ops.create_or_update_pr(
+        pr_url = git_ops.create_or_update_pr(
             result.repo_path,
             config.pr.branch,
             config.pr.title,
@@ -193,9 +201,11 @@ def _create_prs(config: DepConfig, results: list[RepoResult], opts: DepUpdateOpt
             config.pr.labels or None,
             reviewers=opts.reviewers,
             assignees=opts.assignees,
-            auto_merge=config.pr.auto_merge,
         )
         logger.info(f"{result.dest.name}: PR created/updated")
+        branch_or_url = pr_url or config.pr.branch
+        pr_refs.append(PRRef(dest_name=result.dest.name, repo_path=result.repo_path, branch_or_url=branch_or_url))
+    return pr_refs
 
 
 def _resolve_repo_path(dest: Destination, src_root: Path, work_dir: str) -> Path:

@@ -3,6 +3,7 @@ from pathlib import Path
 import yaml
 
 from path_sync._internal.models import (
+    AutoMergeConfig,
     CommitConfig,
     OnFailStrategy,
     VerifyConfig,
@@ -29,14 +30,15 @@ def test_dep_config_parsing():
                 VerifyStep(run="just test", on_fail=OnFailStrategy.WARN),
             ],
         ),
-        pr=PRConfig(branch="deps/uv-lock", title="chore: update uv.lock", auto_merge=True),
+        pr=PRConfig(branch="deps/uv-lock", title="chore: update uv.lock"),
+        auto_merge=AutoMergeConfig(),
     )
     assert config.name == "uv-deps"
     assert config.updates[0].workdir == "."
     assert len(config.verify.steps) == 2
     assert config.verify.steps[0].commit
     assert config.verify.steps[0].commit.add_paths == ["."]
-    assert config.pr.auto_merge
+    assert config.auto_merge
 
 
 def test_dep_config_from_yaml(tmp_path: Path):
@@ -63,7 +65,8 @@ pr:
   title: "chore: update dependencies"
   labels:
     - dependencies
-  auto_merge: true
+auto_merge:
+  method: squash
 """
     config_path = tmp_path / "test.dep.yaml"
     config_path.write_text(config_yaml)

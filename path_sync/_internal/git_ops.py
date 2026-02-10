@@ -210,7 +210,6 @@ def create_or_update_pr(
     labels: list[str] | None = None,
     reviewers: list[str] | None = None,
     assignees: list[str] | None = None,
-    auto_merge: bool = False,
 ) -> str:
     cmd = ["gh", "pr", "create", "--head", branch, "--title", title]
     cmd.extend(["--body", body or ""])
@@ -226,24 +225,11 @@ def create_or_update_pr(
         if "already exists" in result.stderr:
             logger.info("PR already exists, updating body")
             update_pr_body(repo_path, branch, body)
-            if auto_merge:
-                _enable_auto_merge(repo_path, branch)
             return ""
         raise RuntimeError(f"Failed to create PR: {result.stderr}")
     pr_url = result.stdout.strip()
     logger.info(f"Created PR: {pr_url}")
-    if auto_merge:
-        _enable_auto_merge(repo_path, pr_url)
     return pr_url
-
-
-def _enable_auto_merge(repo_path: Path, pr_ref: str) -> None:
-    cmd = ["gh", "pr", "merge", "--auto", "--squash", pr_ref]
-    result = subprocess.run(cmd, cwd=repo_path, capture_output=True, text=True)
-    if result.returncode != 0:
-        logger.warning(f"Auto-merge failed (branch protection may not be configured): {result.stderr}")
-    else:
-        logger.info(f"Enabled auto-merge for {pr_ref}")
 
 
 def file_has_git_changes(repo: Repo, file_path: Path, base_ref: str = "HEAD") -> bool:
