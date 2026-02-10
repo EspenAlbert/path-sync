@@ -498,7 +498,7 @@ requires-dist = [
     { name = "pydantic", specifier = ">=2.0" },
     { name = "pyyaml", specifier = ">=6.0" },
     { name = "typer", specifier = ">=0.16.0" },
-    { name = "zero-3rdparty", specifier = ">=0.102.0" },
+    { name = "zero-3rdparty", specifier = ">=0.104.2" },
 ]
 
 [package.metadata.requires-dev]

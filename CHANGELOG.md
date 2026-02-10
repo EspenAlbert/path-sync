@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.6.2 2026-02-10T15-29Z
+
+### Other Changes
+- Chore: updated dependencies to supported indented markers
+
+
 ## 0.6.1 2026-02-09T09-09Z
 
 ### __Root__

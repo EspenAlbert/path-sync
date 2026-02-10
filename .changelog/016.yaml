@@ -1,3 +1,8 @@
 ts: 2026-02-10 15:26:48.430852+00:00
 type: chore
 description: updated dependencies to supported indented markers
+---
+name: 0.6.2
+ts: 2026-02-10 15:29:49.273702+00:00
+type: release
+old_version: 0.6.1
