@@ -36,7 +36,7 @@ class MergeMethod(StrEnum):
 
 
 class AutoMergeConfig(BaseModel):
-    method: MergeMethod = MergeMethod.SQUASH
+    method: MergeMethod = MergeMethod.MERGE
     delete_branch: bool = True
     poll_interval_seconds: int = 30
     timeout_seconds: int = 900

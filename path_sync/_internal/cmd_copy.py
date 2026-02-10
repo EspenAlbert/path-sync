@@ -55,6 +55,7 @@ class CopyOptions(BaseModel):
     skip_orphan_cleanup: bool = False
     skip_verify: bool = False
     no_wait: bool = False
+    no_auto_merge: bool = False
     pr_title: str = ""
     labels: list[str] | None = None
     reviewers: list[str] | None = None
@@ -137,6 +138,11 @@ def copy(
         "--no-wait",
         help="Enable auto-merge but skip polling for merge completion",
     ),
+    no_auto_merge: bool = typer.Option(
+        False,
+        "--no-auto-merge",
+        help="Skip auto-merge even when configured",
+    ),
 ) -> None:
     """Copy files from SRC to DEST repositories."""
     if name and config_path_opt:
@@ -166,6 +172,7 @@ def copy(
         skip_orphan_cleanup=skip_orphan_cleanup,
         skip_verify=skip_verify,
         no_wait=no_wait,
+        no_auto_merge=no_auto_merge,
         pr_title=pr_title or config.pr_defaults.title,
         labels=cmd_options.split_csv(pr_labels) or config.pr_defaults.labels,
         reviewers=cmd_options.split_csv(pr_reviewers) or config.pr_defaults.reviewers,
@@ -203,7 +210,7 @@ def _run_copy(config: SrcConfig, src_root: Path, dest_filter: str, opts: CopyOpt
         if pr_ref:
             pr_refs.append(pr_ref)
 
-    if config.auto_merge and pr_refs:
+    if config.auto_merge and pr_refs and not opts.no_auto_merge:
         handle_auto_merge(pr_refs, config.auto_merge, no_wait=opts.no_wait)
 
     return total_changes

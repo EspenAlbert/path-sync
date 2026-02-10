@@ -52,6 +52,7 @@ class DepUpdateOptions:
     dry_run: bool = False
     skip_verify: bool = False
     no_wait: bool = False
+    no_auto_merge: bool = False
     reviewers: list[str] | None = None
     assignees: list[str] | None = None
 
@@ -64,6 +65,7 @@ def dep_update(
     dry_run: bool = typer.Option(False, "--dry-run", help="Preview without creating PRs"),
     skip_verify: bool = typer.Option(False, "--skip-verify", help="Skip verification steps"),
     no_wait: bool = typer.Option(False, "--no-wait", help="Enable auto-merge but skip polling for merge completion"),
+    no_auto_merge: bool = typer.Option(False, "--no-auto-merge", help="Skip auto-merge even when configured"),
     src_root_opt: str = typer.Option("", "--src-root", help="Source repo root"),
     pr_reviewers: str = cmd_options.pr_reviewers_option(),
     pr_assignees: str = cmd_options.pr_assignees_option(),
@@ -86,6 +88,7 @@ def dep_update(
         dry_run=dry_run,
         skip_verify=skip_verify,
         no_wait=no_wait,
+        no_auto_merge=no_auto_merge,
         reviewers=cmd_options.split_csv(pr_reviewers) or config.pr.reviewers,
         assignees=cmd_options.split_csv(pr_assignees) or config.pr.assignees,
     )
@@ -93,7 +96,7 @@ def dep_update(
     results = _update_and_validate(config, destinations, src_root, work_dir, opts)
     pr_refs = _create_prs(config, results, opts)
 
-    if config.auto_merge and pr_refs:
+    if config.auto_merge and pr_refs and not opts.no_auto_merge:
         handle_auto_merge(pr_refs, config.auto_merge, no_wait=opts.no_wait)
 
     if any(r.status == Status.SKIPPED for r in results):
