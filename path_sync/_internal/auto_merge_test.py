@@ -15,14 +15,11 @@ from path_sync._internal.auto_merge import (
     get_pr_checks,
     get_pr_state,
     handle_auto_merge,
+    wait_for_merge,
 )
 from path_sync._internal.models import AutoMergeConfig, MergeMethod
 
 MODULE = enable_auto_merge.__module__
-
-
-def _completed_run(result: subprocess.CompletedProcess) -> subprocess.CompletedProcess:
-    return result
 
 
 def test_enable_auto_merge_calls_gh(tmp_path: Path):
@@ -38,8 +35,8 @@ def test_enable_auto_merge_calls_gh(tmp_path: Path):
 def test_get_pr_checks_parses_json(tmp_path: Path):
     checks_json = json.dumps(
         [
-            {"name": "lint", "state": "completed", "conclusion": "success"},
-            {"name": "test", "state": "completed", "conclusion": "failure"},
+            {"name": "lint", "state": "SUCCESS"},
+            {"name": "test", "state": "FAILURE"},
         ]
     )
     with patch(f"{MODULE}.subprocess.run") as mock_run:
@@ -67,7 +64,7 @@ def test_handle_auto_merge_no_wait_skips_polling(tmp_path: Path):
         results = handle_auto_merge(refs, config, no_wait=True)
         mock_enable.assert_called_once()
         mock_wait.assert_not_called()
-        assert results == []
+        assert not results
 
 
 def test_handle_auto_merge_skips_already_merged(tmp_path: Path):
@@ -88,9 +85,9 @@ def test_pr_merge_result_failed_and_pending_checks():
         branch="b",
         state=PRState.OPEN,
         checks=[
-            CheckRun(name="lint", state="completed", conclusion="success"),
-            CheckRun(name="test", state="completed", conclusion="failure"),
-            CheckRun(name="build", state="in_progress", conclusion=""),
+            CheckRun(name="lint", state="SUCCESS"),
+            CheckRun(name="test", state="FAILURE"),
+            CheckRun(name="build", state="IN_PROGRESS"),
         ],
     )
     assert len(result.failed_checks) == 1
@@ -107,7 +104,7 @@ def test_log_summary_formats_table(caplog):
             pr_url="",
             branch="b",
             state=PRState.OPEN,
-            checks=[CheckRun(name="lint", state="completed", conclusion="failure")],
+            checks=[CheckRun(name="lint", state="FAILURE")],
         ),
     ]
     with caplog.at_level("INFO"):
@@ -115,3 +112,28 @@ def test_log_summary_formats_table(caplog):
     assert "repo1" in caplog.text
     assert "MERGED" in caplog.text
     assert "lint" in caplog.text
+
+
+def test_wait_for_merge_timeout(tmp_path: Path):
+    config = AutoMergeConfig(timeout_seconds=0)
+    checks = [CheckRun(name="ci", state="IN_PROGRESS")]
+    with (
+        patch(f"{MODULE}.get_pr_url", return_value="https://github.com/o/r/pull/1"),
+        patch(f"{MODULE}.get_pr_checks", return_value=checks),
+    ):
+        result = wait_for_merge(tmp_path, "branch", config, dest_name="myrepo")
+    assert result.state == PRState.OPEN
+    assert result.dest_name == "myrepo"
+    assert len(result.pending_checks) == 1
+
+
+def test_wait_for_merge_merged(tmp_path: Path):
+    config = AutoMergeConfig(timeout_seconds=60)
+    with (
+        patch(f"{MODULE}.get_pr_url", return_value="https://github.com/o/r/pull/1"),
+        patch(f"{MODULE}.get_pr_state", return_value=PRState.MERGED),
+    ):
+        result = wait_for_merge(tmp_path, "branch", config, dest_name="repo1")
+    assert result.state == PRState.MERGED
+    assert result.dest_name == "repo1"
+    assert result.pr_url == "https://github.com/o/r/pull/1"
