@@ -47,8 +47,8 @@ class CopyOptions(BaseModel):
 
 | Version | Change |
 |---------|--------|
-| unreleased | added optional field 'no_auto_merge' (default: False) |
-| unreleased | added optional field 'no_wait' (default: False) |
+| 0.7.0 | added optional field 'no_auto_merge' (default: False) |
+| 0.7.0 | added optional field 'no_wait' (default: False) |
 | 0.6.0 | added optional field 'skip_commit' (default: False) |
 | 0.6.0 | removed field 'local' |
 | 0.6.0 | added optional field 'skip_verify' (default: False) |

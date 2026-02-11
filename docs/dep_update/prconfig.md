@@ -31,7 +31,7 @@ class PRConfig(PRFieldsBase):
 
 | Version | Change |
 |---------|--------|
-| unreleased | removed field 'auto_merge' |
+| 0.7.0 | removed field 'auto_merge' |
 | 0.4.1 | added base class 'BaseModel' |
 | 0.4.1 | added base class 'PRFieldsBase' |
 | 0.4.1 | added optional field 'assignees' (default: ...) |

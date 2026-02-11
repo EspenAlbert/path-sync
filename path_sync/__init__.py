@@ -5,7 +5,7 @@ from path_sync import dep_update
 from path_sync import validate_no_changes
 from path_sync import config
 
-VERSION = "0.6.2"
+VERSION = "0.7.0"
 __all__ = [
     "copy",
     "dep_update",

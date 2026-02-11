@@ -106,3 +106,8 @@ change_kind: field_removed
 details: removed field 'auto_merge'
 field_name: auto_merge
 group: dep_update
+---
+name: 0.7.0
+ts: 2026-02-11 08:22:14.703103+00:00
+type: release
+old_version: 0.6.2

@@ -21,7 +21,7 @@
 
 ### class: `AutoMergeConfig`
 - [source](../../path_sync/_internal/models.py#L38)
-> **Since:** unreleased
+> **Since:** 0.7.0
 
 ```python
 class AutoMergeConfig(BaseModel):
@@ -33,23 +33,23 @@ class AutoMergeConfig(BaseModel):
 
 | Field | Type | Default | Since |
 |---|---|---|---|
-| method | `MergeMethod` | `<MergeMethod.MERGE: 'merge'>` | unreleased |
-| delete_branch | `bool` | `True` | unreleased |
-| poll_interval_seconds | `int` | `30` | unreleased |
-| timeout_seconds | `int` | `900` | unreleased |
+| method | `MergeMethod` | `<MergeMethod.MERGE: 'merge'>` | 0.7.0 |
+| delete_branch | `bool` | `True` | 0.7.0 |
+| poll_interval_seconds | `int` | `30` | 0.7.0 |
+| timeout_seconds | `int` | `900` | 0.7.0 |
 
 ### Changes
 
 | Version | Change |
 |---------|--------|
-| unreleased | Made public |
+| 0.7.0 | Made public |
 <!-- === OK_EDIT: pkg-ext automergeconfig_def === -->
 <!-- === DO_NOT_EDIT: pkg-ext mergemethod_def === -->
 <a id="mergemethod_def"></a>
 
 ### class: `MergeMethod`
 - [source](../../path_sync/_internal/models.py#L32)
-> **Since:** unreleased
+> **Since:** 0.7.0
 
 ```python
 class MergeMethod(StrEnum):
@@ -60,6 +60,6 @@ class MergeMethod(StrEnum):
 
 | Version | Change |
 |---------|--------|
-| unreleased | Made public |
+| 0.7.0 | Made public |
 <!-- === OK_EDIT: pkg-ext mergemethod_def === -->
 

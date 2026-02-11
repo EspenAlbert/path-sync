@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.7.0 2026-02-11T08-22Z
+
+### Config
+- New class `MergeMethod`
+- New class `AutoMergeConfig`
+- `config.SrcConfig`: added optional field 'auto_merge' (default: None)
+
+### Copy
+- `copy.CopyOptions`: added optional field 'no_wait' (default: False)
+- `copy.CopyOptions`: added optional field 'no_auto_merge' (default: False)
+
+### Dep_Update
+- BREAKING `dep_update.PRConfig`: removed field 'auto_merge'
+- `dep_update.DepConfig`: added optional field 'auto_merge' (default: None)
+
+
 ## 0.6.2 2026-02-10T15-29Z
 
 ### Other Changes

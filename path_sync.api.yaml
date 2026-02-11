@@ -1,12 +1,54 @@
 pkg_import_name: path_sync
-version: 0.6.2
+version: 0.7.0
 groups:
 - name: config
   symbols:
+  - name: AutoMergeConfig
+    module_path: _internal.models
+    docstring: ''
+    line_number: 38
+    type: class
+    mro_bases:
+    - BaseModel
+    num_direct_bases: 1
+    fields:
+    - name: method
+      type_annotation: MergeMethod
+      type_imports:
+      - path_sync._internal.models.MergeMethod
+      default:
+        value_repr: '<MergeMethod.MERGE: ''merge''>'
+        is_factory: false
+      is_class_var: false
+      is_computed: false
+    - name: delete_branch
+      type_annotation: bool
+      type_imports: []
+      default:
+        value_repr: 'True'
+        is_factory: false
+      is_class_var: false
+      is_computed: false
+    - name: poll_interval_seconds
+      type_annotation: int
+      type_imports: []
+      default:
+        value_repr: '30'
+        is_factory: false
+      is_class_var: false
+      is_computed: false
+    - name: timeout_seconds
+      type_annotation: int
+      type_imports: []
+      default:
+        value_repr: '900'
+        is_factory: false
+      is_class_var: false
+      is_computed: false
   - name: Destination
     module_path: _internal.models
     docstring: ''
-    line_number: 148
+    line_number: 161
     type: class
     mro_bases:
     - BaseModel
@@ -74,7 +116,7 @@ groups:
   - name: HeaderConfig
     module_path: _internal.models
     docstring: ''
-    line_number: 95
+    line_number: 108
     type: class
     mro_bases:
     - BaseModel
@@ -96,10 +138,33 @@ groups:
         is_factory: true
       is_class_var: false
       is_computed: false
+  - name: MergeMethod
+    module_path: _internal.models
+    docstring: ''
+    line_number: 32
+    type: class
+    mro_bases:
+    - StrEnum
+    - str
+    - ReprEnum
+    - Enum
+    num_direct_bases: 1
+    init_signature:
+      parameters:
+      - name: self
+        kind: positional_or_keyword
+        type_imports: []
+      - name: args
+        kind: var_positional
+        type_imports: []
+      - name: kwds
+        kind: var_keyword
+        type_imports: []
+      return_type_imports: []
   - name: PRDefaults
     module_path: _internal.models
     docstring: ''
-    line_number: 122
+    line_number: 135
     type: class
     mro_bases:
     - PRFieldsBase
@@ -157,7 +222,7 @@ groups:
   - name: PathMapping
     module_path: _internal.models
     docstring: ''
-    line_number: 60
+    line_number: 73
     type: class
     mro_bases:
     - BaseModel
@@ -212,7 +277,7 @@ groups:
   - name: SrcConfig
     module_path: _internal.models
     docstring: ''
-    line_number: 168
+    line_number: 181
     type: class
     mro_bases:
     - BaseModel
@@ -300,10 +365,19 @@ groups:
         is_factory: false
       is_class_var: false
       is_computed: false
+    - name: auto_merge
+      type_annotation: AutoMergeConfig | None
+      type_imports:
+      - path_sync._internal.models.AutoMergeConfig
+      default:
+        value_repr: None
+        is_factory: false
+      is_class_var: false
+      is_computed: false
   - name: SyncMode
     module_path: _internal.models
     docstring: ''
-    line_number: 32
+    line_number: 45
     type: class
     mro_bases:
     - StrEnum
@@ -328,7 +402,7 @@ groups:
   - name: CopyOptions
     module_path: _internal.cmd_copy
     docstring: ''
-    line_number: 46
+    line_number: 47
     type: class
     mro_bases:
     - BaseModel
@@ -406,6 +480,22 @@ groups:
         is_factory: false
       is_class_var: false
       is_computed: false
+    - name: no_wait
+      type_annotation: bool
+      type_imports: []
+      default:
+        value_repr: 'False'
+        is_factory: false
+      is_class_var: false
+      is_computed: false
+    - name: no_auto_merge
+      type_annotation: bool
+      type_imports: []
+      default:
+        value_repr: 'False'
+        is_factory: false
+      is_class_var: false
+      is_computed: false
     - name: pr_title
       type_annotation: str
       type_imports: []
@@ -441,7 +531,7 @@ groups:
   - name: copy
     module_path: _internal.cmd_copy
     docstring: Copy files from SRC to DEST repositories.
-    line_number: 62
+    line_number: 65
     type: cli_command
     signature:
       parameters:
@@ -565,6 +655,20 @@ groups:
           value_repr: <typer.models.OptionInfo object>
           is_factory: false
       - name: skip_verify
+        kind: positional_or_keyword
+        type_annotation: bool
+        type_imports: []
+        default:
+          value_repr: <typer.models.OptionInfo object>
+          is_factory: false
+      - name: no_wait
+        kind: positional_or_keyword
+        type_annotation: bool
+        type_imports: []
+        default:
+          value_repr: <typer.models.OptionInfo object>
+          is_factory: false
+      - name: no_auto_merge
         kind: positional_or_keyword
         type_annotation: bool
         type_imports: []
@@ -741,12 +845,30 @@ groups:
       required: false
       is_argument: false
       hidden: false
+    - param_name: no_wait
+      type_annotation: bool
+      flags:
+      - --no-wait
+      help: Enable auto-merge but skip polling for merge completion
+      default_repr: 'False'
+      required: false
+      is_argument: false
+      hidden: false
+    - param_name: no_auto_merge
+      type_annotation: bool
+      flags:
+      - --no-auto-merge
+      help: Skip auto-merge even when configured
+      default_repr: 'False'
+      required: false
+      is_argument: false
+      hidden: false
 - name: dep_update
   symbols:
   - name: dep_update
     module_path: _internal.cmd_dep_update
     docstring: Run dependency updates across repositories.
-    line_number: 57
+    line_number: 60
     type: cli_command
     signature:
       parameters:
@@ -779,6 +901,20 @@ groups:
           value_repr: <typer.models.OptionInfo object>
           is_factory: false
       - name: skip_verify
+        kind: positional_or_keyword
+        type_annotation: bool
+        type_imports: []
+        default:
+          value_repr: <typer.models.OptionInfo object>
+          is_factory: false
+      - name: no_wait
+        kind: positional_or_keyword
+        type_annotation: bool
+        type_imports: []
+        default:
+          value_repr: <typer.models.OptionInfo object>
+          is_factory: false
+      - name: no_auto_merge
         kind: positional_or_keyword
         type_annotation: bool
         type_imports: []
@@ -855,6 +991,24 @@ groups:
       required: false
       is_argument: false
       hidden: false
+    - param_name: no_wait
+      type_annotation: bool
+      flags:
+      - --no-wait
+      help: Enable auto-merge but skip polling for merge completion
+      default_repr: 'False'
+      required: false
+      is_argument: false
+      hidden: false
+    - param_name: no_auto_merge
+      type_annotation: bool
+      flags:
+      - --no-auto-merge
+      help: Skip auto-merge even when configured
+      default_repr: 'False'
+      required: false
+      is_argument: false
+      hidden: false
     - param_name: src_root_opt
       type_annotation: str
       flags:
@@ -885,7 +1039,7 @@ groups:
   - name: CommitConfig
     module_path: _internal.models
     docstring: ''
-    line_number: 44
+    line_number: 57
     type: class
     mro_bases:
     - BaseModel
@@ -907,7 +1061,7 @@ groups:
   - name: OnFailStrategy
     module_path: _internal.models
     docstring: ''
-    line_number: 38
+    line_number: 51
     type: class
     mro_bases:
     - StrEnum
@@ -930,7 +1084,7 @@ groups:
   - name: VerifyConfig
     module_path: _internal.models
     docstring: ''
-    line_number: 55
+    line_number: 68
     type: class
     mro_bases:
     - BaseModel
@@ -957,7 +1111,7 @@ groups:
   - name: VerifyStep
     module_path: _internal.models
     docstring: ''
-    line_number: 49
+    line_number: 62
     type: class
     mro_bases:
     - BaseModel
@@ -1042,10 +1196,19 @@ groups:
       - path_sync._internal.models_dep.PRConfig
       is_class_var: false
       is_computed: false
+    - name: auto_merge
+      type_annotation: AutoMergeConfig | None
+      type_imports:
+      - path_sync._internal.models.AutoMergeConfig
+      default:
+        value_repr: None
+        is_factory: false
+      is_class_var: false
+      is_computed: false
   - name: PRConfig
     module_path: _internal.models_dep
     docstring: ''
-    line_number: 23
+    line_number: 24
     type: class
     mro_bases:
     - PRFieldsBase
@@ -1086,18 +1249,10 @@ groups:
       type_imports: []
       is_class_var: false
       is_computed: false
-    - name: auto_merge
-      type_annotation: bool
-      type_imports: []
-      default:
-        value_repr: 'False'
-        is_factory: false
-      is_class_var: false
-      is_computed: false
   - name: UpdateEntry
     module_path: _internal.models_dep
     docstring: ''
-    line_number: 18
+    line_number: 19
     type: class
     mro_bases:
     - BaseModel
@@ -1177,4 +1332,4 @@ groups:
       required: false
       is_argument: false
       hidden: false
-dumped_at: 2026-02-10 15:29:49.229632+00:00
+dumped_at: 2026-02-11 08:22:14.641238+00:00

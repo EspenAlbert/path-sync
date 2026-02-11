@@ -39,7 +39,7 @@ class SrcConfig(BaseModel):
 
 | Version | Change |
 |---------|--------|
-| unreleased | added optional field 'auto_merge' (default: None) |
+| 0.7.0 | added optional field 'auto_merge' (default: None) |
 | 0.6.0 | added optional field 'wrap_synced_files' (default: False) |
 | 0.6.0 | added optional field 'verify' (default: None) |
 | 0.4.1 | added base class 'BaseModel' |
