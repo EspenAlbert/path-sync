@@ -5,8 +5,10 @@ groups:
   owned_modules:
   - _internal.models
   owned_refs:
+  - _internal.models.AutoMergeConfig
   - _internal.models.Destination
   - _internal.models.HeaderConfig
+  - _internal.models.MergeMethod
   - _internal.models.PRDefaults
   - _internal.models.PathMapping
   - _internal.models.SrcConfig

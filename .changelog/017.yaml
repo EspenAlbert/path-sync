@@ -1,0 +1,108 @@
+name: enable_auto_merge
+ts: 2026-02-11 05:51:10.802566+00:00
+type: keep_private
+full_path: _internal.auto_merge.enable_auto_merge
+---
+name: get_pr_checks
+ts: 2026-02-11 05:51:10.802619+00:00
+type: keep_private
+full_path: _internal.auto_merge.get_pr_checks
+---
+name: get_pr_state
+ts: 2026-02-11 05:51:10.802627+00:00
+type: keep_private
+full_path: _internal.auto_merge.get_pr_state
+---
+name: get_pr_url
+ts: 2026-02-11 05:51:10.802635+00:00
+type: keep_private
+full_path: _internal.auto_merge.get_pr_url
+---
+name: wait_for_merge
+ts: 2026-02-11 05:51:10.802640+00:00
+type: keep_private
+full_path: _internal.auto_merge.wait_for_merge
+---
+name: handle_auto_merge
+ts: 2026-02-11 05:51:10.802645+00:00
+type: keep_private
+full_path: _internal.auto_merge.handle_auto_merge
+---
+name: MergeMethod
+ts: 2026-02-11 05:51:28.320184+00:00
+type: make_public
+details: created in _internal/models.py
+full_path: _internal.models.MergeMethod
+group: config
+---
+name: AutoMergeConfig
+ts: 2026-02-11 05:51:28.321564+00:00
+type: make_public
+details: created in _internal/models.py
+full_path: _internal.models.AutoMergeConfig
+group: config
+---
+name: PRState
+ts: 2026-02-11 05:51:45.754565+00:00
+type: keep_private
+full_path: _internal.auto_merge.PRState
+---
+name: CheckRun
+ts: 2026-02-11 05:51:45.754680+00:00
+type: keep_private
+full_path: _internal.auto_merge.CheckRun
+---
+name: PRRef
+ts: 2026-02-11 05:51:45.754687+00:00
+type: keep_private
+full_path: _internal.auto_merge.PRRef
+---
+name: PRMergeResult
+ts: 2026-02-11 05:51:45.754692+00:00
+type: keep_private
+full_path: _internal.auto_merge.PRMergeResult
+---
+name: SrcConfig
+ts: 2026-02-11 05:51:46.337784+00:00
+type: additional_change
+auto_generated: true
+change_kind: optional_field_added
+details: 'added optional field ''auto_merge'' (default: None)'
+field_name: auto_merge
+group: config
+---
+name: CopyOptions
+ts: 2026-02-11 05:51:46.337795+00:00
+type: additional_change
+auto_generated: true
+change_kind: optional_field_added
+details: 'added optional field ''no_wait'' (default: False)'
+field_name: no_wait
+group: copy
+---
+name: CopyOptions
+ts: 2026-02-11 05:51:46.337798+00:00
+type: additional_change
+auto_generated: true
+change_kind: optional_field_added
+details: 'added optional field ''no_auto_merge'' (default: False)'
+field_name: no_auto_merge
+group: copy
+---
+name: DepConfig
+ts: 2026-02-11 05:51:46.337801+00:00
+type: additional_change
+auto_generated: true
+change_kind: optional_field_added
+details: 'added optional field ''auto_merge'' (default: None)'
+field_name: auto_merge
+group: dep_update
+---
+name: PRConfig
+ts: 2026-02-11 05:51:46.337804+00:00
+type: breaking_change
+auto_generated: true
+change_kind: field_removed
+details: removed field 'auto_merge'
+field_name: auto_merge
+group: dep_update

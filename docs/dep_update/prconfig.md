@@ -2,7 +2,7 @@
 
 <!-- === DO_NOT_EDIT: pkg-ext prconfig_def === -->
 ## class: PRConfig
-- [source](../../path_sync/_internal/models_dep.py#L23)
+- [source](../../path_sync/_internal/models_dep.py#L24)
 > **Since:** 0.4.0
 
 ```python
@@ -12,7 +12,6 @@ class PRConfig(PRFieldsBase):
     assignees: list[str] = ...
     branch: str
     title: str
-    auto_merge: bool = False
 ```
 <!-- === OK_EDIT: pkg-ext prconfig_def === -->
 

@@ -14,6 +14,7 @@ class DepConfig(BaseModel):
     updates: list[UpdateEntry]
     verify: VerifyConfig = ...
     pr: PRConfig
+    auto_merge: AutoMergeConfig | None = None
 ```
 <!-- === OK_EDIT: pkg-ext depconfig_def === -->
 
