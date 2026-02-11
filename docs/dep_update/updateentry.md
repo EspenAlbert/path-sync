@@ -2,7 +2,7 @@
 
 <!-- === DO_NOT_EDIT: pkg-ext updateentry_def === -->
 ## class: UpdateEntry
-- [source](../../path_sync/_internal/models_dep.py#L18)
+- [source](../../path_sync/_internal/models_dep.py#L19)
 > **Since:** 0.4.0
 
 ```python

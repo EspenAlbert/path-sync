@@ -14,6 +14,7 @@ class DepConfig(BaseModel):
     updates: list[UpdateEntry]
     verify: VerifyConfig = ...
     pr: PRConfig
+    auto_merge: AutoMergeConfig | None = None
 ```
 <!-- === OK_EDIT: pkg-ext depconfig_def === -->
 
@@ -34,6 +35,7 @@ class DepConfig(BaseModel):
 
 | Version | Change |
 |---------|--------|
+| unreleased | added optional field 'auto_merge' (default: None) |
 | 0.4.1 | added base class 'BaseModel' |
 | 0.4.0 | Made public |
 <!-- === OK_EDIT: pkg-ext depconfig_changes === -->

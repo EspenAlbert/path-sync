@@ -6,6 +6,7 @@ from typing import ClassVar
 from pydantic import BaseModel, Field
 
 from path_sync._internal.models import (
+    AutoMergeConfig,
     Destination,
     PRFieldsBase,
     SrcConfig,
@@ -23,7 +24,6 @@ class UpdateEntry(BaseModel):
 class PRConfig(PRFieldsBase):
     branch: str
     title: str
-    auto_merge: bool = False
 
 
 class DepConfig(BaseModel):
@@ -36,6 +36,7 @@ class DepConfig(BaseModel):
     updates: list[UpdateEntry]
     verify: VerifyConfig = Field(default_factory=VerifyConfig)
     pr: PRConfig
+    auto_merge: AutoMergeConfig | None = None
 
     def load_destinations(self, repo_root: Path) -> list[Destination]:
         src_config_path = resolve_config_path(repo_root, self.from_config)

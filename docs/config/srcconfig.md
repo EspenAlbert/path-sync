@@ -2,7 +2,7 @@
 
 <!-- === DO_NOT_EDIT: pkg-ext srcconfig_def === -->
 ## class: SrcConfig
-- [source](../../path_sync/_internal/models.py#L168)
+- [source](../../path_sync/_internal/models.py#L181)
 > **Since:** 0.3.0
 
 ```python
@@ -17,6 +17,7 @@ class SrcConfig(BaseModel):
     destinations: list[Destination] = ...
     verify: VerifyConfig | None = None
     wrap_synced_files: bool = False
+    auto_merge: AutoMergeConfig | None = None
 ```
 <!-- === OK_EDIT: pkg-ext srcconfig_def === -->
 
@@ -38,6 +39,7 @@ class SrcConfig(BaseModel):
 
 | Version | Change |
 |---------|--------|
+| unreleased | added optional field 'auto_merge' (default: None) |
 | 0.6.0 | added optional field 'wrap_synced_files' (default: False) |
 | 0.6.0 | added optional field 'verify' (default: None) |
 | 0.4.1 | added base class 'BaseModel' |

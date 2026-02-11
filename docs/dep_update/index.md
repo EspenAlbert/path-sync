@@ -19,11 +19,11 @@
 <a id="dep_update_def"></a>
 
 ### cli_command: `dep_update`
-- [source](../../path_sync/_internal/cmd_dep_update.py#L57)
+- [source](../../path_sync/_internal/cmd_dep_update.py#L60)
 > **Since:** 0.4.0
 
 ```python
-def dep_update(*, name: str = ..., dest_filter: str = '', work_dir: str = '', dry_run: bool = False, skip_verify: bool = False, src_root_opt: str = '', pr_reviewers: str = '', pr_assignees: str = '') -> None:
+def dep_update(*, name: str = ..., dest_filter: str = '', work_dir: str = '', dry_run: bool = False, skip_verify: bool = False, no_wait: bool = False, no_auto_merge: bool = False, src_root_opt: str = '', pr_reviewers: str = '', pr_assignees: str = '') -> None:
     ...
 ```
 
@@ -38,6 +38,8 @@ Run dependency updates across repositories.
 | `--work-dir` | `str` | `''` | Clone repos here (overrides dest_path_relative) |
 | `--dry-run` | `bool` | `False` | Preview without creating PRs |
 | `--skip-verify` | `bool` | `False` | Skip verification steps |
+| `--no-wait` | `bool` | `False` | Enable auto-merge but skip polling for merge completion |
+| `--no-auto-merge` | `bool` | `False` | Skip auto-merge even when configured |
 | `--src-root` | `str` | `''` | Source repo root |
 | `--pr-reviewers` | `str` | `''` | Comma-separated PR reviewers |
 | `--pr-assignees` | `str` | `''` | Comma-separated PR assignees |
