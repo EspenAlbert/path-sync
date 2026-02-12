@@ -20,6 +20,7 @@ from path_sync._internal.models import (
     SrcConfig,
     SyncMode,
     find_repo_root,
+    parse_sync_metadata,
     resolve_config_path,
 )
 from path_sync._internal.typer_app import app
@@ -194,6 +195,7 @@ def copy(
 def _run_copy(config: SrcConfig, src_root: Path, dest_filter: str, opts: CopyOptions) -> int:
     src_repo = git_ops.get_repo(src_root)
     current_sha = git_ops.get_current_sha(src_repo)
+    commit_ts = git_ops.get_commit_timestamp(src_repo)
     src_repo_url = git_ops.get_remote_url(src_repo, config.git_remote)
 
     destinations = config.destinations
@@ -205,7 +207,9 @@ def _run_copy(config: SrcConfig, src_root: Path, dest_filter: str, opts: CopyOpt
     pr_refs: list[PRRef] = []
     for dest in destinations:
         with capture_log(dest.name) as read_log:
-            changes, pr_ref = _sync_destination(config, dest, src_root, current_sha, src_repo_url, opts, read_log)
+            changes, pr_ref = _sync_destination(
+                config, dest, src_root, current_sha, commit_ts, src_repo_url, opts, read_log
+            )
         total_changes += changes
         if pr_ref:
             pr_refs.append(pr_ref)
@@ -221,6 +225,7 @@ def _sync_destination(
     dest: Destination,
     src_root: Path,
     current_sha: str,
+    commit_ts: str,
     src_repo_url: str,
     opts: CopyOptions,
     read_log: Callable[[], str],
@@ -245,6 +250,11 @@ def _sync_destination(
 
     if result.total == 0:
         logger.info(f"{dest.name}: No changes")
+        if not opts.dry_run and not opts.no_pr:
+            if git_ops.has_open_pr(dest_root, copy_branch):
+                git_ops.close_pr(
+                    dest_root, copy_branch, "Closing: source and destination are in sync, no changes needed"
+                )
         return 0, None
 
     should_skip_commit = opts.skip_commit or opts.dry_run
@@ -268,7 +278,9 @@ def _sync_destination(
             logger.warning(f"{dest.name}: Verification skipped due to failure")
             return result.total, None
 
-    pr_ref = _push_and_pr(config, dest_repo, dest_root, dest, current_sha, src_repo_url, opts, read_log, verify_result)
+    pr_ref = _push_and_pr(
+        config, dest_repo, dest_root, dest, current_sha, commit_ts, src_repo_url, opts, read_log, verify_result
+    )
     return result.total, pr_ref
 
 
@@ -552,6 +564,7 @@ def _push_and_pr(
     dest_root: Path,
     dest: Destination,
     sha: str,
+    commit_ts: str,
     src_repo_url: str,
     opts: CopyOptions,
     read_log: Callable[[], str],
@@ -579,12 +592,20 @@ def _push_and_pr(
     if opts.no_pr or not prompt_utils.prompt_confirm(f"Create PR for {dest.name}?", opts.no_prompt):
         return None
 
+    existing_body = git_ops.get_pr_body(dest_root, copy_branch)
+    if existing_body:
+        metadata = parse_sync_metadata(existing_body)
+        if metadata and metadata.ts >= commit_ts:
+            logger.info(f"PR already synced from {metadata.sha} ({metadata.ts}), skipping body update")
+            return PRRef(dest_name=dest.name, repo_path=dest_root, branch_or_url=copy_branch)
+
     sync_log = read_log()
     pr_body = config.pr_defaults.format_body(
         src_repo_url=src_repo_url,
         src_sha=sha,
         sync_log=sync_log,
         dest_name=dest.name,
+        src_commit_ts=commit_ts,
     )
 
     if verify_result.failures:

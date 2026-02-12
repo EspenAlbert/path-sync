@@ -1,6 +1,13 @@
 import pytest
 
-from path_sync._internal.models import Destination, PathMapping, SrcConfig
+from path_sync._internal.models import (
+    Destination,
+    PathMapping,
+    PRDefaults,
+    SrcConfig,
+    SyncMetadata,
+    parse_sync_metadata,
+)
 
 
 def _dest(name: str, include_groups: list[str] | None = None) -> Destination:
@@ -67,3 +74,42 @@ def test_validation_rejects_duplicate_group():
             path_groups={"regions": [PathMapping(src_path="r.txt")]},
             destinations=[_dest("a", include_groups=["regions", "regions"])],
         )
+
+
+def test_parse_sync_metadata_from_default_template():
+    body = "<!-- path-sync: sha=abcd1234 ts=2026-02-12T10:00:00+00:00 -->\nSynced from ..."
+    result = parse_sync_metadata(body)
+    assert result == SyncMetadata(sha="abcd1234", ts="2026-02-12T10:00:00+00:00")
+
+
+def test_parse_sync_metadata_missing():
+    assert parse_sync_metadata("Just a regular PR body") is None
+    assert parse_sync_metadata("") is None
+
+
+def test_format_body_includes_metadata():
+    pr = PRDefaults()
+    body = pr.format_body(
+        src_repo_url="https://github.com/org/repo",
+        src_sha="abcdef1234567890",
+        sync_log="synced 3 files",
+        dest_name="my-dest",
+        src_commit_ts="2026-02-12T10:00:00+00:00",
+    )
+    meta = parse_sync_metadata(body)
+    assert meta == SyncMetadata(sha="abcdef12", ts="2026-02-12T10:00:00+00:00")
+    assert "Synced from [repo]" in body
+
+
+def test_format_body_roundtrip_custom_template():
+    pr = PRDefaults(body_template="<!-- path-sync: sha={src_sha_short} ts={src_commit_ts} -->\nCustom {dest_name}")
+    body = pr.format_body(
+        src_repo_url="https://github.com/org/repo",
+        src_sha="abcdef1234567890",
+        sync_log="",
+        dest_name="test",
+        src_commit_ts="2026-01-01T00:00:00+00:00",
+    )
+    meta = parse_sync_metadata(body)
+    assert meta
+    assert meta.ts == "2026-01-01T00:00:00+00:00"

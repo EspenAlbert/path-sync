@@ -119,8 +119,12 @@ def _update_and_validate(
             logger.error(f"{dest.name}: Verification failed, stopping")
             raise typer.Exit(1)
 
-        if result.status != Status.NO_CHANGES:
-            results.append(result)
+        if result.status == Status.NO_CHANGES:
+            if not opts.dry_run and git_ops.has_open_pr(result.repo_path, config.pr.branch):
+                git_ops.close_pr(result.repo_path, config.pr.branch, "Closing: no dependency changes needed")
+            continue
+
+        results.append(result)
 
     return results
 
