@@ -24,7 +24,7 @@ class PRDefaults(PRFieldsBase):
 | reviewers | `list[str]` | `...` | 0.3.0 |
 | assignees | `list[str]` | `...` | 0.3.0 |
 | title | `str` | `'chore: sync {name} files'` | 0.3.0 |
-| body_template | `str` | `'Synced from [{src_repo_name}]({src_repo_url}) @ `{src_sha_short}`\n\n<details>\n<summary>Sync Log</summary>\n\n```\n{sync_log}\n```\n\n</details>\n'` | 0.3.0 |
+| body_template | `str` | (see source above) | 0.3.0 |
 | body_suffix | `str` | `''` | 0.3.0 |
 
 <!-- === DO_NOT_EDIT: pkg-ext prdefaults_changes === -->
