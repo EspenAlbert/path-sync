@@ -6,7 +6,7 @@ from enum import StrEnum
 from pathlib import Path
 from typing import ClassVar
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 LOG_FORMAT = "%(asctime)s %(levelname)s %(message)s"
 
@@ -166,6 +166,7 @@ class Destination(BaseModel):
     default_branch: str = "main"
     skip_sections: dict[str, list[str]] = Field(default_factory=dict)
     skip_file_patterns: set[str] = Field(default_factory=set)
+    include_groups: list[str] = Field(default_factory=list)
     verify: VerifyConfig | None = None
 
     def resolved_copy_branch(self, config_name: str) -> str:
@@ -188,10 +189,23 @@ class SrcConfig(BaseModel):
     header_config: HeaderConfig = Field(default_factory=HeaderConfig)
     pr_defaults: PRDefaults = Field(default_factory=PRDefaults)
     paths: list[PathMapping] = Field(default_factory=list)
+    path_groups: dict[str, list[PathMapping]] = Field(default_factory=dict)
     destinations: list[Destination] = Field(default_factory=list)
     verify: VerifyConfig | None = None
     wrap_synced_files: bool = False
     auto_merge: AutoMergeConfig | None = None
+
+    @model_validator(mode="after")
+    def _validate_include_groups(self) -> SrcConfig:
+        for dest in self.destinations:
+            for group in dest.include_groups:
+                if group not in self.path_groups:
+                    raise ValueError(f"Destination {dest.name!r} references unknown path_group {group!r}")
+        return self
+
+    def resolve_paths(self, dest: Destination) -> list[PathMapping]:
+        extra = [m for g in dest.include_groups for m in self.path_groups[g]]
+        return self.paths + extra if extra else self.paths
 
     def find_destination(self, name: str) -> Destination:
         for dest in self.destinations:

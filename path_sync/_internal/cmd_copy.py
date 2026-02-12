@@ -300,7 +300,7 @@ def _sync_paths(
     opts: CopyOptions,
 ) -> SyncResult:
     result = SyncResult()
-    for mapping in config.paths:
+    for mapping in config.resolve_paths(dest):
         changes, paths = _sync_path(
             mapping,
             src_root,
