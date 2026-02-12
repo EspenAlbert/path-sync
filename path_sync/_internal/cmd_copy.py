@@ -454,6 +454,10 @@ def _handle_sync(
     force_overwrite: bool,
     should_wrap: bool = False,
 ) -> int:
+    if not header.has_known_comment_prefix(dest_path):
+        logger.warning(f"No comment config for {dest_path.suffix!r}, cannot sync sections/headers for: {dest_path}")
+        return 0
+
     if sections.has_sections(src_content, dest_path):
         return _handle_sync_sections(src_content, dest_path, skip_list, config_name, dry_run, force_overwrite)
 
