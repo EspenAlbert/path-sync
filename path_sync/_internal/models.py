@@ -198,9 +198,13 @@ class SrcConfig(BaseModel):
     @model_validator(mode="after")
     def _validate_include_groups(self) -> SrcConfig:
         for dest in self.destinations:
+            seen: set[str] = set()
             for group in dest.include_groups:
                 if group not in self.path_groups:
                     raise ValueError(f"Destination {dest.name!r} references unknown path_group {group!r}")
+                if group in seen:
+                    raise ValueError(f"Destination {dest.name!r} has duplicate include_group {group!r}")
+                seen.add(group)
         return self
 
     def resolve_paths(self, dest: Destination) -> list[PathMapping]:

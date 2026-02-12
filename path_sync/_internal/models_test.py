@@ -44,6 +44,26 @@ def test_resolve_paths_with_groups():
     assert b_paths is config.paths
 
 
+def test_resolve_paths_multiple_groups():
+    region_paths = [PathMapping(src_path="regions/dev.txt")]
+    extra_paths = [PathMapping(src_path="extras/lint.cfg")]
+    config = _config(
+        path_groups={"regions": region_paths, "extras": extra_paths},
+        destinations=[_dest("a", include_groups=["regions", "extras"])],
+    )
+    paths = config.resolve_paths(config.destinations[0])
+    assert len(paths) == 3
+    assert [p.src_path for p in paths] == ["shared.txt", "regions/dev.txt", "extras/lint.cfg"]
+
+
 def test_validation_rejects_unknown_group():
     with pytest.raises(ValueError, match="unknown path_group 'missing'"):
         _config(destinations=[_dest("a", include_groups=["missing"])])
+
+
+def test_validation_rejects_duplicate_group():
+    with pytest.raises(ValueError, match="duplicate include_group 'regions'"):
+        _config(
+            path_groups={"regions": [PathMapping(src_path="r.txt")]},
+            destinations=[_dest("a", include_groups=["regions", "regions"])],
+        )
