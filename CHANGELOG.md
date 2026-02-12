@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.7.2 2026-02-12T19-28Z
+
+### Config
+- `config.SrcConfig`: added optional field 'path_groups' (default: ...)
+- `config.Destination`: added optional field 'include_groups' (default: ...)
+
+
 ## 0.7.1 2026-02-12T18-21Z
 
 ### Copy

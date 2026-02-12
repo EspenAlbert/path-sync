@@ -15,3 +15,8 @@ change_kind: optional_field_added
 details: 'added optional field ''include_groups'' (default: ...)'
 field_name: include_groups
 group: config
+---
+name: 0.7.2
+ts: 2026-02-12 19:28:34.833868+00:00
+type: release
+old_version: 0.7.1

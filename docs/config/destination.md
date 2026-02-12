@@ -36,7 +36,7 @@ class Destination(BaseModel):
 
 | Version | Change |
 |---------|--------|
-| unreleased | added optional field 'include_groups' (default: ...) |
+| 0.7.2 | added optional field 'include_groups' (default: ...) |
 | 0.6.0 | added optional field 'verify' (default: None) |
 | 0.4.1 | added base class 'BaseModel' |
 | 0.4.0 | field 'name' default removed (was: PydanticUndefined) |

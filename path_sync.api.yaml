@@ -1,5 +1,5 @@
 pkg_import_name: path_sync
-version: 0.7.1
+version: 0.7.2
 groups:
 - name: config
   symbols:
@@ -98,6 +98,14 @@ groups:
       is_computed: false
     - name: skip_file_patterns
       type_annotation: set[str]
+      type_imports: []
+      default:
+        value_repr: '...'
+        is_factory: true
+      is_class_var: false
+      is_computed: false
+    - name: include_groups
+      type_annotation: list[str]
       type_imports: []
       default:
         value_repr: '...'
@@ -277,7 +285,7 @@ groups:
   - name: SrcConfig
     module_path: _internal.models
     docstring: ''
-    line_number: 181
+    line_number: 182
     type: class
     mro_bases:
     - BaseModel
@@ -332,6 +340,15 @@ groups:
       is_computed: false
     - name: paths
       type_annotation: list[PathMapping]
+      type_imports:
+      - path_sync._internal.models.PathMapping
+      default:
+        value_repr: '...'
+        is_factory: true
+      is_class_var: false
+      is_computed: false
+    - name: path_groups
+      type_annotation: dict[str, list[PathMapping]]
       type_imports:
       - path_sync._internal.models.PathMapping
       default:
@@ -1332,4 +1349,4 @@ groups:
       required: false
       is_argument: false
       hidden: false
-dumped_at: 2026-02-12 18:21:51.542628+00:00
+dumped_at: 2026-02-12 19:28:34.784867+00:00
