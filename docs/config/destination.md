@@ -14,6 +14,7 @@ class Destination(BaseModel):
     default_branch: str = 'main'
     skip_sections: dict[str, list[str]] = ...
     skip_file_patterns: set[str] = ...
+    include_groups: list[str] = ...
     verify: VerifyConfig | None = None
 ```
 <!-- === OK_EDIT: pkg-ext destination_def === -->
@@ -35,6 +36,7 @@ class Destination(BaseModel):
 
 | Version | Change |
 |---------|--------|
+| unreleased | added optional field 'include_groups' (default: ...) |
 | 0.6.0 | added optional field 'verify' (default: None) |
 | 0.4.1 | added base class 'BaseModel' |
 | 0.4.0 | field 'name' default removed (was: PydanticUndefined) |
