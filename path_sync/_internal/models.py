@@ -126,7 +126,7 @@ class HeaderConfig(BaseModel):
 
 DEFAULT_BODY_TEMPLATE = """\
 <!-- path-sync: sha={src_sha_short} ts={src_commit_ts} -->
-Synced from [{src_repo_name}]({src_repo_url}) @ `{src_sha_short}`
+Synced from [{src_repo_name}]({src_repo_url}) @ `{src_sha_short}` ({src_commit_ts})
 
 <details>
 <summary>Sync Log</summary>
