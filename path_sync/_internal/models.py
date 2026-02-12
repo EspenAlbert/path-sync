@@ -119,6 +119,16 @@ def parse_sync_metadata(body: str) -> SyncMetadata | None:
     return None
 
 
+def pr_already_synced(pr_body: str | None, commit_ts: str) -> SyncMetadata | None:
+    """Return metadata if pr_body was synced from a source commit >= commit_ts."""
+    if not pr_body:
+        return None
+    metadata = parse_sync_metadata(pr_body)
+    if metadata and metadata.ts >= commit_ts:
+        return metadata
+    return None
+
+
 class HeaderConfig(BaseModel):
     comment_prefixes: dict[str, str] = Field(default_factory=dict)
     comment_suffixes: dict[str, str] = Field(default_factory=dict)

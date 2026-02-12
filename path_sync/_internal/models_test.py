@@ -7,6 +7,7 @@ from path_sync._internal.models import (
     SrcConfig,
     SyncMetadata,
     parse_sync_metadata,
+    pr_already_synced,
 )
 
 
@@ -99,6 +100,31 @@ def test_format_body_includes_metadata():
     meta = parse_sync_metadata(body)
     assert meta == SyncMetadata(sha="abcdef12", ts="2026-02-12T10:00:00+00:00")
     assert "Synced from [repo]" in body
+
+
+def test_pr_already_synced_newer_skips():
+    body = "<!-- path-sync: sha=abcd1234 ts=2026-02-12T10:00:00+00:00 -->\nSynced from ..."
+    result = pr_already_synced(body, "2026-02-12T09:00:00+00:00")
+    assert result == SyncMetadata(sha="abcd1234", ts="2026-02-12T10:00:00+00:00")
+
+
+def test_pr_already_synced_equal_skips():
+    body = "<!-- path-sync: sha=abcd1234 ts=2026-02-12T10:00:00+00:00 -->\nSynced from ..."
+    assert pr_already_synced(body, "2026-02-12T10:00:00+00:00")
+
+
+def test_pr_already_synced_older_proceeds():
+    body = "<!-- path-sync: sha=abcd1234 ts=2026-02-12T09:00:00+00:00 -->\nSynced from ..."
+    assert not pr_already_synced(body, "2026-02-12T10:00:00+00:00")
+
+
+def test_pr_already_synced_no_body():
+    assert not pr_already_synced(None, "2026-02-12T10:00:00+00:00")
+    assert not pr_already_synced("", "2026-02-12T10:00:00+00:00")
+
+
+def test_pr_already_synced_no_metadata():
+    assert not pr_already_synced("Just a regular PR body", "2026-02-12T10:00:00+00:00")
 
 
 def test_format_body_roundtrip_custom_template():

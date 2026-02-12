@@ -20,7 +20,7 @@ from path_sync._internal.models import (
     SrcConfig,
     SyncMode,
     find_repo_root,
-    parse_sync_metadata,
+    pr_already_synced,
     resolve_config_path,
 )
 from path_sync._internal.typer_app import app
@@ -220,6 +220,25 @@ def _run_copy(config: SrcConfig, src_root: Path, dest_filter: str, opts: CopyOpt
     return total_changes
 
 
+def _close_stale_pr(dest_root: Path, copy_branch: str, opts: CopyOptions) -> None:
+    if opts.dry_run or opts.no_pr:
+        return
+    if git_ops.has_open_pr(dest_root, copy_branch):
+        git_ops.close_pr(dest_root, copy_branch, "Closing: source and destination are in sync, no changes needed")
+
+
+def _skip_already_synced(dest_name: str, dest_root: Path, copy_branch: str, commit_ts: str, opts: CopyOptions) -> bool:
+    if opts.skip_commit or opts.dry_run or opts.no_pr:
+        return False
+    existing_body = git_ops.get_pr_body(dest_root, copy_branch)
+    if metadata := pr_already_synced(existing_body, commit_ts):
+        logger.info(
+            f"{dest_name}: open PR already synced from {metadata.sha[:8]} ({metadata.ts} >= {commit_ts}), skipping"
+        )
+        return True
+    return False
+
+
 def _sync_destination(
     config: SrcConfig,
     dest: Destination,
@@ -238,6 +257,9 @@ def _sync_destination(
     dest_repo = _ensure_dest_repo(dest, dest_root, opts.dry_run)
     copy_branch = dest.resolved_copy_branch(config.name)
 
+    if _skip_already_synced(dest.name, dest_root, copy_branch, commit_ts, opts):
+        return 0, None
+
     if not opts.no_checkout and prompt_utils.prompt_confirm(f"Switch {dest.name} to {copy_branch}?", opts.no_prompt):
         git_ops.prepare_copy_branch(
             repo=dest_repo,
@@ -250,11 +272,7 @@ def _sync_destination(
 
     if result.total == 0:
         logger.info(f"{dest.name}: No changes")
-        if not opts.dry_run and not opts.no_pr:
-            if git_ops.has_open_pr(dest_root, copy_branch):
-                git_ops.close_pr(
-                    dest_root, copy_branch, "Closing: source and destination are in sync, no changes needed"
-                )
+        _close_stale_pr(dest_root, copy_branch, opts)
         return 0, None
 
     should_skip_commit = opts.skip_commit or opts.dry_run
@@ -591,13 +609,6 @@ def _push_and_pr(
 
     if opts.no_pr or not prompt_utils.prompt_confirm(f"Create PR for {dest.name}?", opts.no_prompt):
         return None
-
-    existing_body = git_ops.get_pr_body(dest_root, copy_branch)
-    if existing_body:
-        metadata = parse_sync_metadata(existing_body)
-        if metadata and metadata.ts >= commit_ts:
-            logger.info(f"PR already synced from {metadata.sha} ({metadata.ts}), skipping body update")
-            return PRRef(dest_name=dest.name, repo_path=dest_root, branch_or_url=copy_branch)
 
     sync_log = read_log()
     pr_body = config.pr_defaults.format_body(

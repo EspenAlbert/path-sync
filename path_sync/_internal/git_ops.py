@@ -207,11 +207,12 @@ def update_pr_body(repo_path: Path, branch: str, body: str) -> bool:
 
 
 def get_pr_body(repo_path: Path, branch: str) -> str | None:
-    cmd = ["gh", "pr", "view", branch, "--json", "body", "-q", ".body"]
+    cmd = ["gh", "pr", "view", branch, "--json", "body,state", "-q", 'select(.state == "OPEN") | .body']
     result = subprocess.run(cmd, cwd=repo_path, capture_output=True, text=True)
     if result.returncode != 0:
         return None
-    return result.stdout.strip()
+    body = result.stdout.strip()
+    return body or None
 
 
 def has_open_pr(repo_path: Path, branch: str) -> bool:
