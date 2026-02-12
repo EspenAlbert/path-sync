@@ -1,0 +1,17 @@
+name: SrcConfig
+ts: 2026-02-12 19:17:14.108945+00:00
+type: additional_change
+auto_generated: true
+change_kind: optional_field_added
+details: 'added optional field ''path_groups'' (default: ...)'
+field_name: path_groups
+group: config
+---
+name: Destination
+ts: 2026-02-12 19:17:14.108956+00:00
+type: additional_change
+auto_generated: true
+change_kind: optional_field_added
+details: 'added optional field ''include_groups'' (default: ...)'
+field_name: include_groups
+group: config

@@ -2,7 +2,7 @@
 
 <!-- === DO_NOT_EDIT: pkg-ext srcconfig_def === -->
 ## class: SrcConfig
-- [source](../../path_sync/_internal/models.py#L181)
+- [source](../../path_sync/_internal/models.py#L182)
 > **Since:** 0.3.0
 
 ```python
@@ -14,6 +14,7 @@ class SrcConfig(BaseModel):
     header_config: HeaderConfig = ...
     pr_defaults: PRDefaults = ...
     paths: list[PathMapping] = ...
+    path_groups: dict[str, list[PathMapping]] = ...
     destinations: list[Destination] = ...
     verify: VerifyConfig | None = None
     wrap_synced_files: bool = False
@@ -39,6 +40,7 @@ class SrcConfig(BaseModel):
 
 | Version | Change |
 |---------|--------|
+| unreleased | added optional field 'path_groups' (default: ...) |
 | 0.7.0 | added optional field 'auto_merge' (default: None) |
 | 0.6.0 | added optional field 'wrap_synced_files' (default: False) |
 | 0.6.0 | added optional field 'verify' (default: None) |
