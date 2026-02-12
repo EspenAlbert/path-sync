@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.1 2026-02-12T18-21Z
+
+### Copy
+- fix(cmd_copy): add warning for unknown comment prefix in sync process [01bca8](https://github.com/EspenAlbert/path-sync/commit/01bca8)
+
+
 ## 0.7.0 2026-02-11T08-22Z
 
 ### Config
