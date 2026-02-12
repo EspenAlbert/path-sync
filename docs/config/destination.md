@@ -2,7 +2,7 @@
 
 <!-- === DO_NOT_EDIT: pkg-ext destination_def === -->
 ## class: Destination
-- [source](../../path_sync/_internal/models.py#L178)
+- [source](../../path_sync/_internal/models.py#L188)
 > **Since:** 0.3.0
 
 ```python

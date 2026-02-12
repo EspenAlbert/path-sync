@@ -2,7 +2,7 @@
 
 <!-- === DO_NOT_EDIT: pkg-ext prdefaults_def === -->
 ## class: PRDefaults
-- [source](../../path_sync/_internal/models.py#L150)
+- [source](../../path_sync/_internal/models.py#L160)
 > **Since:** 0.3.0
 
 ```python

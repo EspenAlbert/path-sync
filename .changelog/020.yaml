@@ -36,3 +36,16 @@ change_kind: default_changed
 details: 'field ''body_template'' default: ''Synced from [{src_repo_name}]({src_repo_url}) @ `{src_sha_short}`\n\n<details>\n<summary>Sync Log</summary>\n\n```\n{sync_log}\n```\n\n</details>\n'' -> ''<!-- path-sync: sha={src_sha_short} ts={src_commit_ts} -->\nSynced from [{src_repo_name}]({src_repo_url}) @ `{src_sha_short}` ({src_commit_ts})\n\n<details>\n<summary>Sync Log</summary>\n\n```\n{sync_log}\n```\n\n</details>\n'''
 field_name: body_template
 group: config
+---
+name: pr_already_synced
+ts: 2026-02-12 20:54:52.186514+00:00
+type: keep_private
+full_path: _internal.models.pr_already_synced
+---
+name: __ROOT__
+ts: 2026-02-12 20:55:14.072378+00:00
+type: fix
+author: Espen Albert
+changelog_message: 'fix(copy): skip entire sync when open PR is already from newer source'
+message: 'fix(copy): skip entire sync when open PR is already from newer source'
+short_sha: 7a0d75
