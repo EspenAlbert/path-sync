@@ -1,0 +1,38 @@
+name: parse_sync_metadata
+ts: 2026-02-12 20:10:50.543430+00:00
+type: keep_private
+full_path: _internal.models.parse_sync_metadata
+---
+name: get_commit_timestamp
+ts: 2026-02-12 20:10:55.690614+00:00
+type: keep_private
+full_path: _internal.git_ops.get_commit_timestamp
+---
+name: get_pr_body
+ts: 2026-02-12 20:10:55.690750+00:00
+type: keep_private
+full_path: _internal.git_ops.get_pr_body
+---
+name: has_open_pr
+ts: 2026-02-12 20:10:55.690765+00:00
+type: keep_private
+full_path: _internal.git_ops.has_open_pr
+---
+name: close_pr
+ts: 2026-02-12 20:10:55.690776+00:00
+type: keep_private
+full_path: _internal.git_ops.close_pr
+---
+name: SyncMetadata
+ts: 2026-02-12 20:11:12.009295+00:00
+type: keep_private
+full_path: _internal.models.SyncMetadata
+---
+name: PRDefaults
+ts: 2026-02-12 20:11:12.504052+00:00
+type: additional_change
+auto_generated: true
+change_kind: default_changed
+details: 'field ''body_template'' default: ''Synced from [{src_repo_name}]({src_repo_url}) @ `{src_sha_short}`\n\n<details>\n<summary>Sync Log</summary>\n\n```\n{sync_log}\n```\n\n</details>\n'' -> ''<!-- path-sync: sha={src_sha_short} ts={src_commit_ts} -->\nSynced from [{src_repo_name}]({src_repo_url}) @ `{src_sha_short}` ({src_commit_ts})\n\n<details>\n<summary>Sync Log</summary>\n\n```\n{sync_log}\n```\n\n</details>\n'''
+field_name: body_template
+group: config

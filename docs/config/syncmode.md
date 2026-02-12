@@ -2,7 +2,7 @@
 
 <!-- === DO_NOT_EDIT: pkg-ext syncmode_def === -->
 ## class: SyncMode
-- [source](../../path_sync/_internal/models.py#L45)
+- [source](../../path_sync/_internal/models.py#L46)
 > **Since:** 0.3.0
 
 ```python

@@ -2,7 +2,7 @@
 
 <!-- === DO_NOT_EDIT: pkg-ext copyoptions_def === -->
 ## class: CopyOptions
-- [source](../../path_sync/_internal/cmd_copy.py#L47)
+- [source](../../path_sync/_internal/cmd_copy.py#L48)
 > **Since:** 0.3.0
 
 ```python

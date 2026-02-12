@@ -2,7 +2,7 @@
 
 <!-- === DO_NOT_EDIT: pkg-ext srcconfig_def === -->
 ## class: SrcConfig
-- [source](../../path_sync/_internal/models.py#L182)
+- [source](../../path_sync/_internal/models.py#L199)
 > **Since:** 0.3.0
 
 ```python
