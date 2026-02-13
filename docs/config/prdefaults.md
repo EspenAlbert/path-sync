@@ -32,7 +32,7 @@ class PRDefaults(PRFieldsBase):
 
 | Version | Change |
 |---------|--------|
-| unreleased | field 'body_template' default: 'Synced from [{src_repo_name}]({src_repo_url}) @ `{src_sha_short}`\n\n<details>\n<summary>Sync Log</summary>\n\n```\n{sync_log}\n```\n\n</details>\n' -> '<!-- path-sync: sha={src_sha_short} ts={src_commit_ts} -->\nSynced from [{src_repo_name}]({src_repo_url}) @ `{src_sha_short}` ({src_commit_ts})\n\n<details>\n<summary>Sync Log</summary>\n\n```\n{sync_log}\n```\n\n</details>\n' |
+| 0.7.3 | field 'body_template' default: 'Synced from [{src_repo_name}]({src_repo_url}) @ `{src_sha_short}`\n\n<details>\n<summary>Sync Log</summary>\n\n```\n{sync_log}\n```\n\n</details>\n' -> '<!-- path-sync: sha={src_sha_short} ts={src_commit_ts} -->\nSynced from [{src_repo_name}]({src_repo_url}) @ `{src_sha_short}` ({src_commit_ts})\n\n<details>\n<summary>Sync Log</summary>\n\n```\n{sync_log}\n```\n\n</details>\n' |
 | 0.4.1 | added base class 'BaseModel' |
 | 0.4.1 | added base class 'PRFieldsBase' |
 | 0.3.0 | Made public |

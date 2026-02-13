@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.7.3 2026-02-13T07-25Z
+
+### __Root__
+- fix(copy): skip entire sync when open PR is already from newer source [7a0d75](https://github.com/EspenAlbert/path-sync/commit/7a0d75)
+
+### Config
+- `config.PRDefaults`: field 'body_template' default: 'Synced from [{src_repo_name}]({src_repo_url}) @ `{src_sha_short}`\n\n<details>\n<summary>Sync Log</summary>\n\n```\n{sync_log}\n```\n\n</details>\n' -> '<!-- path-sync: sha={src_sha_short} ts={src_commit_ts} -->\nSynced from [{src_repo_name}]({src_repo_url}) @ `{src_sha_short}` ({src_commit_ts})\n\n<details>\n<summary>Sync Log</summary>\n\n```\n{sync_log}\n```\n\n</details>\n'
+- `config.SrcConfig`: added optional field 'force_resync' (default: False)
+- `config.SrcConfig`: added optional field 'keep_pr_on_no_changes' (default: False)
+
+### Dep_Update
+- `dep_update.DepConfig`: added optional field 'keep_pr_on_no_changes' (default: False)
+
+
 ## 0.7.2 2026-02-12T19-28Z
 
 ### Config

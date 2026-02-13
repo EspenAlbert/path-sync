@@ -1,12 +1,12 @@
 pkg_import_name: path_sync
-version: 0.7.2
+version: 0.7.3
 groups:
 - name: config
   symbols:
   - name: AutoMergeConfig
     module_path: _internal.models
     docstring: ''
-    line_number: 38
+    line_number: 39
     type: class
     mro_bases:
     - BaseModel
@@ -48,7 +48,7 @@ groups:
   - name: Destination
     module_path: _internal.models
     docstring: ''
-    line_number: 161
+    line_number: 188
     type: class
     mro_bases:
     - BaseModel
@@ -124,7 +124,7 @@ groups:
   - name: HeaderConfig
     module_path: _internal.models
     docstring: ''
-    line_number: 108
+    line_number: 132
     type: class
     mro_bases:
     - BaseModel
@@ -149,7 +149,7 @@ groups:
   - name: MergeMethod
     module_path: _internal.models
     docstring: ''
-    line_number: 32
+    line_number: 33
     type: class
     mro_bases:
     - StrEnum
@@ -172,7 +172,7 @@ groups:
   - name: PRDefaults
     module_path: _internal.models
     docstring: ''
-    line_number: 135
+    line_number: 160
     type: class
     mro_bases:
     - PRFieldsBase
@@ -215,7 +215,7 @@ groups:
       type_annotation: str
       type_imports: []
       default:
-        value_repr: '''Synced from [{src_repo_name}]({src_repo_url}) @ `{src_sha_short}`\n\n<details>\n<summary>Sync Log</summary>\n\n```\n{sync_log}\n```\n\n</details>\n'''
+        value_repr: '''<!-- path-sync: sha={src_sha_short} ts={src_commit_ts} -->\nSynced from [{src_repo_name}]({src_repo_url}) @ `{src_sha_short}` ({src_commit_ts})\n\n<details>\n<summary>Sync Log</summary>\n\n```\n{sync_log}\n```\n\n</details>\n'''
         is_factory: false
       is_class_var: false
       is_computed: false
@@ -230,7 +230,7 @@ groups:
   - name: PathMapping
     module_path: _internal.models
     docstring: ''
-    line_number: 73
+    line_number: 74
     type: class
     mro_bases:
     - BaseModel
@@ -285,7 +285,7 @@ groups:
   - name: SrcConfig
     module_path: _internal.models
     docstring: ''
-    line_number: 182
+    line_number: 209
     type: class
     mro_bases:
     - BaseModel
@@ -391,10 +391,26 @@ groups:
         is_factory: false
       is_class_var: false
       is_computed: false
+    - name: keep_pr_on_no_changes
+      type_annotation: bool
+      type_imports: []
+      default:
+        value_repr: 'False'
+        is_factory: false
+      is_class_var: false
+      is_computed: false
+    - name: force_resync
+      type_annotation: bool
+      type_imports: []
+      default:
+        value_repr: 'False'
+        is_factory: false
+      is_class_var: false
+      is_computed: false
   - name: SyncMode
     module_path: _internal.models
     docstring: ''
-    line_number: 45
+    line_number: 46
     type: class
     mro_bases:
     - StrEnum
@@ -419,7 +435,7 @@ groups:
   - name: CopyOptions
     module_path: _internal.cmd_copy
     docstring: ''
-    line_number: 47
+    line_number: 48
     type: class
     mro_bases:
     - BaseModel
@@ -548,7 +564,7 @@ groups:
   - name: copy
     module_path: _internal.cmd_copy
     docstring: Copy files from SRC to DEST repositories.
-    line_number: 65
+    line_number: 66
     type: cli_command
     signature:
       parameters:
@@ -1056,7 +1072,7 @@ groups:
   - name: CommitConfig
     module_path: _internal.models
     docstring: ''
-    line_number: 57
+    line_number: 58
     type: class
     mro_bases:
     - BaseModel
@@ -1078,7 +1094,7 @@ groups:
   - name: OnFailStrategy
     module_path: _internal.models
     docstring: ''
-    line_number: 51
+    line_number: 52
     type: class
     mro_bases:
     - StrEnum
@@ -1101,7 +1117,7 @@ groups:
   - name: VerifyConfig
     module_path: _internal.models
     docstring: ''
-    line_number: 68
+    line_number: 69
     type: class
     mro_bases:
     - BaseModel
@@ -1128,7 +1144,7 @@ groups:
   - name: VerifyStep
     module_path: _internal.models
     docstring: ''
-    line_number: 62
+    line_number: 63
     type: class
     mro_bases:
     - BaseModel
@@ -1219,6 +1235,14 @@ groups:
       - path_sync._internal.models.AutoMergeConfig
       default:
         value_repr: None
+        is_factory: false
+      is_class_var: false
+      is_computed: false
+    - name: keep_pr_on_no_changes
+      type_annotation: bool
+      type_imports: []
+      default:
+        value_repr: 'False'
         is_factory: false
       is_class_var: false
       is_computed: false
@@ -1349,4 +1373,4 @@ groups:
       required: false
       is_argument: false
       hidden: false
-dumped_at: 2026-02-12 19:28:34.784867+00:00
+dumped_at: 2026-02-13 07:25:48.213006+00:00

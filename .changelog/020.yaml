@@ -76,3 +76,8 @@ change_kind: optional_field_added
 details: 'added optional field ''keep_pr_on_no_changes'' (default: False)'
 field_name: keep_pr_on_no_changes
 group: config
+---
+name: 0.7.3
+ts: 2026-02-13 07:25:48.266863+00:00
+type: release
+old_version: 0.7.2
