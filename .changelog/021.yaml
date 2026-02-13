@@ -1,0 +1,7 @@
+name: copy
+ts: 2026-02-13 10:39:28.526332+00:00
+type: fix
+author: Espen Albert
+changelog_message: 'fix(copy): skip PR close when running with --local/--skip-commit'
+message: 'fix(copy): skip PR close when running with --local/--skip-commit'
+short_sha: c98900
