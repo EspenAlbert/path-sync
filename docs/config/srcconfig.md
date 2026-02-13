@@ -19,6 +19,8 @@ class SrcConfig(BaseModel):
     verify: VerifyConfig | None = None
     wrap_synced_files: bool = False
     auto_merge: AutoMergeConfig | None = None
+    keep_pr_on_no_changes: bool = False
+    force_resync: bool = False
 ```
 <!-- === OK_EDIT: pkg-ext srcconfig_def === -->
 
@@ -40,6 +42,8 @@ class SrcConfig(BaseModel):
 
 | Version | Change |
 |---------|--------|
+| unreleased | added optional field 'keep_pr_on_no_changes' (default: False) |
+| unreleased | added optional field 'force_resync' (default: False) |
 | 0.7.2 | added optional field 'path_groups' (default: ...) |
 | 0.7.0 | added optional field 'auto_merge' (default: None) |
 | 0.6.0 | added optional field 'wrap_synced_files' (default: False) |

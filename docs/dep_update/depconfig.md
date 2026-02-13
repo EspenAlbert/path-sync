@@ -15,6 +15,7 @@ class DepConfig(BaseModel):
     verify: VerifyConfig = ...
     pr: PRConfig
     auto_merge: AutoMergeConfig | None = None
+    keep_pr_on_no_changes: bool = False
 ```
 <!-- === OK_EDIT: pkg-ext depconfig_def === -->
 
@@ -35,6 +36,7 @@ class DepConfig(BaseModel):
 
 | Version | Change |
 |---------|--------|
+| unreleased | added optional field 'keep_pr_on_no_changes' (default: False) |
 | 0.7.0 | added optional field 'auto_merge' (default: None) |
 | 0.4.1 | added base class 'BaseModel' |
 | 0.4.0 | Made public |

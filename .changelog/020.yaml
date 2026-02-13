@@ -49,3 +49,30 @@ author: Espen Albert
 changelog_message: 'fix(copy): skip entire sync when open PR is already from newer source'
 message: 'fix(copy): skip entire sync when open PR is already from newer source'
 short_sha: 7a0d75
+---
+name: DepConfig
+ts: 2026-02-13 07:14:10.979193+00:00
+type: additional_change
+auto_generated: true
+change_kind: optional_field_added
+details: 'added optional field ''keep_pr_on_no_changes'' (default: False)'
+field_name: keep_pr_on_no_changes
+group: dep_update
+---
+name: SrcConfig
+ts: 2026-02-13 07:14:10.979200+00:00
+type: additional_change
+auto_generated: true
+change_kind: optional_field_added
+details: 'added optional field ''force_resync'' (default: False)'
+field_name: force_resync
+group: config
+---
+name: SrcConfig
+ts: 2026-02-13 07:14:10.979203+00:00
+type: additional_change
+auto_generated: true
+change_kind: optional_field_added
+details: 'added optional field ''keep_pr_on_no_changes'' (default: False)'
+field_name: keep_pr_on_no_changes
+group: config

@@ -174,9 +174,6 @@ def test_run_updates_failure_returns_step_failure(tmp_path: Path):
         assert result.returncode == 1
 
 
-# --- _update_and_validate tests ---
-
-
 def test_update_and_validate_keeps_pr_when_config_flag_set(
     dest: Destination, config: DepConfig, tmp_path: Path, repo_path: Path
 ):
@@ -201,6 +198,6 @@ def test_update_and_validate_keeps_pr_when_config_flag_set(
 
         results = _update_and_validate(config, [dest], tmp_path, "", opts)
 
-        assert results == []
+        assert not results
         git_ops.has_open_pr.assert_not_called()
         git_ops.close_pr.assert_not_called()
