@@ -221,6 +221,8 @@ class SrcConfig(BaseModel):
     verify: VerifyConfig | None = None
     wrap_synced_files: bool = False
     auto_merge: AutoMergeConfig | None = None
+    keep_pr_on_no_changes: bool = False
+    force_resync: bool = False
 
     @model_validator(mode="after")
     def _validate_include_groups(self) -> SrcConfig:

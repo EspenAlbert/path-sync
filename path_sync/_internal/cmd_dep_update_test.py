@@ -12,6 +12,7 @@ from path_sync._internal.cmd_dep_update import (
     Status,
     _process_single_repo,
     _run_updates,
+    _update_and_validate,
 )
 from path_sync._internal.models import (
     Destination,
@@ -171,3 +172,35 @@ def test_run_updates_failure_returns_step_failure(tmp_path: Path):
         assert isinstance(result, StepFailure)
         assert result.step == "fail"
         assert result.returncode == 1
+
+
+# --- _update_and_validate tests ---
+
+
+def test_update_and_validate_keeps_pr_when_config_flag_set(
+    dest: Destination, config: DepConfig, tmp_path: Path, repo_path: Path
+):
+    config = DepConfig(
+        name="test",
+        from_config="python-template",
+        updates=[UpdateEntry(command="uv lock --upgrade")],
+        verify=VerifyConfig(steps=[]),
+        pr=PRConfig(branch="chore/deps", title="chore: update deps"),
+        keep_pr_on_no_changes=True,
+    )
+    mock_repo = MagicMock()
+    opts = DepUpdateOptions()
+
+    with (
+        patch(f"{MODULE}.git_ops") as git_ops,
+        patch(f"{VERIFY_MODULE}.{verify_module.run_command.__name__}"),
+    ):
+        git_ops.get_repo.return_value = mock_repo
+        git_ops.is_git_repo.return_value = True
+        git_ops.has_changes.return_value = False
+
+        results = _update_and_validate(config, [dest], tmp_path, "", opts)
+
+        assert results == []
+        git_ops.has_open_pr.assert_not_called()
+        git_ops.close_pr.assert_not_called()

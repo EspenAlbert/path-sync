@@ -220,15 +220,17 @@ def _run_copy(config: SrcConfig, src_root: Path, dest_filter: str, opts: CopyOpt
     return total_changes
 
 
-def _close_stale_pr(dest_root: Path, copy_branch: str, opts: CopyOptions) -> None:
-    if opts.dry_run or opts.no_pr:
+def _close_stale_pr(dest_root: Path, copy_branch: str, opts: CopyOptions, config: SrcConfig) -> None:
+    if opts.dry_run or opts.no_pr or config.keep_pr_on_no_changes:
         return
     if git_ops.has_open_pr(dest_root, copy_branch):
         git_ops.close_pr(dest_root, copy_branch, "Closing: source and destination are in sync, no changes needed")
 
 
-def _skip_already_synced(dest_name: str, dest_root: Path, copy_branch: str, commit_ts: str, opts: CopyOptions) -> bool:
-    if opts.skip_commit or opts.dry_run or opts.no_pr:
+def _skip_already_synced(
+    dest_name: str, dest_root: Path, copy_branch: str, commit_ts: str, opts: CopyOptions, config: SrcConfig
+) -> bool:
+    if opts.skip_commit or opts.dry_run or opts.no_pr or config.force_resync:
         return False
     existing_body = git_ops.get_pr_body(dest_root, copy_branch)
     if metadata := pr_already_synced(existing_body, commit_ts):
@@ -257,7 +259,7 @@ def _sync_destination(
     dest_repo = _ensure_dest_repo(dest, dest_root, opts.dry_run)
     copy_branch = dest.resolved_copy_branch(config.name)
 
-    if _skip_already_synced(dest.name, dest_root, copy_branch, commit_ts, opts):
+    if _skip_already_synced(dest.name, dest_root, copy_branch, commit_ts, opts, config):
         return 0, None
 
     if not opts.no_checkout and prompt_utils.prompt_confirm(f"Switch {dest.name} to {copy_branch}?", opts.no_prompt):
@@ -272,7 +274,7 @@ def _sync_destination(
 
     if result.total == 0:
         logger.info(f"{dest.name}: No changes")
-        _close_stale_pr(dest_root, copy_branch, opts)
+        _close_stale_pr(dest_root, copy_branch, opts, config)
         return 0, None
 
     should_skip_commit = opts.skip_commit or opts.dry_run

@@ -211,6 +211,8 @@ destinations:
 | `header_config` | Comment style per extension (has defaults) |
 | `pr_defaults` | PR title, body template, labels, reviewers, assignees |
 | `wrap_synced_files` | Wrap synced files in section markers (default: `false`) |
+| `keep_pr_on_no_changes` | Keep stale PR open instead of auto-closing when sync produces zero changes (default: `false`) |
+| `force_resync` | Ignore the "PR already synced from newer commit" check, always run the full sync (default: `false`) |
 | `verify` | Verification steps to run after syncing (see [Verify Steps](#verify-steps-in-copy)) |
 
 **`body_template` variables** (available in `pr_defaults.body_template`):
@@ -307,7 +309,7 @@ path-sync embeds a hidden HTML comment in PR bodies to track the source commit:
 
 This is primarily useful when syncing from a feature/PR branch instead of `main`. When a scheduled CI job runs against `main`, the source commit timestamp will be older than the PR branch sync. path-sync detects this and skips the PR body overwrite, preserving the newer sync state.
 
-If `copy` or `dep-update` finds zero file changes, any open PR for the sync branch is closed automatically. Existing PRs without metadata are always overwritten (backward-compatible).
+If `copy` or `dep-update` finds zero file changes, any open PR for the sync branch is closed automatically (disable with `keep_pr_on_no_changes: true`). The timestamp check can be bypassed with `force_resync: true` (copy only). Existing PRs without metadata are always overwritten.
 
 ## GitHub Actions
 
@@ -448,6 +450,7 @@ pr:
 | `updates` | Commands to run (in order) |
 | `verify.on_fail` | Default failure strategy: `skip`, `fail`, `warn` |
 | `verify.steps` | Verification commands with optional commit/on_fail |
+| `keep_pr_on_no_changes` | Keep stale PR open instead of auto-closing when no changes (default: `false`) |
 | `pr.auto_merge` | Enable GitHub auto-merge after PR creation |
 
 ### CLI Flags

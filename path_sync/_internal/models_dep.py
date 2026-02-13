@@ -37,6 +37,7 @@ class DepConfig(BaseModel):
     verify: VerifyConfig = Field(default_factory=VerifyConfig)
     pr: PRConfig
     auto_merge: AutoMergeConfig | None = None
+    keep_pr_on_no_changes: bool = False
 
     def load_destinations(self, repo_root: Path) -> list[Destination]:
         src_config_path = resolve_config_path(repo_root, self.from_config)
