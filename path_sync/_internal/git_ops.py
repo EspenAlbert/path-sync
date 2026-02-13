@@ -97,6 +97,10 @@ def get_current_sha(repo: Repo) -> str:
     return repo.head.commit.hexsha
 
 
+def get_commit_timestamp(repo: Repo) -> str:
+    return repo.head.commit.committed_datetime.isoformat()
+
+
 def get_remote_url(repo: Repo, remote_name: str = "origin") -> str:
     try:
         return repo.remote(remote_name).url
@@ -199,6 +203,33 @@ def update_pr_body(repo_path: Path, branch: str, body: str) -> bool:
         logger.warning(f"Failed to update PR body: {result.stderr}")
         return False
     logger.info("Updated PR body")
+    return True
+
+
+def get_pr_body(repo_path: Path, branch: str) -> str | None:
+    cmd = ["gh", "pr", "view", branch, "--json", "body,state", "-q", 'select(.state == "OPEN") | .body']
+    result = subprocess.run(cmd, cwd=repo_path, capture_output=True, text=True)
+    if result.returncode != 0:
+        return None
+    body = result.stdout.strip()
+    return body or None
+
+
+def has_open_pr(repo_path: Path, branch: str) -> bool:
+    cmd = ["gh", "pr", "view", branch, "--json", "state", "-q", ".state"]
+    result = subprocess.run(cmd, cwd=repo_path, capture_output=True, text=True)
+    if result.returncode != 0:
+        return False
+    return result.stdout.strip() == "OPEN"
+
+
+def close_pr(repo_path: Path, branch: str, comment: str) -> bool:
+    cmd = ["gh", "pr", "close", branch, "-c", comment]
+    result = subprocess.run(cmd, cwd=repo_path, capture_output=True, text=True)
+    if result.returncode != 0:
+        logger.warning(f"Failed to close PR for {branch}: {result.stderr}")
+        return False
+    logger.info(f"Closed PR for {branch}")
     return True
 
 

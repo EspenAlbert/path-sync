@@ -2,9 +2,10 @@ from __future__ import annotations
 
 import fnmatch
 import glob as glob_mod
+import re
 from enum import StrEnum
 from pathlib import Path
-from typing import ClassVar
+from typing import ClassVar, NamedTuple
 
 from pydantic import BaseModel, Field, model_validator
 
@@ -104,6 +105,29 @@ class PathMapping(BaseModel):
 
 HEADER_TEMPLATE = "path-sync copy -n {config_name}"
 
+SYNC_METADATA_PATTERN = re.compile(r"<!-- path-sync: sha=(?P<sha>[0-9a-f]+) ts=(?P<ts>[^\s]+) -->")
+
+
+class SyncMetadata(NamedTuple):
+    sha: str
+    ts: str
+
+
+def parse_sync_metadata(body: str) -> SyncMetadata | None:
+    if match := SYNC_METADATA_PATTERN.search(body):
+        return SyncMetadata(sha=match["sha"], ts=match["ts"])
+    return None
+
+
+def pr_already_synced(pr_body: str | None, commit_ts: str) -> SyncMetadata | None:
+    """Return metadata if pr_body was synced from a source commit >= commit_ts."""
+    if not pr_body:
+        return None
+    metadata = parse_sync_metadata(pr_body)
+    if metadata and metadata.ts >= commit_ts:
+        return metadata
+    return None
+
 
 class HeaderConfig(BaseModel):
     comment_prefixes: dict[str, str] = Field(default_factory=dict)
@@ -111,7 +135,8 @@ class HeaderConfig(BaseModel):
 
 
 DEFAULT_BODY_TEMPLATE = """\
-Synced from [{src_repo_name}]({src_repo_url}) @ `{src_sha_short}`
+<!-- path-sync: sha={src_sha_short} ts={src_commit_ts} -->
+Synced from [{src_repo_name}]({src_repo_url}) @ `{src_sha_short}` ({src_commit_ts})
 
 <details>
 <summary>Sync Log</summary>
@@ -143,6 +168,7 @@ class PRDefaults(PRFieldsBase):
         src_sha: str,
         sync_log: str,
         dest_name: str,
+        src_commit_ts: str = "",
     ) -> str:
         src_repo_name = src_repo_url.rstrip("/").rsplit("/", 1)[-1].removesuffix(".git")
         body = self.body_template.format(
@@ -152,6 +178,7 @@ class PRDefaults(PRFieldsBase):
             src_sha_short=src_sha[:8],
             sync_log=sync_log,
             dest_name=dest_name,
+            src_commit_ts=src_commit_ts,
         )
         if self.body_suffix:
             body = f"{body}\n---\n{self.body_suffix}"
@@ -194,6 +221,8 @@ class SrcConfig(BaseModel):
     verify: VerifyConfig | None = None
     wrap_synced_files: bool = False
     auto_merge: AutoMergeConfig | None = None
+    keep_pr_on_no_changes: bool = False
+    force_resync: bool = False
 
     @model_validator(mode="after")
     def _validate_include_groups(self) -> SrcConfig:

@@ -2,7 +2,7 @@
 
 <!-- === DO_NOT_EDIT: pkg-ext prdefaults_def === -->
 ## class: PRDefaults
-- [source](../../path_sync/_internal/models.py#L135)
+- [source](../../path_sync/_internal/models.py#L160)
 > **Since:** 0.3.0
 
 ```python
@@ -11,7 +11,7 @@ class PRDefaults(PRFieldsBase):
     reviewers: list[str] = ...
     assignees: list[str] = ...
     title: str = 'chore: sync {name} files'
-    body_template: str = 'Synced from [{src_repo_name}]({src_repo_url}) @ `{src_sha_short}`\n\n<details>\n<summary>Sync Log</summary>\n\n```\n{sync_log}\n```\n\n</details>\n'
+    body_template: str = '<!-- path-sync: sha={src_sha_short} ts={src_commit_ts} -->\nSynced from [{src_repo_name}]({src_repo_url}) @ `{src_sha_short}` ({src_commit_ts})\n\n<details>\n<summary>Sync Log</summary>\n\n```\n{sync_log}\n```\n\n</details>\n'
     body_suffix: str = ''
 ```
 <!-- === OK_EDIT: pkg-ext prdefaults_def === -->
@@ -24,7 +24,7 @@ class PRDefaults(PRFieldsBase):
 | reviewers | `list[str]` | `...` | 0.3.0 |
 | assignees | `list[str]` | `...` | 0.3.0 |
 | title | `str` | `'chore: sync {name} files'` | 0.3.0 |
-| body_template | `str` | `'Synced from [{src_repo_name}]({src_repo_url}) @ `{src_sha_short}`\n\n<details>\n<summary>Sync Log</summary>\n\n```\n{sync_log}\n```\n\n</details>\n'` | 0.3.0 |
+| body_template | `str` | (see source above) | 0.3.0 |
 | body_suffix | `str` | `''` | 0.3.0 |
 
 <!-- === DO_NOT_EDIT: pkg-ext prdefaults_changes === -->
@@ -32,6 +32,7 @@ class PRDefaults(PRFieldsBase):
 
 | Version | Change |
 |---------|--------|
+| unreleased | field 'body_template' default: 'Synced from [{src_repo_name}]({src_repo_url}) @ `{src_sha_short}`\n\n<details>\n<summary>Sync Log</summary>\n\n```\n{sync_log}\n```\n\n</details>\n' -> '<!-- path-sync: sha={src_sha_short} ts={src_commit_ts} -->\nSynced from [{src_repo_name}]({src_repo_url}) @ `{src_sha_short}` ({src_commit_ts})\n\n<details>\n<summary>Sync Log</summary>\n\n```\n{sync_log}\n```\n\n</details>\n' |
 | 0.4.1 | added base class 'BaseModel' |
 | 0.4.1 | added base class 'PRFieldsBase' |
 | 0.3.0 | Made public |

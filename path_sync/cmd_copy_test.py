@@ -8,7 +8,9 @@ from path_sync._internal import git_ops
 from path_sync._internal.cmd_copy import (
     CopyOptions,
     _cleanup_orphans,
+    _close_stale_pr,
     _ensure_dest_repo,
+    _skip_already_synced,
     _sync_path,
 )
 from path_sync._internal.header import add_header, has_header
@@ -17,6 +19,7 @@ from path_sync._internal.models import (
     Destination,
     OnFailStrategy,
     PathMapping,
+    SrcConfig,
     SyncMode,
     VerifyConfig,
     VerifyStep,
@@ -531,3 +534,47 @@ dest-recipe:
     assert "dest-recipe" in result
     assert "source trailing" not in result
     assert "src-recipe" not in result
+
+
+COPY_MODULE = _close_stale_pr.__module__
+
+
+def _make_src_config(**kwargs) -> SrcConfig:
+    defaults = {"name": "test", "destinations": []}
+    return SrcConfig(**(defaults | kwargs))
+
+
+def test_close_stale_pr_skipped_when_keep_pr_on_no_changes(tmp_path: Path):
+    opts = CopyOptions()
+    config = _make_src_config(keep_pr_on_no_changes=True)
+    with patch(f"{COPY_MODULE}.git_ops") as mock_git:
+        _close_stale_pr(tmp_path, "sync/test", opts, config)
+        mock_git.has_open_pr.assert_not_called()
+
+
+def test_close_stale_pr_runs_by_default(tmp_path: Path):
+    opts = CopyOptions()
+    config = _make_src_config()
+    with patch(f"{COPY_MODULE}.git_ops") as mock_git:
+        mock_git.has_open_pr.return_value = True
+        _close_stale_pr(tmp_path, "sync/test", opts, config)
+        mock_git.close_pr.assert_called_once()
+
+
+def test_skip_already_synced_bypassed_when_force_resync(tmp_path: Path):
+    config = _make_src_config(force_resync=True)
+    opts = CopyOptions()
+    with patch(f"{COPY_MODULE}.git_ops") as mock_git:
+        result = _skip_already_synced("dest", tmp_path, "sync/test", "2026-01-01T00:00:00", opts, config)
+        assert not result
+        mock_git.get_pr_body.assert_not_called()
+
+
+def test_skip_already_synced_checks_by_default(tmp_path: Path):
+    config = _make_src_config()
+    opts = CopyOptions()
+    body = "<!-- path-sync: sha=abc12345 ts=2099-01-01T00:00:00+00:00 -->"
+    with patch(f"{COPY_MODULE}.git_ops") as mock_git:
+        mock_git.get_pr_body.return_value = body
+        result = _skip_already_synced("dest", tmp_path, "sync/test", "2026-01-01T00:00:00", opts, config)
+        assert result

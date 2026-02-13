@@ -2,7 +2,7 @@
 
 <!-- === DO_NOT_EDIT: pkg-ext verifyconfig_def === -->
 ## class: VerifyConfig
-- [source](../../path_sync/_internal/models.py#L68)
+- [source](../../path_sync/_internal/models.py#L69)
 > **Since:** 0.4.0
 
 ```python

@@ -25,6 +25,8 @@ Sync files from a source repo to multiple destination repos.
 - Files with headers are updated on each sync
 - Remove a header to opt-out (file becomes DEST-owned)
 - Orphaned files (removed from SRC) are deleted in DEST
+- Idempotent: PR body is left unchanged when already synced from an equal or newer source commit
+- Stale PRs auto-close when source and destination are already in sync (zero file changes)
 
 ## Installation
 
@@ -207,9 +209,23 @@ destinations:
 | `paths` | Files/globs to sync (see path options below) |
 | `destinations` | Target repos with sync settings |
 | `header_config` | Comment style per extension (has defaults) |
-| `pr_defaults` | PR title, labels, reviewers, assignees |
+| `pr_defaults` | PR title, body template, labels, reviewers, assignees |
 | `wrap_synced_files` | Wrap synced files in section markers (default: `false`) |
+| `keep_pr_on_no_changes` | Keep stale PR open instead of auto-closing when sync produces zero changes (default: `false`) |
+| `force_resync` | Ignore the "PR already synced from newer commit" check, always run the full sync (default: `false`) |
 | `verify` | Verification steps to run after syncing (see [Verify Steps](#verify-steps-in-copy)) |
+
+**`body_template` variables** (available in `pr_defaults.body_template`):
+
+| Variable | Description |
+|----------|-------------|
+| `{src_repo_name}` | Source repo name (derived from remote URL) |
+| `{src_repo_url}` | Source repo URL |
+| `{src_sha}` | Full SHA of the source commit |
+| `{src_sha_short}` | Short SHA (first 8 chars) of the source commit |
+| `{src_commit_ts}` | ISO 8601 timestamp of the source commit |
+| `{sync_log}` | Log of synced file operations |
+| `{dest_name}` | Destination name |
 
 **Path options**:
 
@@ -282,6 +298,18 @@ Comment style is extension-aware:
 | `.md`, `.mdc`, `.html` | `<!-- path-sync copy -n {name} -->` |
 
 Remove this header to opt-out of future syncs for that file.
+
+## PR Body Metadata
+
+path-sync embeds a hidden HTML comment in PR bodies to track the source commit:
+
+```html
+<!-- path-sync: sha=abc1234 ts=2026-02-12T10:00:00+00:00 -->
+```
+
+This is primarily useful when syncing from a feature/PR branch instead of `main`. When a scheduled CI job runs against `main`, the source commit timestamp will be older than the PR branch sync. path-sync detects this and skips the PR body overwrite, preserving the newer sync state.
+
+If `copy` or `dep-update` finds zero file changes, any open PR for the sync branch is closed automatically (disable with `keep_pr_on_no_changes: true`). The timestamp check can be bypassed with `force_resync: true` (copy only). Existing PRs without metadata are always overwritten.
 
 ## GitHub Actions
 
@@ -422,6 +450,7 @@ pr:
 | `updates` | Commands to run (in order) |
 | `verify.on_fail` | Default failure strategy: `skip`, `fail`, `warn` |
 | `verify.steps` | Verification commands with optional commit/on_fail |
+| `keep_pr_on_no_changes` | Keep stale PR open instead of auto-closing when no changes (default: `false`) |
 | `pr.auto_merge` | Enable GitHub auto-merge after PR creation |
 
 ### CLI Flags
