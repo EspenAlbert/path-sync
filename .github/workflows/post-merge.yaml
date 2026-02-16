@@ -13,25 +13,21 @@ jobs:
   create-tag:
     runs-on: ubuntu-latest
     permissions:
-      actions: write
       contents: write
     steps: 
+      - name: Generate App token
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.RELEASE_BOT_APP_ID }}
+          private-key: ${{ secrets.RELEASE_BOT_PRIVATE_KEY }}
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          token: ${{ steps.app-token.outputs.token }}
       - uses: ./.github/actions/setup
       - name: post-merge
         run: just pkg-post-merge
-      - name: Get the tag
-        id: get_tag
-        run: echo "tag=$(git describe --tags --abbrev=0)" >> "$GITHUB_OUTPUT"
-      - name: Trigger Release
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          gh workflow run release.yaml --ref ${{ steps.get_tag.outputs.tag }} -f tag=${{ steps.get_tag.outputs.tag }}
-      - name: Trigger Docs
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          gh workflow run docs.yaml --ref main
+      # App token pushes trigger downstream workflows automatically:
+      # - release.yaml via tag push event (on: push: tags: "v*")
+      # - docs.yaml via main branch push event (on: push: branches: main)
