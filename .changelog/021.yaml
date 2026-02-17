@@ -5,3 +5,8 @@ author: Espen Albert
 changelog_message: 'fix(copy): skip PR close when running with --local/--skip-commit'
 message: 'fix(copy): skip PR close when running with --local/--skip-commit'
 short_sha: c98900
+---
+name: 0.7.4
+ts: 2026-02-17 16:12:29.478776+00:00
+type: release
+old_version: 0.7.3

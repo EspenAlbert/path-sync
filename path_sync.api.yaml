@@ -1,5 +1,5 @@
 pkg_import_name: path_sync
-version: 0.7.3
+version: 0.7.4
 groups:
 - name: config
   symbols:
@@ -1373,4 +1373,4 @@ groups:
       required: false
       is_argument: false
       hidden: false
-dumped_at: 2026-02-13 07:25:48.213006+00:00
+dumped_at: 2026-02-17 16:12:29.429552+00:00

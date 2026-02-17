@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.4 2026-02-17T16-12Z
+
+### Copy
+- fix(copy): skip PR close when running with --local/--skip-commit [c98900](https://github.com/EspenAlbert/path-sync/commit/c98900)
+
+
 ## 0.7.3 2026-02-13T07-25Z
 
 ### __Root__
