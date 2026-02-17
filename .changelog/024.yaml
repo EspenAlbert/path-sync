@@ -1,0 +1,15 @@
+name: __ROOT__
+ts: 2026-02-17 21:33:13.968849+00:00
+type: fix
+author: Espen Albert
+changelog_message: 'fix(git_ops): include PR URL in log message after updating PR body'
+message: 'fix(git_ops): include PR URL in log message after updating PR body'
+short_sha: ee7549
+---
+name: copy
+ts: 2026-02-17 21:33:20.845532+00:00
+type: fix
+author: Espen Albert
+changelog_message: 'fix(cmd_copy): enhance sync output with destination header and adjust summary formatting'
+message: 'fix(cmd_copy): enhance sync output with destination header and adjust summary formatting'
+short_sha: a3126a
