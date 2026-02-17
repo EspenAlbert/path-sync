@@ -11,6 +11,7 @@ on:
 
 jobs:
   create-tag:
+    if: "!contains(github.event.head_commit.message, 'chore: release commit for')" # avoid re-running for the post-merge commit
     runs-on: ubuntu-latest
     permissions:
       contents: write
