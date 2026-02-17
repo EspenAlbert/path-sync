@@ -261,6 +261,7 @@ def _sync_destination(
     _print_dest_header(dest)
 
     if _skip_already_synced(dest.name, dest_root, copy_branch, commit_ts, opts, config):
+        typer.echo("  (already synced, skipped)", err=True)
         return 0, None
 
     if not opts.no_checkout and prompt_utils.prompt_confirm(f"Switch {dest.name} to {copy_branch}?", opts.no_prompt):
@@ -274,7 +275,7 @@ def _sync_destination(
     _print_sync_summary(result)
 
     if result.total == 0:
-        logger.info(f"{dest.name}: No changes")
+        typer.echo("  No changes", err=True)
         _close_stale_pr(dest_root, copy_branch, opts, config)
         return 0, None
 
