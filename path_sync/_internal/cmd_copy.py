@@ -23,6 +23,7 @@ from path_sync._internal.models import (
     pr_already_synced,
     resolve_config_path,
 )
+from path_sync._internal.repo_utils import ensure_repo, resolve_repo_path
 from path_sync._internal.typer_app import app
 from path_sync._internal.verify import StepFailure, VerifyResult, VerifyStatus
 from path_sync._internal.yaml_utils import load_yaml_model
@@ -57,6 +58,7 @@ class CopyOptions(BaseModel):
     skip_verify: bool = False
     no_wait: bool = False
     no_auto_merge: bool = False
+    work_dir: str = ""
     pr_title: str = ""
     labels: list[str] | None = None
     reviewers: list[str] | None = None
@@ -78,6 +80,7 @@ def copy(
         help="Source repo root (default: find git root from cwd)",
     ),
     dest_filter: str = typer.Option("", "-d", "--dest", help="Filter destinations (comma-separated)"),
+    work_dir: str = typer.Option("", "--work-dir", help="Clone repos here (overrides dest_path_relative)"),
     dry_run: bool = typer.Option(False, "--dry-run", help="Preview without writing"),
     force_overwrite: bool = typer.Option(
         False,
@@ -174,6 +177,7 @@ def copy(
         skip_verify=skip_verify,
         no_wait=no_wait,
         no_auto_merge=no_auto_merge,
+        work_dir=work_dir,
         pr_title=pr_title or config.pr_defaults.title,
         labels=cmd_options.split_csv(pr_labels) or config.pr_defaults.labels,
         reviewers=cmd_options.split_csv(pr_reviewers) or config.pr_defaults.reviewers,
@@ -251,12 +255,8 @@ def _sync_destination(
     opts: CopyOptions,
     read_log: Callable[[], str],
 ) -> tuple[int, PRRef | None]:
-    dest_root = (src_root / dest.dest_path_relative).resolve()
-
-    if opts.dry_run and not dest_root.exists():
-        raise ValueError(f"Destination repo not found: {dest_root}. Clone it first or run without --dry-run.")
-
-    dest_repo = _ensure_dest_repo(dest, dest_root, opts.dry_run)
+    dest_root = resolve_repo_path(dest, src_root, opts.work_dir)
+    dest_repo = ensure_repo(dest, dest_root, dest.default_branch, dry_run=opts.dry_run)
     copy_branch = dest.resolved_copy_branch(config.name)
 
     if _skip_already_synced(dest.name, dest_root, copy_branch, commit_ts, opts, config):
@@ -312,16 +312,6 @@ def _print_sync_summary(dest: Destination, result: SyncResult) -> None:
         typer.echo(f"  [-] {result.orphans_deleted} orphans deleted", err=True)
     if result.total > 0:
         typer.echo(f"\n{result.total} changes ready.", err=True)
-
-
-def _ensure_dest_repo(dest: Destination, dest_root: Path, dry_run: bool):
-    if not dest_root.exists():
-        if dry_run:
-            raise ValueError(f"Destination repo not found: {dest_root}. Clone it first or run without --dry-run.")
-        if not dest.repo_url:
-            raise ValueError(f"Dest {dest.name} not found and no repo_url configured")
-        git_ops.clone_repo(dest.repo_url, dest_root)
-    return git_ops.get_repo(dest_root)
 
 
 def _sync_paths(

@@ -24,6 +24,7 @@ from path_sync._internal.models_dep import (
     PRConfig,
     UpdateEntry,
 )
+from path_sync._internal.repo_utils import ensure_repo
 from path_sync._internal.verify import StepFailure
 
 MODULE = _process_single_repo.__module__
@@ -66,10 +67,9 @@ def test_process_single_repo_no_changes_skips(dest: Destination, config: DepConf
 
     with (
         patch(f"{MODULE}.git_ops") as git_ops,
+        patch(f"{MODULE}.{ensure_repo.__name__}", return_value=mock_repo),
         patch(f"{VERIFY_MODULE}.{verify_module.run_command.__name__}"),
     ):
-        git_ops.get_repo.return_value = mock_repo
-        git_ops.is_git_repo.return_value = True
         git_ops.has_changes.return_value = False
 
         result = _process_single_repo(config, dest, tmp_path, "", opts)
@@ -85,11 +85,10 @@ def test_process_single_repo_update_fails_returns_skipped(
     opts = DepUpdateOptions()
 
     with (
-        patch(f"{MODULE}.git_ops") as git_ops,
+        patch(f"{MODULE}.git_ops"),
+        patch(f"{MODULE}.{ensure_repo.__name__}", return_value=mock_repo),
         patch(f"{VERIFY_MODULE}.{verify_module.run_command.__name__}") as run_cmd,
     ):
-        git_ops.get_repo.return_value = mock_repo
-        git_ops.is_git_repo.return_value = True
         run_cmd.side_effect = subprocess.CalledProcessError(1, "uv lock")
 
         result = _process_single_repo(config, dest, tmp_path, "", opts)
@@ -108,10 +107,9 @@ def test_process_single_repo_changes_with_skip_verify_passes(
 
     with (
         patch(f"{MODULE}.git_ops") as git_ops,
+        patch(f"{MODULE}.{ensure_repo.__name__}", return_value=mock_repo),
         patch(f"{VERIFY_MODULE}.{verify_module.run_command.__name__}"),
     ):
-        git_ops.get_repo.return_value = mock_repo
-        git_ops.is_git_repo.return_value = True
         git_ops.has_changes.return_value = True
 
         result = _process_single_repo(config, dest, tmp_path, "", opts)
@@ -133,10 +131,9 @@ def test_process_single_repo_verify_runs_when_changes_present(dest: Destination,
 
     with (
         patch(f"{MODULE}.git_ops") as git_ops,
+        patch(f"{MODULE}.{ensure_repo.__name__}", return_value=mock_repo),
         patch(f"{VERIFY_MODULE}.{verify_module.run_command.__name__}") as run_cmd,
     ):
-        git_ops.get_repo.return_value = mock_repo
-        git_ops.is_git_repo.return_value = True
         git_ops.has_changes.return_value = True
 
         result = _process_single_repo(config, dest, tmp_path, "", opts)
@@ -190,10 +187,9 @@ def test_update_and_validate_keeps_pr_when_config_flag_set(
 
     with (
         patch(f"{MODULE}.git_ops") as git_ops,
+        patch(f"{MODULE}.{ensure_repo.__name__}", return_value=mock_repo),
         patch(f"{VERIFY_MODULE}.{verify_module.run_command.__name__}"),
     ):
-        git_ops.get_repo.return_value = mock_repo
-        git_ops.is_git_repo.return_value = True
         git_ops.has_changes.return_value = False
 
         results = _update_and_validate(config, [dest], tmp_path, "", opts)
