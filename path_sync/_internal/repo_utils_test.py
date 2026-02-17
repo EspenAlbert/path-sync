@@ -37,7 +37,7 @@ def test_ensure_repo_clones_when_missing(dest: Destination, tmp_path: Path):
     with patch(f"{MODULE}.git_ops") as git_ops:
         mock_repo = MagicMock()
         git_ops.clone_repo.return_value = mock_repo
-        result = ensure_repo(dest, repo_path, "main")
+        result = ensure_repo(dest, repo_path)
         assert result is mock_repo
         git_ops.clone_repo.assert_called_once_with(dest.repo_url, repo_path)
 
@@ -45,10 +45,10 @@ def test_ensure_repo_clones_when_missing(dest: Destination, tmp_path: Path):
 def test_ensure_repo_dry_run_raises_when_missing(dest: Destination, tmp_path: Path):
     repo_path = tmp_path / "missing"
     with pytest.raises(ValueError, match="dry-run"):
-        ensure_repo(dest, repo_path, "main", dry_run=True)
+        ensure_repo(dest, repo_path, dry_run=True)
 
 
-def test_ensure_repo_fetches_existing(dest: Destination, tmp_path: Path):
+def test_ensure_repo_returns_existing(dest: Destination, tmp_path: Path):
     repo_path = tmp_path / "existing"
     repo_path.mkdir()
     mock_repo = MagicMock()
@@ -56,6 +56,6 @@ def test_ensure_repo_fetches_existing(dest: Destination, tmp_path: Path):
     with patch(f"{MODULE}.git_ops") as git_ops:
         git_ops.is_git_repo.return_value = True
         git_ops.get_repo.return_value = mock_repo
-        result = ensure_repo(dest, repo_path, "main")
+        result = ensure_repo(dest, repo_path)
         assert result is mock_repo
-        git_ops.fetch_and_reset_to_default.assert_called_once_with(mock_repo, "main")
+        git_ops.get_repo.assert_called_once_with(repo_path)

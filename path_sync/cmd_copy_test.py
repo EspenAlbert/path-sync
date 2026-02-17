@@ -176,7 +176,7 @@ def test_ensure_repo_dry_run_errors_if_missing(tmp_path):
     dest = _make_dest()
     dest_root = tmp_path / "missing_repo"
     with pytest.raises(ValueError, match="dry-run"):
-        ensure_repo(dest, dest_root, "main", dry_run=True)
+        ensure_repo(dest, dest_root, dry_run=True)
 
 
 def test_copy_options_defaults():

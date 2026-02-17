@@ -256,7 +256,7 @@ def _sync_destination(
     read_log: Callable[[], str],
 ) -> tuple[int, PRRef | None]:
     dest_root = resolve_repo_path(dest, src_root, opts.work_dir)
-    dest_repo = ensure_repo(dest, dest_root, dest.default_branch, dry_run=opts.dry_run)
+    dest_repo = ensure_repo(dest, dest_root, dry_run=opts.dry_run)
     copy_branch = dest.resolved_copy_branch(config.name)
 
     if _skip_already_synced(dest.name, dest_root, copy_branch, commit_ts, opts, config):

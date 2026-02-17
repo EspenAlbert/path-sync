@@ -20,12 +20,10 @@ def resolve_repo_path(dest: Destination, src_root: Path, work_dir: str) -> Path:
     raise ValueError(f"No dest_path_relative for {dest.name}, use --work-dir")
 
 
-def ensure_repo(dest: Destination, repo_path: Path, default_branch: str, dry_run: bool = False) -> Repo:
+def ensure_repo(dest: Destination, repo_path: Path, dry_run: bool = False) -> Repo:
     if repo_path.exists():
         if git_ops.is_git_repo(repo_path):
-            repo = git_ops.get_repo(repo_path)
-            git_ops.fetch_and_reset_to_default(repo, default_branch)
-            return repo
+            return git_ops.get_repo(repo_path)
         logger.warning(f"Invalid git repo at {repo_path}")
         if dry_run:
             raise ValueError(f"Invalid git repo at {repo_path}, cannot re-clone in dry-run mode")

@@ -155,7 +155,7 @@ def _process_single_repo_inner(
 ) -> RepoResult:
     logger.info(f"Processing {dest.name}...")
     repo_path = resolve_repo_path(dest, src_root, work_dir)
-    repo = ensure_repo(dest, repo_path, dest.default_branch)
+    repo = ensure_repo(dest, repo_path)
     git_ops.prepare_copy_branch(repo, dest.default_branch, config.pr.branch, from_default=True)
 
     if failure := _run_updates(config.updates, repo_path):
