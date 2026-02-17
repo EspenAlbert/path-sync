@@ -1,5 +1,5 @@
 pkg_import_name: path_sync
-version: 0.7.4
+version: 0.7.5
 groups:
 - name: config
   symbols:
@@ -435,7 +435,7 @@ groups:
   - name: CopyOptions
     module_path: _internal.cmd_copy
     docstring: ''
-    line_number: 48
+    line_number: 49
     type: class
     mro_bases:
     - BaseModel
@@ -529,6 +529,14 @@ groups:
         is_factory: false
       is_class_var: false
       is_computed: false
+    - name: work_dir
+      type_annotation: str
+      type_imports: []
+      default:
+        value_repr: ''''''
+        is_factory: false
+      is_class_var: false
+      is_computed: false
     - name: pr_title
       type_annotation: str
       type_imports: []
@@ -564,7 +572,7 @@ groups:
   - name: copy
     module_path: _internal.cmd_copy
     docstring: Copy files from SRC to DEST repositories.
-    line_number: 66
+    line_number: 68
     type: cli_command
     signature:
       parameters:
@@ -590,6 +598,13 @@ groups:
           value_repr: <typer.models.OptionInfo object>
           is_factory: false
       - name: dest_filter
+        kind: positional_or_keyword
+        type_annotation: str
+        type_imports: []
+        default:
+          value_repr: <typer.models.OptionInfo object>
+          is_factory: false
+      - name: work_dir
         kind: positional_or_keyword
         type_annotation: str
         type_imports: []
@@ -746,6 +761,15 @@ groups:
       - -d
       - --dest
       help: Filter destinations (comma-separated)
+      default_repr: ''''''
+      required: false
+      is_argument: false
+      hidden: false
+    - param_name: work_dir
+      type_annotation: str
+      flags:
+      - --work-dir
+      help: Clone repos here (overrides dest_path_relative)
       default_repr: ''''''
       required: false
       is_argument: false
@@ -1373,4 +1397,4 @@ groups:
       required: false
       is_argument: false
       hidden: false
-dumped_at: 2026-02-17 16:12:29.429552+00:00
+dumped_at: 2026-02-17 20:45:45.196557+00:00

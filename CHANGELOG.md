@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.5 2026-02-17T20-45Z
+
+### Copy
+- `copy.CopyOptions`: added optional field 'work_dir' (default: '')
+
+
 ## 0.7.4 2026-02-17T16-12Z
 
 ### Copy

@@ -16,3 +16,8 @@ change_kind: optional_field_added
 details: 'added optional field ''work_dir'' (default: '''')'
 field_name: work_dir
 group: copy
+---
+name: 0.7.5
+ts: 2026-02-17 20:45:45.247008+00:00
+type: release
+old_version: 0.7.4

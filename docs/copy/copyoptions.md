@@ -48,7 +48,7 @@ class CopyOptions(BaseModel):
 
 | Version | Change |
 |---------|--------|
-| unreleased | added optional field 'work_dir' (default: '') |
+| 0.7.5 | added optional field 'work_dir' (default: '') |
 | 0.7.0 | added optional field 'no_auto_merge' (default: False) |
 | 0.7.0 | added optional field 'no_wait' (default: False) |
 | 0.6.0 | added optional field 'skip_commit' (default: False) |
