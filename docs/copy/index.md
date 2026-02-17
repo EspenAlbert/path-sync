@@ -13,11 +13,11 @@
 <a id="copy_def"></a>
 
 ### cli_command: `copy`
-- [source](../../path_sync/_internal/cmd_copy.py#L66)
+- [source](../../path_sync/_internal/cmd_copy.py#L68)
 > **Since:** 0.4.1
 
 ```python
-def copy(*, name: str = '', config_path_opt: str = '', src_root_opt: str = '', dest_filter: str = '', dry_run: bool = False, force_overwrite: bool = False, detailed_exit_code: bool = False, no_checkout: bool = False, checkout_from_default: bool = False, skip_commit: bool = False, no_prompt: bool = False, no_pr: bool = False, pr_title: str = '', pr_labels: str = '', pr_reviewers: str = '', pr_assignees: str = '', skip_orphan_cleanup: bool = False, skip_verify: bool = False, no_wait: bool = False, no_auto_merge: bool = False) -> None:
+def copy(*, name: str = '', config_path_opt: str = '', src_root_opt: str = '', dest_filter: str = '', work_dir: str = '', dry_run: bool = False, force_overwrite: bool = False, detailed_exit_code: bool = False, no_checkout: bool = False, checkout_from_default: bool = False, skip_commit: bool = False, no_prompt: bool = False, no_pr: bool = False, pr_title: str = '', pr_labels: str = '', pr_reviewers: str = '', pr_assignees: str = '', skip_orphan_cleanup: bool = False, skip_verify: bool = False, no_wait: bool = False, no_auto_merge: bool = False) -> None:
     ...
 ```
 
@@ -31,6 +31,7 @@ Copy files from SRC to DEST repositories.
 | `-c`, `--config-path` | `str` | `''` | Full path to config file (alternative to --name) |
 | `--src-root` | `str` | `''` | Source repo root (default: find git root from cwd) |
 | `-d`, `--dest` | `str` | `''` | Filter destinations (comma-separated) |
+| `--work-dir` | `str` | `''` | Clone repos here (overrides dest_path_relative) |
 | `--dry-run` | `bool` | `False` | Preview without writing |
 | `--force-overwrite` | `bool` | `False` | Overwrite files even if header removed (opted out) |
 | `--detailed-exit-code` | `bool` | `False` | Exit 0=no changes, 1=changes, 2=error |

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-import shutil
 import subprocess
 from dataclasses import dataclass, field
 from enum import StrEnum
@@ -10,7 +9,7 @@ from pathlib import Path
 import typer
 from git import Repo
 
-from path_sync._internal import cmd_options, git_ops, prompt_utils, verify
+from path_sync._internal import cmd_options, git_ops, verify
 from path_sync._internal.auto_merge import PRRef, handle_auto_merge
 from path_sync._internal.log_capture import capture_log
 from path_sync._internal.models import Destination, OnFailStrategy, find_repo_root
@@ -19,6 +18,7 @@ from path_sync._internal.models_dep import (
     UpdateEntry,
     resolve_dep_config_path,
 )
+from path_sync._internal.repo_utils import ensure_repo, resolve_repo_path
 from path_sync._internal.typer_app import app
 from path_sync._internal.verify import StepFailure, VerifyStatus
 from path_sync._internal.yaml_utils import load_yaml_model
@@ -154,8 +154,8 @@ def _process_single_repo_inner(
     opts: DepUpdateOptions,
 ) -> RepoResult:
     logger.info(f"Processing {dest.name}...")
-    repo_path = _resolve_repo_path(dest, src_root, work_dir)
-    repo = _ensure_repo(dest, repo_path, dest.default_branch)
+    repo_path = resolve_repo_path(dest, src_root, work_dir)
+    repo = ensure_repo(dest, repo_path)
     git_ops.prepare_copy_branch(repo, dest.default_branch, config.pr.branch, from_default=True)
 
     if failure := _run_updates(config.updates, repo_path):
@@ -217,29 +217,6 @@ def _create_prs(config: DepConfig, results: list[RepoResult], opts: DepUpdateOpt
         branch_or_url = pr_url or config.pr.branch
         pr_refs.append(PRRef(dest_name=result.dest.name, repo_path=result.repo_path, branch_or_url=branch_or_url))
     return pr_refs
-
-
-def _resolve_repo_path(dest: Destination, src_root: Path, work_dir: str) -> Path:
-    if work_dir:
-        return Path(work_dir) / dest.name
-    if dest.dest_path_relative:
-        return (src_root / dest.dest_path_relative).resolve()
-    raise typer.BadParameter(f"No dest_path_relative for {dest.name}, --work-dir required")
-
-
-def _ensure_repo(dest: Destination, repo_path: Path, default_branch: str) -> Repo:
-    if repo_path.exists():
-        if git_ops.is_git_repo(repo_path):
-            repo = git_ops.get_repo(repo_path)
-            git_ops.fetch_and_reset_to_default(repo, default_branch)
-            return repo
-        logger.warning(f"Invalid git repo at {repo_path}")
-        if not prompt_utils.prompt_confirm(f"Remove {repo_path} and re-clone?"):
-            raise typer.Abort()
-        shutil.rmtree(repo_path)
-    if not dest.repo_url:
-        raise ValueError(f"Dest {dest.name} not found at {repo_path} and no repo_url configured")
-    return git_ops.clone_repo(dest.repo_url, repo_path)
 
 
 def _build_pr_body(log_content: str, failures: list[StepFailure]) -> str:

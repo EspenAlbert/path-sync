@@ -9,7 +9,6 @@ from path_sync._internal.cmd_copy import (
     CopyOptions,
     _cleanup_orphans,
     _close_stale_pr,
-    _ensure_dest_repo,
     _skip_already_synced,
     _sync_path,
 )
@@ -24,6 +23,7 @@ from path_sync._internal.models import (
     VerifyConfig,
     VerifyStep,
 )
+from path_sync._internal.repo_utils import ensure_repo
 from path_sync._internal.verify import VerifyStatus, run_verify_steps
 
 CONFIG_NAME = "test-config"
@@ -172,11 +172,11 @@ keep this
     assert "keep this" in (dest_root / "file.sh").read_text()
 
 
-def test_ensure_dest_repo_dry_run_errors_if_missing(tmp_path):
+def test_ensure_repo_dry_run_errors_if_missing(tmp_path):
     dest = _make_dest()
     dest_root = tmp_path / "missing_repo"
-    with pytest.raises(ValueError, match="Destination repo not found"):
-        _ensure_dest_repo(dest, dest_root, dry_run=True)
+    with pytest.raises(ValueError, match="dry-run"):
+        ensure_repo(dest, dest_root, dry_run=True)
 
 
 def test_copy_options_defaults():
