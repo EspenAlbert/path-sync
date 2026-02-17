@@ -1,0 +1,18 @@
+name: resolve_repo_path
+ts: 2026-02-17 17:11:39.210022+00:00
+type: keep_private
+full_path: _internal.repo_utils.resolve_repo_path
+---
+name: ensure_repo
+ts: 2026-02-17 17:11:39.210111+00:00
+type: keep_private
+full_path: _internal.repo_utils.ensure_repo
+---
+name: CopyOptions
+ts: 2026-02-17 17:11:39.671624+00:00
+type: additional_change
+auto_generated: true
+change_kind: optional_field_added
+details: 'added optional field ''work_dir'' (default: '''')'
+field_name: work_dir
+group: copy

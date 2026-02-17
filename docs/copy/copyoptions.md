@@ -2,7 +2,7 @@
 
 <!-- === DO_NOT_EDIT: pkg-ext copyoptions_def === -->
 ## class: CopyOptions
-- [source](../../path_sync/_internal/cmd_copy.py#L48)
+- [source](../../path_sync/_internal/cmd_copy.py#L49)
 > **Since:** 0.3.0
 
 ```python
@@ -18,6 +18,7 @@ class CopyOptions(BaseModel):
     skip_verify: bool = False
     no_wait: bool = False
     no_auto_merge: bool = False
+    work_dir: str = ''
     pr_title: str = ''
     labels: list[str] | None = None
     reviewers: list[str] | None = None
@@ -47,6 +48,7 @@ class CopyOptions(BaseModel):
 
 | Version | Change |
 |---------|--------|
+| unreleased | added optional field 'work_dir' (default: '') |
 | 0.7.0 | added optional field 'no_auto_merge' (default: False) |
 | 0.7.0 | added optional field 'no_wait' (default: False) |
 | 0.6.0 | added optional field 'skip_commit' (default: False) |
