@@ -221,7 +221,7 @@ def _run_copy(config: SrcConfig, src_root: Path, dest_filter: str, opts: CopyOpt
 
 
 def _close_stale_pr(dest_root: Path, copy_branch: str, opts: CopyOptions, config: SrcConfig) -> None:
-    if opts.dry_run or opts.no_pr or config.keep_pr_on_no_changes:
+    if opts.dry_run or opts.skip_commit or opts.no_pr or config.keep_pr_on_no_changes:
         return
     if git_ops.has_open_pr(dest_root, copy_branch):
         git_ops.close_pr(dest_root, copy_branch, "Closing: source and destination are in sync, no changes needed")

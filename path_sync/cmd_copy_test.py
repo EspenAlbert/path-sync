@@ -552,6 +552,14 @@ def test_close_stale_pr_skipped_when_keep_pr_on_no_changes(tmp_path: Path):
         mock_git.has_open_pr.assert_not_called()
 
 
+def test_close_stale_pr_skipped_when_skip_commit(tmp_path: Path):
+    opts = CopyOptions(skip_commit=True)
+    config = _make_src_config()
+    with patch(f"{COPY_MODULE}.git_ops") as mock_git:
+        _close_stale_pr(tmp_path, "sync/test", opts, config)
+        mock_git.has_open_pr.assert_not_called()
+
+
 def test_close_stale_pr_runs_by_default(tmp_path: Path):
     opts = CopyOptions()
     config = _make_src_config()
