@@ -70,15 +70,16 @@ class PRMergeResult(BaseModel):
         return [c for c in self.checks if c.pending]
 
 
-def enable_auto_merge(repo_path: Path, pr_ref: str, config: AutoMergeConfig) -> None:
+def enable_auto_merge(repo_path: Path, pr_ref: str, config: AutoMergeConfig, dest_name: str = "") -> None:
+    label = dest_name or pr_ref
     cmd = ["gh", "pr", "merge", "--auto", f"--{config.method}", pr_ref]
     if config.delete_branch:
         cmd.append("--delete-branch")
     result = subprocess.run(cmd, cwd=repo_path, capture_output=True, text=True)
     if result.returncode != 0:
-        logger.warning(f"Auto-merge enable failed for {pr_ref}: {result.stderr.strip()}")
+        logger.warning(f"  {label}: auto-merge enable failed: {result.stderr.strip()}")
     else:
-        logger.info(f"Enabled auto-merge ({config.method}) for {pr_ref}")
+        logger.info(f"  {label}: enabled auto-merge ({config.method})")
 
 
 def get_pr_checks(repo_path: Path, pr_ref: str) -> list[CheckRun]:
@@ -103,6 +104,7 @@ def get_pr_url(repo_path: Path, pr_ref: str) -> str:
     cmd = ["gh", "pr", "view", pr_ref, "--json", "url", "-q", ".url"]
     result = subprocess.run(cmd, cwd=repo_path, capture_output=True, text=True)
     if result.returncode != 0:
+        logger.warning(f"Failed to get PR URL for {pr_ref}: {result.stderr.strip()}")
         return pr_ref
     return result.stdout.strip() or pr_ref
 
@@ -110,19 +112,29 @@ def get_pr_url(repo_path: Path, pr_ref: str) -> str:
 def wait_for_merge(repo_path: Path, pr_ref: str, config: AutoMergeConfig, dest_name: str = "") -> PRMergeResult:
     pr_url = get_pr_url(repo_path, pr_ref)
     deadline = time.monotonic() + config.timeout_seconds
+    label = dest_name or pr_ref
+    poll_count = 0
 
     while time.monotonic() < deadline:
         state = get_pr_state(repo_path, pr_ref)
         if state == PRState.MERGED:
+            logger.info(f"{label}: merged ({pr_url})")
             return PRMergeResult(dest_name=dest_name, pr_url=pr_url, branch=pr_ref, state=PRState.MERGED)
         if state == PRState.CLOSED:
             checks = get_pr_checks(repo_path, pr_ref)
+            logger.warning(f"{label}: PR closed without merging ({pr_url})")
             return PRMergeResult(dest_name=dest_name, pr_url=pr_url, branch=pr_ref, state=PRState.CLOSED, checks=checks)
+        poll_count += 1
+        elapsed = int(config.timeout_seconds - (deadline - time.monotonic()))
+        logger.info(f"{label}: still open (poll #{poll_count}, {elapsed}s elapsed)")
         time.sleep(config.poll_interval_seconds)
 
     checks = get_pr_checks(repo_path, pr_ref)
-    logger.warning(f"Timeout waiting for {pr_ref} after {config.timeout_seconds}s")
+    logger.warning(f"Timeout waiting for {label} after {config.timeout_seconds}s ({pr_url})")
     return PRMergeResult(dest_name=dest_name, pr_url=pr_url, branch=pr_ref, state=PRState.OPEN, checks=checks)
+
+
+SEPARATOR_WIDTH = 40
 
 
 def handle_auto_merge(
@@ -133,22 +145,27 @@ def handle_auto_merge(
     if not pr_refs:
         return []
 
+    line = "─" * SEPARATOR_WIDTH
+    logger.info(f"\n{line}")
+    logger.info(" Auto-merge")
+    logger.info(line)
+
     pending_refs: list[PRRef] = []
     for ref in pr_refs:
         state = get_pr_state(ref.repo_path, ref.branch_or_url)
         if state == PRState.MERGED:
-            logger.info(f"{ref.dest_name}: already merged")
+            logger.info(f"  {ref.dest_name}: already merged")
             continue
-        enable_auto_merge(ref.repo_path, ref.branch_or_url, config)
+        enable_auto_merge(ref.repo_path, ref.branch_or_url, config, dest_name=ref.dest_name)
         pending_refs.append(ref)
 
     if no_wait:
-        logger.info("--no-wait: skipping merge polling")
+        logger.info("  --no-wait: skipping merge polling")
         return []
 
     results: list[PRMergeResult] = []
     for ref in pending_refs:
-        logger.info(f"Waiting for {ref.dest_name} to merge...")
+        logger.info(f"  Waiting for {ref.dest_name} to merge...")
         result = wait_for_merge(ref.repo_path, ref.branch_or_url, config, dest_name=ref.dest_name)
         results.append(result)
 
@@ -160,9 +177,10 @@ def _log_summary(results: list[PRMergeResult]) -> None:
     if not results:
         return
     max_name = max(len(r.dest_name) for r in results)
-    header = f"{'Repo':<{max_name}}  State    Failed Checks"
+    max_url = max(len(r.pr_url) for r in results)
+    header = f"{'Repo':<{max_name}}  {'PR':<{max_url}}  State    Failed Checks"
     logger.info(header)
     logger.info("-" * len(header))
     for r in results:
         failed = ", ".join(c.name for c in r.failed_checks)
-        logger.info(f"{r.dest_name:<{max_name}}  {r.state:<8} {failed}")
+        logger.info(f"{r.dest_name:<{max_name}}  {r.pr_url:<{max_url}}  {r.state:<8} {failed}")

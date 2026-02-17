@@ -258,8 +258,10 @@ def _sync_destination(
     dest_root = resolve_repo_path(dest, src_root, opts.work_dir)
     dest_repo = ensure_repo(dest, dest_root, dry_run=opts.dry_run)
     copy_branch = dest.resolved_copy_branch(config.name)
+    _print_dest_header(dest)
 
     if _skip_already_synced(dest.name, dest_root, copy_branch, commit_ts, opts, config):
+        typer.echo("  (already synced, skipped)", err=True)
         return 0, None
 
     if not opts.no_checkout and prompt_utils.prompt_confirm(f"Switch {dest.name} to {copy_branch}?", opts.no_prompt):
@@ -270,10 +272,10 @@ def _sync_destination(
             from_default=opts.checkout_from_default,
         )
     result = _sync_paths(config, dest, src_root, dest_root, opts)
-    _print_sync_summary(dest, result)
+    _print_sync_summary(result)
 
     if result.total == 0:
-        logger.info(f"{dest.name}: No changes")
+        typer.echo("  No changes", err=True)
         _close_stale_pr(dest_root, copy_branch, opts, config)
         return 0, None
 
@@ -304,14 +306,23 @@ def _sync_destination(
     return result.total, pr_ref
 
 
-def _print_sync_summary(dest: Destination, result: SyncResult) -> None:
-    typer.echo(f"\nSyncing to {dest.name}...", err=True)
+SEPARATOR_WIDTH = 40
+
+
+def _print_dest_header(dest: Destination) -> None:
+    line = "─" * SEPARATOR_WIDTH
+    typer.echo(f"\n{line}", err=True)
+    typer.echo(f" {dest.name}", err=True)
+    typer.echo(line, err=True)
+
+
+def _print_sync_summary(result: SyncResult) -> None:
     if result.content_changes > 0:
         typer.echo(f"  [{result.content_changes} files synced]", err=True)
     if result.orphans_deleted > 0:
         typer.echo(f"  [-] {result.orphans_deleted} orphans deleted", err=True)
     if result.total > 0:
-        typer.echo(f"\n{result.total} changes ready.", err=True)
+        typer.echo(f"  {result.total} changes ready.", err=True)
 
 
 def _sync_paths(

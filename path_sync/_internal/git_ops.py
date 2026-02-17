@@ -202,7 +202,8 @@ def update_pr_body(repo_path: Path, branch: str, body: str) -> bool:
     if result.returncode != 0:
         logger.warning(f"Failed to update PR body: {result.stderr}")
         return False
-    logger.info("Updated PR body")
+    pr_url = f"https://github.com/{repo_full}/pull/{pr_number}"
+    logger.info(f"Updated PR body: {pr_url}")
     return True
 
 
