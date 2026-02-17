@@ -53,7 +53,7 @@ Copy files from SRC to DEST repositories.
 
 | Version | Change |
 |---------|--------|
-| unreleased | fix(cmd_copy): enhance sync output with destination header and adjust summary formatting |
+| 0.7.6 | fix(cmd_copy): enhance sync output with destination header and adjust summary formatting |
 | 0.7.4 | fix(copy): skip PR close when running with --local/--skip-commit |
 | 0.7.1 | fix(cmd_copy): add warning for unknown comment prefix in sync process |
 | 0.6.0 | fix(copy): apply skip_sections when creating new files with sections |

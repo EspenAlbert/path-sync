@@ -13,3 +13,8 @@ author: Espen Albert
 changelog_message: 'fix(cmd_copy): enhance sync output with destination header and adjust summary formatting'
 message: 'fix(cmd_copy): enhance sync output with destination header and adjust summary formatting'
 short_sha: a3126a
+---
+name: 0.7.6
+ts: 2026-02-17 21:43:15.097326+00:00
+type: release
+old_version: 0.7.5

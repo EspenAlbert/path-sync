@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.7.6 2026-02-17T21-43Z
+
+### __Root__
+- fix(git_ops): include PR URL in log message after updating PR body [ee7549](https://github.com/EspenAlbert/path-sync/commit/ee7549)
+
+### Copy
+- fix(cmd_copy): enhance sync output with destination header and adjust summary formatting [a3126a](https://github.com/EspenAlbert/path-sync/commit/a3126a)
+
+
 ## 0.7.5 2026-02-17T20-45Z
 
 ### Copy
