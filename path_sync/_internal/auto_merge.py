@@ -38,6 +38,8 @@ COMPLETED_CHECK_STATES: frozenset[str] = frozenset(FAILED_CHECK_STATES | {"SUCCE
 class CheckRun(BaseModel):
     name: str
     state: str
+    workflow: str = ""
+    link: str = ""
 
     @property
     def failed(self) -> bool:
@@ -83,7 +85,7 @@ def enable_auto_merge(repo_path: Path, pr_ref: str, config: AutoMergeConfig, des
 
 
 def get_pr_checks(repo_path: Path, pr_ref: str) -> list[CheckRun]:
-    cmd = ["gh", "pr", "checks", pr_ref, "--json", "name,state"]
+    cmd = ["gh", "pr", "checks", pr_ref, "--json", "name,state,workflow,link"]
     result = subprocess.run(cmd, cwd=repo_path, capture_output=True, text=True)
     if result.returncode != 0:
         logger.warning(f"Failed to get checks for {pr_ref}: {result.stderr.strip()}")
