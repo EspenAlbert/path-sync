@@ -73,7 +73,8 @@ extend-select = ["Q", "RUF100", "C90", "UP", "I", "T", "FURB"]
 
 # === DO_NOT_EDIT: path-sync pytest ===
 [tool.pytest.ini_options]
-addopts = "-s -vv --log-cli-level=INFO"
+addopts = "-s -vv --log-cli-level=INFO -m 'not manual'"
+markers = ["manual: test requires manual env setup (not run in CI)"]
 python_files = ["*_test.py", "test_*.py"]
 asyncio_mode = "auto"
 # === OK_EDIT: path-sync pytest ===
