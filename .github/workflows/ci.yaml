@@ -70,6 +70,15 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage.xml
 
+  vulture:
+    needs: pre_job
+    if: needs.pre_job.outputs.should_skip != 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      - run: just vulture
+
   pkg-pre-commit:
     needs: pre_job
     if: needs.pre_job.outputs.should_skip != 'true'
