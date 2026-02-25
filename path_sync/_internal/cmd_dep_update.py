@@ -201,9 +201,12 @@ def _create_prs(config: DepConfig, results: list[RepoResult], opts: DepUpdateOpt
             continue
 
         repo = git_ops.get_repo(result.repo_path)
-        git_ops.push_branch(repo, config.pr.branch, force=True)
-
         body = _build_pr_body(result.log_content, result.failures)
+
+        if not git_ops.push_branch(repo, config.pr.branch, force=True):
+            git_ops.update_pr_body(result.repo_path, config.pr.branch, body)
+            continue
+
         pr_url = git_ops.create_or_update_pr(
             result.repo_path,
             config.pr.branch,

@@ -10,7 +10,7 @@ from git import GitCommandError, InvalidGitRepositoryError, NoSuchPathError, Rep
 
 logger = logging.getLogger(__name__)
 
-GH_PR_BODY_MAX_CHARS = 64536 # real limit is 65536, but we leave some buffer
+GH_PR_BODY_MAX_CHARS = 64536  # real limit is 65536, but we leave some buffer
 _TRUNCATION_NOTICE = "\n\n... (truncated, output too long for PR body)"
 
 
@@ -154,10 +154,24 @@ def _ensure_git_user(repo: Repo) -> None:
         repo.config_writer().set_value("user", "email", "path-sync[bot]@users.noreply.github.com").release()
 
 
-def push_branch(repo: Repo, branch: str, force: bool = True) -> None:
+def remote_branch_has_same_content(repo: Repo, branch: str) -> bool:
+    """Check if origin/{branch} has identical file content (tree) as local {branch}."""
+    with suppress(GitCommandError):
+        local_tree = repo.git.rev_parse(f"{branch}^{{tree}}")
+        remote_tree = repo.git.rev_parse(f"origin/{branch}^{{tree}}")
+        return local_tree == remote_tree
+    return False
+
+
+def push_branch(repo: Repo, branch: str, force: bool = True) -> bool:
+    """Push branch to origin. Returns False if skipped (content unchanged on remote)."""
+    if force and remote_branch_has_same_content(repo, branch):
+        logger.info(f"Skipping push for {branch}: content unchanged on remote")
+        return False
     logger.info(f"Pushing {branch}" + (" (force)" if force else ""))
     args = ["--force", "-u", "origin", branch] if force else ["-u", "origin", branch]
     repo.git.push(*args)
+    return True
 
 
 def _get_repo_full_name(repo_path: Path) -> str | None:
