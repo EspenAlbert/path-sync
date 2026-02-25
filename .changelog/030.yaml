@@ -1,0 +1,20 @@
+name: __ROOT__
+ts: 2026-02-25 07:05:40.310869+00:00
+type: fix
+author: Espen Albert
+changelog_message: 'fix(git-ops): truncate PR body to stay within GitHub''s 65536-char limit'
+message: 'fix(git-ops): truncate PR body to stay within GitHub''s 65536-char limit'
+short_sha: c30f60
+---
+name: remote_branch_has_same_content
+ts: 2026-02-25 07:29:42.955395+00:00
+type: keep_private
+full_path: _internal.git_ops.remote_branch_has_same_content
+---
+name: __ROOT__
+ts: 2026-02-25 07:29:47.509062+00:00
+type: fix
+author: Espen Albert
+changelog_message: 'fix: skip force-push when remote branch has same content'
+message: 'fix: skip force-push when remote branch has same content'
+short_sha: 84c7f3

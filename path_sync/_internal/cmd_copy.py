@@ -607,8 +607,10 @@ def _push_and_pr(
     if not prompt_utils.prompt_confirm(f"Push {dest.name} to origin?", opts.no_prompt):
         return None
 
-    git_ops.push_branch(repo, copy_branch, force=True)
-    typer.echo(f"  Pushed: {copy_branch} (force)", err=True)
+    if git_ops.push_branch(repo, copy_branch, force=True):
+        typer.echo(f"  Pushed: {copy_branch} (force)", err=True)
+    else:
+        typer.echo(f"  Skipped push for {copy_branch}: content unchanged on remote", err=True)
 
     if opts.no_pr or not prompt_utils.prompt_confirm(f"Create PR for {dest.name}?", opts.no_prompt):
         return None

@@ -9,7 +9,9 @@ import pytest
 from path_sync._internal import verify as verify_module
 from path_sync._internal.cmd_dep_update import (
     DepUpdateOptions,
+    RepoResult,
     Status,
+    _create_prs,
     _process_single_repo,
     _run_updates,
     _update_and_validate,
@@ -197,3 +199,49 @@ def test_update_and_validate_keeps_pr_when_config_flag_set(
         assert not results
         git_ops.has_open_pr.assert_not_called()
         git_ops.close_pr.assert_not_called()
+
+
+# --- _create_prs tests ---
+
+CREATE_PRS_MODULE = _create_prs.__module__
+
+
+def test_create_prs_skips_push_when_content_unchanged(config: DepConfig, tmp_path: Path):
+    result = RepoResult(
+        dest=Destination(name="test-repo", dest_path_relative="code/test-repo", default_branch="main"),
+        repo_path=tmp_path,
+        status=Status.PASSED,
+        log_content="some output",
+    )
+    opts = DepUpdateOptions()
+
+    with patch(f"{CREATE_PRS_MODULE}.git_ops") as git_ops:
+        git_ops.get_repo.return_value = MagicMock()
+        git_ops.push_branch.return_value = False
+
+        pr_refs = _create_prs(config, [result], opts)
+
+        git_ops.create_or_update_pr.assert_not_called()
+        git_ops.update_pr_body.assert_called_once()
+        assert not pr_refs
+
+
+def test_create_prs_pushes_when_content_changed(config: DepConfig, tmp_path: Path):
+    result = RepoResult(
+        dest=Destination(name="test-repo", dest_path_relative="code/test-repo", default_branch="main"),
+        repo_path=tmp_path,
+        status=Status.PASSED,
+        log_content="some output",
+    )
+    opts = DepUpdateOptions()
+
+    with patch(f"{CREATE_PRS_MODULE}.git_ops") as git_ops:
+        git_ops.get_repo.return_value = MagicMock()
+        git_ops.push_branch.return_value = True
+        git_ops.create_or_update_pr.return_value = "https://github.com/test/pr/1"
+
+        pr_refs = _create_prs(config, [result], opts)
+
+        git_ops.push_branch.assert_called_once_with(git_ops.get_repo.return_value, "chore/deps", force=True)
+        git_ops.create_or_update_pr.assert_called_once()
+        assert len(pr_refs) == 1
