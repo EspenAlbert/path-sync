@@ -4,7 +4,50 @@ from pathlib import Path
 
 from git import Repo
 
-from path_sync._internal.git_ops import remote_branch_has_same_content
+from path_sync._internal.git_ops import (
+    GH_PR_BODY_MAX_CHARS,
+    _truncate_body,
+    remote_branch_has_same_content,
+)
+
+
+def test_truncate_body_short_unchanged():
+    body = "short body"
+    assert _truncate_body(body) == body
+
+
+def test_truncate_body_at_limit_unchanged():
+    body = "x" * GH_PR_BODY_MAX_CHARS
+    assert _truncate_body(body) == body
+
+
+def test_truncate_body_over_limit():
+    body = "x" * (GH_PR_BODY_MAX_CHARS + 500)
+    result = _truncate_body(body)
+    assert len(result) == GH_PR_BODY_MAX_CHARS
+    assert result.endswith("... (truncated, output too long for PR body)")
+
+
+def test_truncate_body_closes_open_code_fence():
+    prefix = "## Command Output\n\n```\n"
+    filler = "log line\n" * 10_000
+    body = prefix + filler
+    assert len(body) > GH_PR_BODY_MAX_CHARS
+
+    result = _truncate_body(body)
+    assert len(result) <= GH_PR_BODY_MAX_CHARS
+    assert "\n```\n" in result[len(prefix) :]
+    assert result.endswith("... (truncated, output too long for PR body)")
+
+
+def test_truncate_body_no_extra_fence_when_closed():
+    prefix = "## Output\n\n```\nsome log\n```\n\nmore text\n"
+    filler = "x" * GH_PR_BODY_MAX_CHARS
+    body = prefix + filler
+
+    result = _truncate_body(body)
+    assert len(result) == GH_PR_BODY_MAX_CHARS
+    assert "```\n\n... (truncated" not in result
 
 
 def _init_repo_with_remote(tmp_path: Path) -> tuple[Repo, Repo]:

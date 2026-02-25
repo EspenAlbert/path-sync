@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 import os
+import re
 import subprocess
 from contextlib import suppress
 from pathlib import Path
@@ -12,12 +13,17 @@ logger = logging.getLogger(__name__)
 
 GH_PR_BODY_MAX_CHARS = 64536  # real limit is 65536, but we leave some buffer
 _TRUNCATION_NOTICE = "\n\n... (truncated, output too long for PR body)"
+_CODE_FENCE_RE = re.compile(r"^`{3,}", re.MULTILINE)
 
 
 def _truncate_body(body: str) -> str:
     if len(body) <= GH_PR_BODY_MAX_CHARS:
         return body
-    return body[: GH_PR_BODY_MAX_CHARS - len(_TRUNCATION_NOTICE)] + _TRUNCATION_NOTICE
+    cut = GH_PR_BODY_MAX_CHARS - len(_TRUNCATION_NOTICE)
+    truncated = body[:cut]
+    fence_count = len(_CODE_FENCE_RE.findall(truncated))
+    suffix = "\n```" + _TRUNCATION_NOTICE if fence_count % 2 else _TRUNCATION_NOTICE
+    return truncated[: GH_PR_BODY_MAX_CHARS - len(suffix)] + suffix
 
 
 def _auth_url(url: str) -> str:
