@@ -18,3 +18,8 @@ author: Espen Albert
 changelog_message: 'fix: skip force-push when remote branch has same content'
 message: 'fix: skip force-push when remote branch has same content'
 short_sha: 84c7f3
+---
+name: 0.7.7
+ts: 2026-02-25 11:32:14.924509+00:00
+type: release
+old_version: 0.7.6

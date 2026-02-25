@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.7.7 2026-02-25T11-32Z
+
+### __Root__
+- fix(git-ops): truncate PR body to stay within GitHub's 65536-char limit [c30f60](https://github.com/EspenAlbert/path-sync/commit/c30f60)
+- fix: skip force-push when remote branch has same content [84c7f3](https://github.com/EspenAlbert/path-sync/commit/84c7f3)
+
+
 ## 0.7.6 2026-02-17T21-43Z
 
 ### __Root__
