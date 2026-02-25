@@ -10,6 +10,15 @@ from git import GitCommandError, InvalidGitRepositoryError, NoSuchPathError, Rep
 
 logger = logging.getLogger(__name__)
 
+GH_PR_BODY_MAX_CHARS = 64536 # real limit is 65536, but we leave some buffer
+_TRUNCATION_NOTICE = "\n\n... (truncated, output too long for PR body)"
+
+
+def _truncate_body(body: str) -> str:
+    if len(body) <= GH_PR_BODY_MAX_CHARS:
+        return body
+    return body[: GH_PR_BODY_MAX_CHARS - len(_TRUNCATION_NOTICE)] + _TRUNCATION_NOTICE
+
 
 def _auth_url(url: str) -> str:
     """Inject GH_TOKEN into HTTPS URL for authentication."""
@@ -189,6 +198,7 @@ def update_pr_body(repo_path: Path, branch: str, body: str) -> bool:
     if not pr_number:
         return False
 
+    body = _truncate_body(body)
     cmd = [
         "gh",
         "api",
@@ -243,8 +253,9 @@ def create_or_update_pr(
     reviewers: list[str] | None = None,
     assignees: list[str] | None = None,
 ) -> str:
+    body = _truncate_body(body) if body else ""
     cmd = ["gh", "pr", "create", "--head", branch, "--title", title]
-    cmd.extend(["--body", body or ""])
+    cmd.extend(["--body", body])
     if labels:
         cmd.extend(["--label", ",".join(labels)])
     if reviewers:
