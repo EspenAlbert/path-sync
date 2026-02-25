@@ -55,6 +55,7 @@ def _init_repo_with_remote(tmp_path: Path) -> tuple[Repo, Repo]:
     """Create a bare 'remote' and a clone that points to it."""
     bare_path = tmp_path / "remote.git"
     bare = Repo.init(bare_path, bare=True)
+    bare.git.symbolic_ref("HEAD", "refs/heads/main")
 
     clone_path = tmp_path / "clone"
     clone = Repo.clone_from(str(bare_path), str(clone_path))
