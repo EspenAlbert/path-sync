@@ -106,6 +106,7 @@ dev-test = [
   "pytest>=9.0",
   "pytest-asyncio>=0.24",
   "pytest-cov>=7.0",
+  "pytest-examples>=0.0.18",
   "pytest-regressions>=2.6",
 ]
 # === OK_EDIT: path-sync dev-test ===
