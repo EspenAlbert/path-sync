@@ -16,7 +16,9 @@ logger = logging.getLogger(__name__)
 @app.command("validate-no-changes")
 def validate_no_changes(
     branch: str = typer.Option(
-        "main", "-b", "--branch",
+        "main",
+        "-b",
+        "--branch",
         help="Branch to compare against (default: main; uses GITHUB_BASE_REF when set and -b not passed)",
         envvar="GITHUB_BASE_REF",
     ),
@@ -43,6 +45,7 @@ def validate_no_changes(
         logger.info(f"On base branch {branch}, validation skipped")
         return
 
+    logger.info(f"Validating changes against branch {branch}")
     skip_sections = parse_skip_sections(skip_sections_opt) if skip_sections_opt else None
     unauthorized = validate_no_unauthorized_changes(repo_root, branch, skip_sections)
 

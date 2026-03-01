@@ -37,7 +37,7 @@ vulture:
 
 # === DO_NOT_EDIT: path-sync path-sync ===
 path-sync-validate:
-  uv run path-sync validate-no-changes -n python-template
+  uv run path-sync validate-no-changes
 # === OK_EDIT: path-sync path-sync ===
 
 # === DO_NOT_EDIT: path-sync coverage ===
