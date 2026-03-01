@@ -80,8 +80,10 @@ By default, prompts before each git operation. See [Usage Scenarios](#usage-scen
 uvx path-sync validate-no-changes -b main
 ```
 
+In CI, when the workflow runs on `pull_request`, the comparison branch is the PR base. On `push` or locally, pass `-b` with the branch to compare against (e.g. `-b SDLC` for a branch based on SDLC).
+
 Options:
-- `-b, --branch` - Default branch to compare against (default: main)
+- `-b, --branch` - Branch to compare against (default: main). When `GITHUB_BASE_REF` is set (e.g. in GitHub Actions), it overrides the default so CI can use the PR base without passing `-b`. If you set `GITHUB_BASE_REF`, use a non-empty branch name.
 - `--skip-sections` - Comma-separated `path:section_id` pairs to skip (e.g., `justfile:coverage`)
 
 ## Usage Scenarios
@@ -358,7 +360,10 @@ jobs:
         with:
           fetch-depth: 0
       - uses: astral-sh/setup-uv@v5
-      - run: uvx path-sync validate-no-changes -b main
+      - name: Validate no changes to synced files
+        env:
+          GITHUB_BASE_REF: ${{ github.base_ref || 'main' }}
+        run: uvx path-sync validate-no-changes
 ```
 
 **Validation skips automatically when:**

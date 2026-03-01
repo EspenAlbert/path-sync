@@ -1,0 +1,7 @@
+name: validate_no_changes
+ts: 2026-03-01 07:26:09.172446+00:00
+type: fix
+author: EspenAlbert
+changelog_message: 'fix: Allows using GITHUB_BASE_REF when validating no changes'
+message: 'fix: Allows using GITHUB_BASE_REF when validating no changes'
+short_sha: '257563'
