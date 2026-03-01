@@ -23,15 +23,16 @@ Validate no unauthorized changes to synced files.
 
 **CLI Options:**
 
-| Flag | Type | Default | Description |
-|---|---|---|---|
-| `-b`, `--branch` | `str` | `'main'` | Default branch to compare against |
-| `--skip-sections` | `str` | `''` | Comma-separated path:section_id pairs to skip (e.g., 'justfile:coverage,pyproject.toml:default') |
-| `--src-root` | `str` | `''` | Source repo root (default: find git root from cwd) |
+| Flag | Type | Default | Env Var | Description |
+|---|---|---|---|---|
+| `-b`, `--branch` | `str` | `'main'` | `GITHUB_BASE_REF` | Branch to compare against (default: main; uses GITHUB_BASE_REF when set and -b not passed) |
+| `--skip-sections` | `str` | `''` | - | Comma-separated path:section_id pairs to skip (e.g., 'justfile:coverage,pyproject.toml:default') |
+| `--src-root` | `str` | `''` | - | Source repo root (default: find git root from cwd) |
 
 ### Changes
 
 | Version | Change |
 |---------|--------|
+| unreleased | fix: Allows using GITHUB_BASE_REF when validating no changes |
 | 0.4.1 | Made public |
 <!-- === OK_EDIT: pkg-ext validate_no_changes_def === -->
