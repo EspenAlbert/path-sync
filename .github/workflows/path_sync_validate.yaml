@@ -6,6 +6,10 @@ on:
     branches-ignore:
       - main
       - 'sync/**'
+  pull_request:
+    branches-ignore:
+      - main
+      - 'sync/**'
 
 jobs:
   validate:
@@ -16,4 +20,6 @@ jobs:
           fetch-depth: 0
       - uses: ./.github/actions/setup
       - name: Validate no changes to synced files
-        run: uvx path-sync validate-no-changes -b main
+        env:
+          GITHUB_BASE_REF: ${{ github.base_ref || 'main' }}
+        run: uvx path-sync validate-no-changes
