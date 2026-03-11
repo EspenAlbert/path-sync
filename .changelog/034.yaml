@@ -5,3 +5,8 @@ author: EspenAlbert
 changelog_message: 'fix: Allows using GITHUB_BASE_REF when validating no changes'
 message: 'fix: Allows using GITHUB_BASE_REF when validating no changes'
 short_sha: '257563'
+---
+name: 0.7.8
+ts: 2026-03-11 07:06:46.969822+00:00
+type: release
+old_version: 0.7.7

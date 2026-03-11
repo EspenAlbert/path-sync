@@ -33,6 +33,6 @@ Validate no unauthorized changes to synced files.
 
 | Version | Change |
 |---------|--------|
-| unreleased | fix: Allows using GITHUB_BASE_REF when validating no changes |
+| 0.7.8 | fix: Allows using GITHUB_BASE_REF when validating no changes |
 | 0.4.1 | Made public |
 <!-- === OK_EDIT: pkg-ext validate_no_changes_def === -->

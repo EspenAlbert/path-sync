@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.8 2026-03-11T07-06Z
+
+### Validate_No_Changes
+- fix: Allows using GITHUB_BASE_REF when validating no changes [257563](https://github.com/EspenAlbert/path-sync/commit/257563)
+
+
 ## 0.7.7 2026-02-25T11-32Z
 
 ### __Root__
