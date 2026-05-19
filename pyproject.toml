@@ -124,3 +124,12 @@ docs = [
 # === DO_NOT_EDIT: path-sync release ===
 release = ["pkg-ext"]
 # === OK_EDIT: path-sync release ===
+# === DO_NOT_EDIT: path-sync wheel ===
+[tool.hatch.build.targets.wheel]
+exclude = [
+  "*_examples.py",
+  "*_test.py",
+  "conftest.py",
+  "*_test/",
+]
+# === OK_EDIT: path-sync wheel ===
