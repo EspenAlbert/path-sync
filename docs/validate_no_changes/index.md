@@ -15,8 +15,7 @@
 > **Since:** 0.4.1
 
 ```python
-def validate_no_changes(*, branch: str = 'main', skip_sections_opt: str = '', src_root_opt: str = '') -> None:
-    ...
+def validate_no_changes(*, branch: str = "main", skip_sections_opt: str = "", src_root_opt: str = "") -> None: ...
 ```
 
 Validate no unauthorized changes to synced files.

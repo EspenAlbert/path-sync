@@ -8,9 +8,9 @@
 ```python
 class SrcConfig(BaseModel):
     name: str
-    git_remote: str = 'origin'
-    src_repo_url: str = ''
-    schedule: str = '0 6 * * *'
+    git_remote: str = "origin"
+    src_repo_url: str = ""
+    schedule: str = "0 6 * * *"
     header_config: HeaderConfig = ...
     pr_defaults: PRDefaults = ...
     paths: list[PathMapping] = ...

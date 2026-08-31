@@ -18,8 +18,8 @@ class CopyOptions(BaseModel):
     skip_verify: bool = False
     no_wait: bool = False
     no_auto_merge: bool = False
-    work_dir: str = ''
-    pr_title: str = ''
+    work_dir: str = ""
+    pr_title: str = ""
     labels: list[str] | None = None
     reviewers: list[str] | None = None
     assignees: list[str] | None = None

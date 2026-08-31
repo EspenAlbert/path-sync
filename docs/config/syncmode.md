@@ -6,8 +6,7 @@
 > **Since:** 0.3.0
 
 ```python
-class SyncMode(StrEnum):
-    ...
+class SyncMode(StrEnum): ...
 ```
 <!-- === OK_EDIT: pkg-ext syncmode_def === -->
 
