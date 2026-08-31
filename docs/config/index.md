@@ -52,8 +52,7 @@ class AutoMergeConfig(BaseModel):
 > **Since:** 0.7.0
 
 ```python
-class MergeMethod(StrEnum):
-    ...
+class MergeMethod(StrEnum): ...
 ```
 
 ### Changes

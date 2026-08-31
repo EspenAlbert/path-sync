@@ -77,7 +77,7 @@ def enable_auto_merge(repo_path: Path, pr_ref: str, config: AutoMergeConfig, des
     cmd = ["gh", "pr", "merge", "--auto", f"--{config.method}", pr_ref]
     if config.delete_branch:
         cmd.append("--delete-branch")
-    result = subprocess.run(cmd, cwd=repo_path, capture_output=True, text=True)
+    result = subprocess.run(cmd, cwd=repo_path, capture_output=True, text=True, check=False)
     if result.returncode != 0:
         logger.warning(f"  {label}: auto-merge enable failed: {result.stderr.strip()}")
     else:
@@ -86,7 +86,7 @@ def enable_auto_merge(repo_path: Path, pr_ref: str, config: AutoMergeConfig, des
 
 def get_pr_checks(repo_path: Path, pr_ref: str) -> list[CheckRun]:
     cmd = ["gh", "pr", "checks", pr_ref, "--json", "name,state,workflow,link"]
-    result = subprocess.run(cmd, cwd=repo_path, capture_output=True, text=True)
+    result = subprocess.run(cmd, cwd=repo_path, capture_output=True, text=True, check=False)
     if result.returncode != 0:
         logger.warning(f"Failed to get checks for {pr_ref}: {result.stderr.strip()}")
         return []
@@ -95,7 +95,7 @@ def get_pr_checks(repo_path: Path, pr_ref: str) -> list[CheckRun]:
 
 def get_pr_state(repo_path: Path, pr_ref: str) -> PRState:
     cmd = ["gh", "pr", "view", pr_ref, "--json", "state", "-q", ".state"]
-    result = subprocess.run(cmd, cwd=repo_path, capture_output=True, text=True)
+    result = subprocess.run(cmd, cwd=repo_path, capture_output=True, text=True, check=False)
     if result.returncode != 0:
         logger.warning(f"Failed to get PR state for {pr_ref}: {result.stderr.strip()}")
         return PRState.OPEN
@@ -104,7 +104,7 @@ def get_pr_state(repo_path: Path, pr_ref: str) -> PRState:
 
 def get_pr_url(repo_path: Path, pr_ref: str) -> str:
     cmd = ["gh", "pr", "view", pr_ref, "--json", "url", "-q", ".url"]
-    result = subprocess.run(cmd, cwd=repo_path, capture_output=True, text=True)
+    result = subprocess.run(cmd, cwd=repo_path, capture_output=True, text=True, check=False)
     if result.returncode != 0:
         logger.warning(f"Failed to get PR URL for {pr_ref}: {result.stderr.strip()}")
         return pr_ref

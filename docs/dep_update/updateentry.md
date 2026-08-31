@@ -7,7 +7,7 @@
 
 ```python
 class UpdateEntry(BaseModel):
-    workdir: str = '.'
+    workdir: str = "."
     command: str
 ```
 <!-- === OK_EDIT: pkg-ext updateentry_def === -->
