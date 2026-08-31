@@ -23,8 +23,19 @@
 > **Since:** 0.4.0
 
 ```python
-def dep_update(*, name: str = ..., dest_filter: str = '', work_dir: str = '', dry_run: bool = False, skip_verify: bool = False, no_wait: bool = False, no_auto_merge: bool = False, src_root_opt: str = '', pr_reviewers: str = '', pr_assignees: str = '') -> None:
-    ...
+def dep_update(
+    *,
+    name: str = ...,
+    dest_filter: str = "",
+    work_dir: str = "",
+    dry_run: bool = False,
+    skip_verify: bool = False,
+    no_wait: bool = False,
+    no_auto_merge: bool = False,
+    src_root_opt: str = "",
+    pr_reviewers: str = "",
+    pr_assignees: str = "",
+) -> None: ...
 ```
 
 Run dependency updates across repositories.

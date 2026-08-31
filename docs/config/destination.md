@@ -8,10 +8,10 @@
 ```python
 class Destination(BaseModel):
     name: str
-    repo_url: str = ''
+    repo_url: str = ""
     dest_path_relative: str
-    copy_branch: str = ''
-    default_branch: str = 'main'
+    copy_branch: str = ""
+    default_branch: str = "main"
     skip_sections: dict[str, list[str]] = ...
     skip_file_patterns: set[str] = ...
     include_groups: list[str] = ...

@@ -6,8 +6,7 @@
 > **Since:** 0.4.0
 
 ```python
-class OnFailStrategy(StrEnum):
-    ...
+class OnFailStrategy(StrEnum): ...
 ```
 <!-- === OK_EDIT: pkg-ext onfailstrategy_def === -->
 

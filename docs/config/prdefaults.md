@@ -10,9 +10,9 @@ class PRDefaults(PRFieldsBase):
     labels: list[str] = ...
     reviewers: list[str] = ...
     assignees: list[str] = ...
-    title: str = 'chore: sync {name} files'
-    body_template: str = '<!-- path-sync: sha={src_sha_short} ts={src_commit_ts} -->\nSynced from [{src_repo_name}]({src_repo_url}) @ `{src_sha_short}` ({src_commit_ts})\n\n<details>\n<summary>Sync Log</summary>\n\n```\n{sync_log}\n```\n\n</details>\n'
-    body_suffix: str = ''
+    title: str = "chore: sync {name} files"
+    body_template: str = "<!-- path-sync: sha={src_sha_short} ts={src_commit_ts} -->\nSynced from [{src_repo_name}]({src_repo_url}) @ `{src_sha_short}` ({src_commit_ts})\n\n<details>\n<summary>Sync Log</summary>\n\n```\n{sync_log}\n```\n\n</details>\n"
+    body_suffix: str = ""
 ```
 <!-- === OK_EDIT: pkg-ext prdefaults_def === -->
 
