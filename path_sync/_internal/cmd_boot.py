@@ -24,8 +24,8 @@ logger = logging.getLogger(__name__)
 @app.command()
 def boot(
     name: str = typer.Option(..., "-n", "--name", help="Config name"),
-    dest_paths: Annotated[list[str], typer.Option("-d", "--dest", help="Destination relative paths")] = [],
-    sync_paths: Annotated[list[str], typer.Option("-p", "--path", help="Paths to sync (glob patterns)")] = [],
+    dest_paths: Annotated[list[str] | None, typer.Option("-d", "--dest", help="Destination relative paths")] = None,
+    sync_paths: Annotated[list[str] | None, typer.Option("-p", "--path", help="Paths to sync (glob patterns)")] = None,
     dry_run: bool = typer.Option(False, "--dry-run", help="Preview without writing"),
     regen: bool = typer.Option(False, "--regen", help="Regenerate config"),
     src_root_opt: str = typer.Option(
@@ -35,6 +35,10 @@ def boot(
     ),
 ) -> None:
     """Initialize or update SRC repo config."""
+    if sync_paths is None:
+        sync_paths = []
+    if dest_paths is None:
+        dest_paths = []
     repo_root = Path(src_root_opt) if src_root_opt else find_repo_root(Path.cwd())
     config_path = resolve_config_path(repo_root, name)
 
