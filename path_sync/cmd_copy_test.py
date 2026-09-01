@@ -31,7 +31,7 @@ CONFIG_NAME = "test-config"
 
 def _make_dest(**kwargs) -> Destination:
     defaults = {"name": "test", "dest_path_relative": "."}
-    return Destination(**(defaults | kwargs))  # pyright: ignore[reportArgumentType]
+    return Destination.model_validate(defaults | kwargs)
 
 
 def test_sync_single_file(tmp_path):
@@ -541,7 +541,7 @@ COPY_MODULE = _close_stale_pr.__module__
 
 def _make_src_config(**kwargs) -> SrcConfig:
     defaults = {"name": "test", "destinations": []}
-    return SrcConfig(**(defaults | kwargs))
+    return SrcConfig.model_validate(defaults | kwargs)
 
 
 def test_close_stale_pr_skipped_when_keep_pr_on_no_changes(tmp_path: Path):
