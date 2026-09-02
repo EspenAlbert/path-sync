@@ -1,15 +1,73 @@
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 from git import Repo
 
+from path_sync._internal import git_ops
 from path_sync._internal.git_ops import (
     GH_PR_BODY_MAX_CHARS,
     _truncate_body,
     push_branch,
     remote_branch_has_same_content,
 )
+
+
+def _commit_file(repo: Repo, root: Path, rel: str, content: str, when: str = "") -> None:
+    path = root / rel
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(content)
+    repo.index.add([rel])
+    env = os.environ.copy()
+    if when:
+        env["GIT_AUTHOR_DATE"] = when
+        env["GIT_COMMITTER_DATE"] = when
+    repo.git.commit("-m", "commit", env=env)
+
+
+def test_path_is_dirty_clean(tmp_repo):
+    repo = git_ops.get_repo(tmp_repo)
+    path = tmp_repo / "clean.txt"
+    path.write_text("x")
+    _commit_file(repo, tmp_repo, "clean.txt", "x")
+    assert git_ops.path_porcelain_status(repo, path) is None
+    assert not git_ops.path_is_dirty(repo, path)
+
+
+def test_path_is_dirty_modified(tmp_repo):
+    repo = git_ops.get_repo(tmp_repo)
+    path = tmp_repo / "dirty.txt"
+    _commit_file(repo, tmp_repo, "dirty.txt", "a")
+    path.write_text("b")
+    assert git_ops.path_is_dirty(repo, path)
+
+
+def test_path_is_dirty_untracked(tmp_repo):
+    repo = git_ops.get_repo(tmp_repo)
+    path = tmp_repo / "new.txt"
+    path.write_text("new")
+    assert git_ops.path_is_dirty(repo, path)
+
+
+def test_file_last_commit_unix_missing_path(tmp_repo):
+    repo = git_ops.get_repo(tmp_repo)
+    path = tmp_repo / "never.txt"
+    path.write_text("x")
+    assert git_ops.file_last_commit_unix(repo, path) is None
+
+
+def test_file_last_commit_unix(tmp_repo):
+    repo = git_ops.get_repo(tmp_repo)
+    when = "2026-09-01T12:00:00+0000"
+    _commit_file(repo, tmp_repo, "dated.txt", "v1", when)
+    path = tmp_repo / "dated.txt"
+    ts = git_ops.file_last_commit_unix(repo, path)
+    assert ts is not None
+    _commit_file(repo, tmp_repo, "dated.txt", "v2", "2026-10-01T12:00:00+0000")
+    ts2 = git_ops.file_last_commit_unix(repo, path)
+    assert ts is not None and ts2 is not None
+    assert ts2 > ts
 
 
 def test_truncate_body_short_unchanged():
@@ -52,7 +110,6 @@ def test_truncate_body_no_extra_fence_when_closed():
 
 
 def _init_repo_with_remote(tmp_path: Path) -> tuple[Repo, Repo]:
-    """Create a bare 'remote' and a clone that points to it."""
     bare_path = tmp_path / "remote.git"
     bare = Repo.init(bare_path, bare=True)
     bare.git.symbolic_ref("HEAD", "refs/heads/main")
@@ -74,7 +131,6 @@ def test_same_content_returns_true(tmp_path: Path):
     clone.index.commit("first")
     clone.git.push("-u", "origin", "feature")
 
-    # New commit with same tree (content unchanged)
     clone.git.commit("--allow-empty", "-m", "second")
 
     assert remote_branch_has_same_content(clone, "feature")

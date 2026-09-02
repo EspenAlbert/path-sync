@@ -315,3 +315,21 @@ def get_file_content_at_ref(repo: Repo, file_path: Path, ref: str) -> str | None
     with suppress(GitCommandError):
         return repo.git.show(f"{ref}:{rel_path}")
     return None
+
+
+def path_porcelain_status(repo: Repo, file_path: Path) -> str | None:
+    rel_path = str(file_path.relative_to(repo.working_dir))
+    status = repo.git.status("--porcelain", "--", rel_path).strip()
+    return status or None
+
+
+def path_is_dirty(repo: Repo, file_path: Path) -> bool:
+    return path_porcelain_status(repo, file_path) is not None
+
+
+def file_last_commit_unix(repo: Repo, file_path: Path) -> int | None:
+    rel_path = str(file_path.relative_to(repo.working_dir))
+    with suppress(GitCommandError):
+        ts = repo.git.log("-1", "--format=%ct", "--", rel_path).strip()
+        return int(ts) if ts else None
+    return None
