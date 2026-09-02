@@ -19,6 +19,12 @@ groups:
   owned_refs:
   - _internal.cmd_copy.CopyOptions
   - _internal.cmd_copy.copy
+- name: pull
+  owned_modules:
+  - _internal.cmd_pull
+  owned_refs:
+  - _internal.cmd_pull.PullOptions
+  - _internal.cmd_pull.pull
 - name: dep_update
   owned_modules:
   - _internal.cmd_dep_update
