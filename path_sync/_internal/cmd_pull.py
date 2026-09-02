@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from enum import StrEnum
 from pathlib import Path
+from typing import NamedTuple
 
 import typer
 from git import Repo
@@ -17,6 +18,7 @@ from path_sync._internal.cmd_copy import _iter_sync_files
 from path_sync._internal.file_utils import ensure_parents_write_text
 from path_sync._internal.models import (
     Destination,
+    PathMapping,
     SrcConfig,
     SyncMode,
     find_repo_root,
@@ -38,6 +40,12 @@ class PullKind(StrEnum):
 class PullOptions(BaseModel):
     dry_run: bool = False
     show_only: bool = False
+    dest_only: bool = False
+
+
+class _DestFileMap(NamedTuple):
+    src_path: Path
+    dest_key: str
 
 
 @dataclass
@@ -47,9 +55,10 @@ class PullCandidate:
     dest_key: str
     kind: PullKind
     section_ids: list[str]
-    dest_ts: int
-    src_ts: int
+    dest_ts: int | None
+    src_ts: int | None
     skip_sections: list[str]
+    dest_only: bool = False
 
 
 def _validate_dest_name(dest: str) -> str:
@@ -112,6 +121,81 @@ def _collect_mapped_candidates(
             )
             if candidate:
                 candidates.append(candidate)
+    return candidates
+
+
+def _src_for_dest_file(
+    mapping: PathMapping,
+    dest_path: Path,
+    src_root: Path,
+    dest_root: Path,
+) -> _DestFileMap | None:
+    if "*" in mapping.src_path:
+        glob_prefix = mapping.src_path.split("*")[0].rstrip("/")
+        dest_base = mapping.dest_path or glob_prefix
+        src_base = glob_prefix
+    elif (dest_root / mapping.resolved_dest_path()).is_dir():
+        dest_base = mapping.resolved_dest_path()
+        src_base = mapping.src_path
+    elif dest_path == dest_root / mapping.resolved_dest_path():
+        dest_base = mapping.resolved_dest_path()
+        return _DestFileMap(src_root / mapping.src_path, dest_base)
+    else:
+        return None
+
+    dest_anchor = dest_root / dest_base
+    if dest_path.is_relative_to(dest_anchor):
+        rel = dest_path.relative_to(dest_anchor)
+        return _DestFileMap(src_root / src_base / rel, str(Path(dest_base) / rel))
+    return None
+
+
+def _dest_only_candidate(src_path: Path, dest_path: Path, dest_key: str) -> PullCandidate:
+    try:
+        dest_path.read_text()
+    except UnicodeDecodeError:
+        kind = PullKind.BINARY
+    else:
+        kind = PullKind.WHOLE
+    return PullCandidate(
+        src_path=src_path,
+        dest_path=dest_path,
+        dest_key=dest_key,
+        kind=kind,
+        section_ids=[],
+        dest_ts=None,
+        src_ts=None,
+        skip_sections=[],
+        dest_only=True,
+    )
+
+
+def _collect_dest_only_candidates(
+    config: SrcConfig,
+    dest: Destination,
+    src_root: Path,
+    dest_root: Path,
+    dest_repo: Repo,
+    skip_keys: set[str],
+) -> list[PullCandidate]:
+    candidates: list[PullCandidate] = []
+    seen = set(skip_keys)
+    for mapping in config.resolve_paths(dest):
+        if mapping.sync_mode == SyncMode.SCAFFOLD:
+            continue
+        for dest_path in mapping.expand_dest_paths(dest_root):
+            if dest_path.is_dir() or mapping.is_excluded(dest_path):
+                continue
+            mapped = _src_for_dest_file(mapping, dest_path, src_root, dest_root)
+            if mapped is None:
+                continue
+            if dest.is_skipped(mapped.dest_key) or mapped.src_path.exists() or mapped.dest_key in seen:
+                continue
+            if git_ops.path_is_tracked_dirty(dest_repo, dest_path):
+                logger.warning(f"Skipping dirty dest path: {dest_path}")
+                continue
+            seen.add(mapped.dest_key)
+            candidates.append(_dest_only_candidate(mapped.src_path, dest_path, mapped.dest_key))
     return candidates
 
 
@@ -187,13 +271,18 @@ def _candidate_for_path(
 
 def _format_candidate_line(candidate: PullCandidate, src_root: Path) -> str:
     rel = str(candidate.src_path.relative_to(src_root))
+    if candidate.dest_only:
+        return f"  {rel:<30}  dest-only"
     if candidate.kind == PullKind.SECTIONS:
         detail = f"sections: {', '.join(candidate.section_ids)}"
     elif candidate.kind == PullKind.WHOLE:
         detail = "whole file"
     else:
         detail = "binary"
-    ts = f"dest {_format_unix(candidate.dest_ts)} > src {_format_unix(candidate.src_ts)}"
+    dest_ts = candidate.dest_ts
+    src_ts = candidate.src_ts
+    assert dest_ts is not None and src_ts is not None
+    ts = f"dest {_format_unix(dest_ts)} > src {_format_unix(src_ts)}"
     return f"  {rel:<30}  {detail:<30}  {ts}"
 
 
@@ -235,6 +324,9 @@ def _run_pull(config: SrcConfig, dest: Destination, src_root: Path, opts: PullOp
     src_repo = git_ops.get_repo(src_root)
     dest_repo = git_ops.get_repo(dest_root)
     candidates = _collect_mapped_candidates(config, dest, src_root, dest_root, src_repo, dest_repo)
+    if opts.dest_only:
+        skip_keys = {c.dest_key for c in candidates}
+        candidates.extend(_collect_dest_only_candidates(config, dest, src_root, dest_root, dest_repo, skip_keys))
 
     if not candidates:
         typer.echo("No pull candidates.", err=True)
@@ -257,8 +349,9 @@ def pull(
     dest_name: str = typer.Option(..., "-d", "--dest", help="Destination name (exactly one)"),
     dry_run: bool = typer.Option(False, "--dry-run", help="Print candidates without writing"),
     show_only: bool = typer.Option(False, "--show-only", help="Print candidates without writing"),
+    dest_only: bool = typer.Option(False, "--dest-only", help="Also harvest dest files with no src counterpart"),
 ) -> None:
-    """Harvest newer mapped dest files into src after one confirm."""
+    """Harvest newer mapped dest files into src after one confirm. --dest-only also copies dest-only files."""
     if name and config_path_opt:
         logger.error("Cannot use both --name and --config-path")
         raise typer.Exit(1)
@@ -280,7 +373,7 @@ def pull(
 
     config = load_yaml_model(config_path, SrcConfig)
     dest = config.find_destination(dest_filter)
-    opts = PullOptions(dry_run=dry_run, show_only=show_only)
+    opts = PullOptions(dry_run=dry_run, show_only=show_only, dest_only=dest_only)
 
     try:
         _run_pull(config, dest, src_root, opts)

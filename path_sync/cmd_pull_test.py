@@ -12,7 +12,9 @@ from path_sync._internal.cmd_pull import (
     PullKind,
     PullOptions,
     _apply_candidate,
+    _collect_dest_only_candidates,
     _collect_mapped_candidates,
+    _format_candidate_line,
     _run_pull,
     _validate_dest_name,
 )
@@ -294,6 +296,154 @@ def test_run_pull_applies_on_confirm(tmp_path):
     ):
         _run_pull(config, dest, src_root, PullOptions())
     assert "applied" in (src_root / "justfile").read_text()
+
+
+def _confirm_pull(config, dest, src_root, opts: PullOptions) -> None:
+    with (
+        patch.object(sys.stdin, "isatty", return_value=True),
+        patch.object(prompt_utils, "prompt_pull_confirm", return_value=True),
+    ):
+        _run_pull(config, dest, src_root, opts)
+
+
+def _cursor_dir_setup(tmp_path):
+    src_root, dest_root, src_repo, dest_repo, config, dest = _pull_setup(tmp_path)
+    config.paths = [PathMapping(src_path=".cursor", sync_mode=SyncMode.REPLACE)]
+    _commit_file(src_repo, src_root, ".cursor/rules/foo.mdc", "foo", OLD)
+    _commit_file(dest_repo, dest_root, ".cursor/rules/foo.mdc", "foo", OLD)
+    return src_root, dest_root, src_repo, dest_repo, config, dest
+
+
+def test_dest_only_absent_without_flag(tmp_path):
+    src_root, dest_root, src_repo, dest_repo, config, dest = _cursor_dir_setup(tmp_path)
+    (dest_root / ".cursor/rules/bar.mdc").write_text("dest only")
+    assert _collect_mapped_candidates(config, dest, src_root, dest_root, src_repo, dest_repo) == []
+    _run_pull(config, dest, src_root, PullOptions(dry_run=True))
+    assert not (src_root / ".cursor/rules/bar.mdc").exists()
+
+
+def test_dest_only_untracked_copies_to_src(tmp_path):
+    src_root, dest_root, *_rest, config, dest = _cursor_dir_setup(tmp_path)
+    dest_file = dest_root / ".cursor/rules/bar.mdc"
+    dest_file.write_text(add_header("from dest", dest_file, CONFIG_NAME))
+    _confirm_pull(config, dest, src_root, PullOptions(dest_only=True))
+    src_file = src_root / ".cursor/rules/bar.mdc"
+    assert src_file.read_text() == "from dest"
+    assert not has_header(src_file.read_text())
+
+
+def test_dest_only_tracked_clean_skips_git_log(tmp_path):
+    src_root, dest_root, _src_repo, dest_repo, config, dest = _cursor_dir_setup(tmp_path)
+    _commit_file(dest_repo, dest_root, ".cursor/rules/bar.mdc", "committed dest-only", NEW)
+    with patch.object(git_ops, "file_last_commit_unix") as log_mock:
+        candidates = _collect_dest_only_candidates(config, dest, src_root, dest_root, dest_repo, set())
+        assert len(candidates) == 1
+        assert candidates[0].dest_only
+        log_mock.assert_not_called()
+    line = _format_candidate_line(candidates[0], src_root)
+    assert "dest-only" in line
+    assert "dest 20" not in line
+
+
+def test_dest_only_tracked_dirty_skips(tmp_path):
+    src_root, dest_root, _src_repo, dest_repo, config, dest = _cursor_dir_setup(tmp_path)
+    dest_file = dest_root / ".cursor/rules/bar.mdc"
+    _commit_file(dest_repo, dest_root, ".cursor/rules/bar.mdc", "committed", NEW)
+    dest_file.write_text("unstaged edit")
+    candidates = _collect_dest_only_candidates(config, dest, src_root, dest_root, dest_repo, set())
+    assert candidates == []
+    _run_pull(config, dest, src_root, PullOptions(dest_only=True, dry_run=True))
+    assert not (src_root / ".cursor/rules/bar.mdc").exists()
+
+
+def test_dest_only_leaves_src_yaml_unchanged(tmp_path):
+    src_root, dest_root, *_rest, config, dest = _cursor_dir_setup(tmp_path)
+    yaml_path = src_root / ".github" / f"{CONFIG_NAME}.src.yaml"
+    yaml_path.parent.mkdir(parents=True, exist_ok=True)
+    yaml_before = b"name: test-config\npaths:\n  - src_path: .cursor\n    sync_mode: replace\n"
+    yaml_path.write_bytes(yaml_before)
+    (dest_root / ".cursor/rules/bar.mdc").write_text("new rule")
+    paths_before = list(config.paths)
+    _confirm_pull(config, dest, src_root, PullOptions(dest_only=True))
+    assert yaml_path.read_bytes() == yaml_before
+    assert config.paths == paths_before
+
+
+def test_dest_only_additive_after_mapped(tmp_path):
+    src_root, dest_root, src_repo, dest_repo, config, dest = _pull_setup(tmp_path)
+    config.paths = [
+        PathMapping(src_path="justfile"),
+        PathMapping(src_path=".cursor", sync_mode=SyncMode.REPLACE),
+    ]
+    dest_just = dest_root / "justfile"
+    _commit_file(src_repo, src_root, "justfile", _sectioned("src"), OLD)
+    _commit_file(dest_repo, dest_root, "justfile", add_header(_sectioned("dest newer"), dest_just, CONFIG_NAME), NEW)
+    (dest_root / ".cursor/rules/bar.mdc").parent.mkdir(parents=True, exist_ok=True)
+    (dest_root / ".cursor/rules/bar.mdc").write_text("dest only")
+    mapped = _collect_mapped_candidates(config, dest, src_root, dest_root, src_repo, dest_repo)
+    dest_only = _collect_dest_only_candidates(
+        config, dest, src_root, dest_root, dest_repo, {c.dest_key for c in mapped}
+    )
+    assert [c.dest_key for c in mapped + dest_only] == ["justfile", ".cursor/rules/bar.mdc"]
+    assert dest_only[0].dest_only
+    _confirm_pull(config, dest, src_root, PullOptions())
+    assert "dest newer" in (src_root / "justfile").read_text()
+    assert not (src_root / ".cursor/rules/bar.mdc").exists()
+
+
+@pytest.mark.parametrize(
+    ("mapping", "dest_rel", "src_rel"),
+    [
+        (PathMapping(src_path="justfile"), "justfile", "justfile"),
+        (PathMapping(src_path="docs/00_background/*.md"), "docs/00_background/new.md", "docs/00_background/new.md"),
+        (PathMapping(src_path=".cursor/rules", dest_path="rules"), "rules/bar.mdc", ".cursor/rules/bar.mdc"),
+    ],
+)
+def test_dest_only_inverse_mappings(tmp_path, mapping, dest_rel, src_rel):
+    src_root, dest_root, _src_repo, dest_repo, config, dest = _pull_setup(tmp_path)
+    config.paths = [mapping]
+    dest_file = dest_root / dest_rel
+    dest_file.parent.mkdir(parents=True, exist_ok=True)
+    dest_file.write_text("new")
+    candidates = _collect_dest_only_candidates(config, dest, src_root, dest_root, dest_repo, set())
+    assert [c.src_path.relative_to(src_root).as_posix() for c in candidates] == [src_rel]
+
+
+def test_dest_only_honors_copy_filters(tmp_path):
+    src_root, dest_root, _src_repo, dest_repo, config, dest = _pull_setup(tmp_path)
+    dest.skip_file_patterns = {".cursor/*.secret.mdc"}
+    config.paths = [
+        PathMapping(src_path=".cursor", sync_mode=SyncMode.REPLACE, exclude_file_patterns={"*.pyc"}),
+        PathMapping(src_path="scaffold", sync_mode=SyncMode.SCAFFOLD),
+    ]
+    files = [
+        ".cursor/foo.secret.mdc",
+        ".cursor/foo.pyc",
+        ".cursor/__pycache__/mod.py",
+        "scaffold/extra.md",
+        ".cursor/keep.mdc",
+    ]
+    for rel in files:
+        path = dest_root / rel
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("x")
+    candidates = _collect_dest_only_candidates(config, dest, src_root, dest_root, dest_repo, set())
+    assert [c.dest_key for c in candidates] == [".cursor/keep.mdc"]
+
+
+def test_dest_only_binary_copies_bytes(tmp_path):
+    src_root, dest_root, *_rest, config, dest = _cursor_dir_setup(tmp_path)
+    payload = b"\x80\x81\x82"
+    (dest_root / ".cursor/rules/blob.bin").write_bytes(payload)
+    _confirm_pull(config, dest, src_root, PullOptions(dest_only=True))
+    assert (src_root / ".cursor/rules/blob.bin").read_bytes() == payload
+
+
+def test_dest_only_dry_run_no_write(tmp_path):
+    src_root, dest_root, *_rest, config, dest = _cursor_dir_setup(tmp_path)
+    (dest_root / ".cursor/rules/bar.mdc").write_text("dest only")
+    _run_pull(config, dest, src_root, PullOptions(dest_only=True, dry_run=True))
+    assert not (src_root / ".cursor/rules/bar.mdc").exists()
 
 
 def test_pull_cli_rejects_comma_dest(tmp_path):

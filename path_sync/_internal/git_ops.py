@@ -327,6 +327,12 @@ def path_is_dirty(repo: Repo, file_path: Path) -> bool:
     return path_porcelain_status(repo, file_path) is not None
 
 
+def path_is_tracked_dirty(repo: Repo, file_path: Path) -> bool:
+    if status := path_porcelain_status(repo, file_path):
+        return status[:2] != "??"
+    return False
+
+
 def file_last_commit_unix(repo: Repo, file_path: Path) -> int | None:
     rel_path = str(file_path.relative_to(repo.working_dir))
     with suppress(GitCommandError):
