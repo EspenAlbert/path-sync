@@ -40,7 +40,6 @@ class PullKind(StrEnum):
 
 class PullOptions(BaseModel):
     dry_run: bool = False
-    show_only: bool = False
     dest_only: bool = False
     include: list[str] = Field(default_factory=list)
     exclude: list[str] = Field(default_factory=list)
@@ -347,7 +346,7 @@ def _run_pull(config: SrcConfig, dest: Destination, src_root: Path, opts: PullOp
 
     _print_candidates(dest.name, candidates, src_root)
 
-    if opts.dry_run or opts.show_only or not sys.stdin.isatty():
+    if opts.dry_run or not sys.stdin.isatty():
         return
     if prompt_utils.prompt_pull_confirm("Confirm?"):
         for c in candidates:
@@ -360,8 +359,7 @@ def pull(
     config_path_opt: str = typer.Option("", "-c", "--config-path", help="Full path to config file"),
     src_root_opt: str = typer.Option("", "--src-root", help="Source repo root"),
     dest_name: str = typer.Option(..., "-d", "--dest", help="Destination name (exactly one)"),
-    dry_run: bool = typer.Option(False, "--dry-run", help="Print candidates without writing"),
-    show_only: bool = typer.Option(False, "--show-only", help="Print candidates without writing"),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Print candidates without writing (same as non-TTY)"),
     dest_only: bool = typer.Option(False, "--dest-only", help="Also harvest dest files with no src counterpart"),
     include: Annotated[list[str] | None, typer.Option("-i", "--include", help="Keep paths matching pattern")] = None,
     exclude: Annotated[list[str] | None, typer.Option("-e", "--exclude", help="Drop paths matching pattern")] = None,
@@ -393,7 +391,6 @@ def pull(
     dest = config.find_destination(dest_filter)
     opts = PullOptions(
         dry_run=dry_run,
-        show_only=show_only,
         dest_only=dest_only,
         include=include or [],
         exclude=exclude or [],
