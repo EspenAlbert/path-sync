@@ -15,6 +15,7 @@ from path_sync._internal.cmd_pull import (
     _collect_dest_only_candidates,
     _collect_mapped_candidates,
     _format_candidate_line,
+    _keep_pull_path,
     _run_pull,
     _validate_dest_name,
 )
@@ -443,6 +444,49 @@ def test_dest_only_dry_run_no_write(tmp_path):
     src_root, dest_root, *_rest, config, dest = _cursor_dir_setup(tmp_path)
     (dest_root / ".cursor/rules/bar.mdc").write_text("dest only")
     _run_pull(config, dest, src_root, PullOptions(dest_only=True, dry_run=True))
+    assert not (src_root / ".cursor/rules/bar.mdc").exists()
+
+
+def _dest_only_mixed_setup(tmp_path):
+    src_root, dest_root, src_repo, dest_repo, config, dest = _cursor_dir_setup(tmp_path)
+    config.paths.append(PathMapping(src_path="docs/00_background/*.md", sync_mode=SyncMode.REPLACE))
+    return src_root, dest_root, src_repo, dest_repo, config, dest
+
+
+@pytest.mark.parametrize(
+    ("rel", "include", "exclude", "keep"),
+    [
+        (".cursor/rules/bar.mdc", [".cursor/*"], [], True),
+        ("docs/00_background/new.md", [".cursor/*"], [], False),
+        (".cursor/rules/bar.mdc", [], ["docs/*"], True),
+        ("docs/00_background/new.md", [], ["docs/*"], False),
+        (".cursor/rules/a.mdc", [".cursor/*"], [".cursor/skills/*"], True),
+        (".cursor/skills/b.md", [".cursor/*"], [".cursor/skills/*"], False),
+        ("justfile", ["justfile"], [], True),
+        (".cursor/rules/foo.mdc", ["justfile"], [], False),
+        ("docs/x.md", ["missing/*"], [], False),
+    ],
+)
+def test_keep_pull_path(rel, include, exclude, keep):
+    assert _keep_pull_path(rel, include, exclude) is keep
+
+
+def test_run_pull_include_filters_dest_only(tmp_path):
+    src_root, dest_root, *_rest, config, dest = _dest_only_mixed_setup(tmp_path)
+    (dest_root / ".cursor/rules/bar.mdc").write_text("cursor")
+    docs = dest_root / "docs/00_background/new.md"
+    docs.parent.mkdir(parents=True, exist_ok=True)
+    docs.write_text("doc")
+    _confirm_pull(config, dest, src_root, PullOptions(dest_only=True, include=[".cursor/*"]))
+    assert (src_root / ".cursor/rules/bar.mdc").read_text() == "cursor"
+    assert not (src_root / "docs/00_background/new.md").exists()
+
+
+def test_run_pull_filter_empty(capsys, tmp_path):
+    src_root, dest_root, *_rest, config, dest = _dest_only_mixed_setup(tmp_path)
+    (dest_root / ".cursor/rules/bar.mdc").write_text("cursor")
+    _run_pull(config, dest, src_root, PullOptions(dest_only=True, include=["missing/*"]))
+    assert "No pull candidates." in capsys.readouterr().err
     assert not (src_root / ".cursor/rules/bar.mdc").exists()
 
 

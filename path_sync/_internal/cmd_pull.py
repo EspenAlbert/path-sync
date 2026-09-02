@@ -1,16 +1,17 @@
 from __future__ import annotations
 
+import fnmatch
 import logging
 import sys
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from enum import StrEnum
 from pathlib import Path
-from typing import NamedTuple
+from typing import Annotated, NamedTuple
 
 import typer
 from git import Repo
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from path_sync import sections
 from path_sync._internal import git_ops, header, prompt_utils
@@ -41,6 +42,8 @@ class PullOptions(BaseModel):
     dry_run: bool = False
     show_only: bool = False
     dest_only: bool = False
+    include: list[str] = Field(default_factory=list)
+    exclude: list[str] = Field(default_factory=list)
 
 
 class _DestFileMap(NamedTuple):
@@ -269,6 +272,12 @@ def _candidate_for_path(
     )
 
 
+def _keep_pull_path(rel: str, include: list[str], exclude: list[str]) -> bool:
+    if include and not any(fnmatch.fnmatch(rel, pat) for pat in include):
+        return False
+    return not (exclude and any(fnmatch.fnmatch(rel, pat) for pat in exclude))
+
+
 def _format_candidate_line(candidate: PullCandidate, src_root: Path) -> str:
     rel = str(candidate.src_path.relative_to(src_root))
     if candidate.dest_only:
@@ -328,6 +337,10 @@ def _run_pull(config: SrcConfig, dest: Destination, src_root: Path, opts: PullOp
         skip_keys = {c.dest_key for c in candidates}
         candidates.extend(_collect_dest_only_candidates(config, dest, src_root, dest_root, dest_repo, skip_keys))
 
+    candidates = [
+        c for c in candidates if _keep_pull_path(str(c.src_path.relative_to(src_root)), opts.include, opts.exclude)
+    ]
+
     if not candidates:
         typer.echo("No pull candidates.", err=True)
         return
@@ -350,8 +363,13 @@ def pull(
     dry_run: bool = typer.Option(False, "--dry-run", help="Print candidates without writing"),
     show_only: bool = typer.Option(False, "--show-only", help="Print candidates without writing"),
     dest_only: bool = typer.Option(False, "--dest-only", help="Also harvest dest files with no src counterpart"),
+    include: Annotated[list[str] | None, typer.Option("-i", "--include", help="Keep paths matching pattern")] = None,
+    exclude: Annotated[list[str] | None, typer.Option("-e", "--exclude", help="Drop paths matching pattern")] = None,
 ) -> None:
-    """Harvest newer mapped dest files into src after one confirm. --dest-only also copies dest-only files."""
+    """Harvest newer mapped dest files into src after one confirm.
+
+    --dest-only also copies dest-only files. Quote glob patterns (e.g. -i '.cursor/*').
+    """
     if name and config_path_opt:
         logger.error("Cannot use both --name and --config-path")
         raise typer.Exit(1)
@@ -373,7 +391,13 @@ def pull(
 
     config = load_yaml_model(config_path, SrcConfig)
     dest = config.find_destination(dest_filter)
-    opts = PullOptions(dry_run=dry_run, show_only=show_only, dest_only=dest_only)
+    opts = PullOptions(
+        dry_run=dry_run,
+        show_only=show_only,
+        dest_only=dest_only,
+        include=include or [],
+        exclude=exclude or [],
+    )
 
     try:
         _run_pull(config, dest, src_root, opts)
