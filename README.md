@@ -25,6 +25,7 @@ Sync files from a source repo to multiple destination repos.
 - Files with headers are updated on each sync
 - Remove a header to opt-out (file becomes DEST-owned)
 - Orphaned files (removed from SRC) are deleted in DEST
+- Dest-only extras under dir or glob mappings survive `copy`; `pull --dest-only` harvests them; `prune` deletes them
 - Dest improvements can be harvested back to SRC with `pull` (local working tree only; you commit SRC yourself)
 - Idempotent: PR body is left unchanged when already synced from an equal or newer source commit
 - Stale PRs auto-close when source and destination are already in sync (zero file changes)
@@ -140,7 +141,41 @@ path-sync pull -n cursor -d lz --dest-only -i '.cursor/*'
 
 See also: [pull command reference](docs/pull/index.md).
 
-### 4. Validate (run in dest repo)
+### 4. Prune dest-only files
+
+Delete dest files whose SRC counterpart is missing. Uses the same collect as `pull --dest-only`, then skips opted-out dest files before listing.
+
+The following dest extras differ:
+
+- **copy orphans:** Dest files that still have a path-sync header for this config and are no longer in this copy run. `_cleanup_orphans` deletes them unless `--skip-orphan-cleanup`.
+- **prune dest-only:** Dest files under a dir, glob, or single-file mapping whose SRC counterpart is missing. No header required (`sync_mode: replace` extras such as `.cursor/`). `path-sync prune` unlinks after confirm.
+- **pull dest-only:** Same collect as prune, then copy dest → SRC. Opted-out dest files (`sync_mode: sync`, header removed) stay on dest for prune; pull `--dest-only` can still harvest them.
+
+```bash
+path-sync prune -n myconfig -d dest1
+path-sync prune -n myconfig -d dest1 --dry-run
+path-sync prune -n myconfig -d dest1 -i '.cursor/*'
+```
+
+Unlike `copy`, `prune` never auto-deletes. `--dry-run` and non-TTY list candidates and write nothing.
+
+- **`-d dest`:** Required. Exactly one destination name (not comma-separated).
+- **`--dry-run`:** Print candidates; no prompt; no delete. Non-TTY behaves the same.
+- **`-i`, `--include`:** Allowlist on dest-relative path ([fnmatch](https://docs.python.org/3/library/fnmatch.html); quote globs in zsh).
+- **`-e`, `--exclude`:** Denylist after include (same matcher).
+
+**Dest-only example** (same cursor config as pull):
+
+```bash
+# ../lz/.cursor/rules/bar.mdc exists; SRC has no bar.mdc yet
+path-sync prune -n cursor -d lz
+```
+
+After `copy`, when prune-eligible dest-only files remain, path-sync prints the count plus the pull and prune commands. Copy does not delete them.
+
+See also: [prune command reference](docs/prune/index.md).
+
+### 5. Validate (run in dest repo)
 
 ```bash
 uvx path-sync validate-no-changes -b main
