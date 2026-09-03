@@ -1,5 +1,5 @@
 pkg_import_name: path_sync
-version: 0.7.8
+version: 0.8.0
 groups:
 - name: config
   symbols:
@@ -160,12 +160,12 @@ groups:
     init_signature:
       parameters:
       - name: self
-        kind: positional_or_keyword
+        kind: positional_only
         type_imports: []
       - name: args
         kind: var_positional
         type_imports: []
-      - name: kwds
+      - name: kwargs
         kind: var_keyword
         type_imports: []
       return_type_imports: []
@@ -421,12 +421,12 @@ groups:
     init_signature:
       parameters:
       - name: self
-        kind: positional_or_keyword
+        kind: positional_only
         type_imports: []
       - name: args
         kind: var_positional
         type_imports: []
-      - name: kwds
+      - name: kwargs
         kind: var_keyword
         type_imports: []
       return_type_imports: []
@@ -1129,12 +1129,12 @@ groups:
     init_signature:
       parameters:
       - name: self
-        kind: positional_or_keyword
+        kind: positional_only
         type_imports: []
       - name: args
         kind: var_positional
         type_imports: []
-      - name: kwds
+      - name: kwargs
         kind: var_keyword
         type_imports: []
       return_type_imports: []
@@ -1336,6 +1336,196 @@ groups:
       type_imports: []
       is_class_var: false
       is_computed: false
+- name: pull
+  symbols:
+  - name: PullOptions
+    module_path: _internal.cmd_pull
+    docstring: ''
+    line_number: 45
+    type: class
+    mro_bases:
+    - BaseModel
+    num_direct_bases: 1
+    fields:
+    - name: dry_run
+      type_annotation: bool
+      type_imports: []
+      default:
+        value_repr: 'False'
+        is_factory: false
+      is_class_var: false
+      is_computed: false
+    - name: dest_only
+      type_annotation: bool
+      type_imports: []
+      default:
+        value_repr: 'False'
+        is_factory: false
+      is_class_var: false
+      is_computed: false
+    - name: include
+      type_annotation: list[str]
+      type_imports: []
+      default:
+        value_repr: '...'
+        is_factory: true
+      is_class_var: false
+      is_computed: false
+    - name: exclude
+      type_annotation: list[str]
+      type_imports: []
+      default:
+        value_repr: '...'
+        is_factory: true
+      is_class_var: false
+      is_computed: false
+  - name: pull
+    module_path: _internal.cmd_pull
+    docstring: 'Harvest newer mapped dest files into src after one confirm.
+
+
+      --dest-only also copies dest-only files. Quote glob patterns (e.g. -i ''.cursor/*'').
+
+      '
+    line_number: 360
+    type: cli_command
+    signature:
+      parameters:
+      - name: name
+        kind: positional_or_keyword
+        type_annotation: str
+        type_imports: []
+        default:
+          value_repr: <typer.models.OptionInfo object>
+          is_factory: false
+      - name: config_path_opt
+        kind: positional_or_keyword
+        type_annotation: str
+        type_imports: []
+        default:
+          value_repr: <typer.models.OptionInfo object>
+          is_factory: false
+      - name: src_root_opt
+        kind: positional_or_keyword
+        type_annotation: str
+        type_imports: []
+        default:
+          value_repr: <typer.models.OptionInfo object>
+          is_factory: false
+      - name: dest_name
+        kind: positional_or_keyword
+        type_annotation: str
+        type_imports: []
+        default:
+          value_repr: <typer.models.OptionInfo object>
+          is_factory: false
+      - name: dry_run
+        kind: positional_or_keyword
+        type_annotation: bool
+        type_imports: []
+        default:
+          value_repr: <typer.models.OptionInfo object>
+          is_factory: false
+      - name: dest_only
+        kind: positional_or_keyword
+        type_annotation: bool
+        type_imports: []
+        default:
+          value_repr: <typer.models.OptionInfo object>
+          is_factory: false
+      - name: include
+        kind: positional_or_keyword
+        type_annotation: list[str]
+        type_imports: []
+        default:
+          value_repr: <typer.models.OptionInfo object>
+          is_factory: false
+      - name: exclude
+        kind: positional_or_keyword
+        type_annotation: list[str]
+        type_imports: []
+        default:
+          value_repr: <typer.models.OptionInfo object>
+          is_factory: false
+      return_annotation: None
+      return_type_imports: []
+    cli_params:
+    - param_name: name
+      type_annotation: str
+      flags:
+      - -n
+      - --name
+      help: Config name
+      default_repr: ''''''
+      required: false
+      is_argument: false
+      hidden: false
+    - param_name: config_path_opt
+      type_annotation: str
+      flags:
+      - -c
+      - --config-path
+      help: Full path to config file
+      default_repr: ''''''
+      required: false
+      is_argument: false
+      hidden: false
+    - param_name: src_root_opt
+      type_annotation: str
+      flags:
+      - --src-root
+      help: Source repo root
+      default_repr: ''''''
+      required: false
+      is_argument: false
+      hidden: false
+    - param_name: dest_name
+      type_annotation: str
+      flags:
+      - -d
+      - --dest
+      help: Destination name (exactly one)
+      required: true
+      is_argument: false
+      hidden: false
+    - param_name: dry_run
+      type_annotation: bool
+      flags:
+      - --dry-run
+      help: Print candidates without writing (same as non-TTY)
+      default_repr: 'False'
+      required: false
+      is_argument: false
+      hidden: false
+    - param_name: dest_only
+      type_annotation: bool
+      flags:
+      - --dest-only
+      help: Also harvest dest files with no src counterpart
+      default_repr: 'False'
+      required: false
+      is_argument: false
+      hidden: false
+    - param_name: include
+      type_annotation: list[str]
+      flags:
+      - -i
+      - --include
+      help: Keep paths matching pattern
+      default_repr: '[]'
+      required: false
+      is_argument: false
+      hidden: false
+    - param_name: exclude
+      type_annotation: list[str]
+      flags:
+      - -e
+      - --exclude
+      help: Drop paths matching pattern
+      default_repr: '[]'
+      required: false
+      is_argument: false
+      hidden: false
 - name: validate_no_changes
   symbols:
   - name: validate_no_changes
@@ -1398,4 +1588,4 @@ groups:
       required: false
       is_argument: false
       hidden: false
-dumped_at: 2026-03-11 07:06:46.926176+00:00
+dumped_at: 2026-09-03 08:06:06.596277+00:00

@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.8.0 2026-09-03T08-06Z
+
+### Pull
+- BREAKING `pull.PullOptions`: removed field 'show_only'
+- New class `PullOptions`
+- New function `pull`
+
+
 ## 0.7.8 2026-03-11T07-06Z
 
 ### Validate_No_Changes

@@ -13,7 +13,7 @@
 
 ### cli_command: `pull`
 - [source](../../path_sync/_internal/cmd_pull.py#L360)
-> **Since:** unreleased
+> **Since:** 0.8.0
 
 ```python
 def pull(
@@ -50,5 +50,5 @@ Harvest newer mapped dest files into src after one confirm.
 
 | Version | Change |
 |---------|--------|
-| unreleased | Made public |
+| 0.8.0 | Made public |
 <!-- === OK_EDIT: pkg-ext pull_def === -->

@@ -3,7 +3,7 @@
 <!-- === DO_NOT_EDIT: pkg-ext pulloptions_def === -->
 ## class: PullOptions
 - [source](../../path_sync/_internal/cmd_pull.py#L45)
-> **Since:** unreleased
+> **Since:** 0.8.0
 
 ```python
 class PullOptions(BaseModel):
@@ -28,6 +28,6 @@ class PullOptions(BaseModel):
 
 | Version | Change |
 |---------|--------|
-| unreleased | removed field 'show_only' |
-| unreleased | Made public |
+| 0.8.0 | removed field 'show_only' |
+| 0.8.0 | Made public |
 <!-- === OK_EDIT: pkg-ext pulloptions_changes === -->
