@@ -12,7 +12,7 @@
 <a id="pull_def"></a>
 
 ### cli_command: `pull`
-- [source](../../path_sync/_internal/cmd_pull.py#L356)
+- [source](../../path_sync/_internal/cmd_pull.py#L360)
 > **Since:** unreleased
 
 ```python
@@ -24,8 +24,8 @@ def pull(
     dest_name: str = ...,
     dry_run: bool = False,
     dest_only: bool = False,
-    include: list[str] | None = None,
-    exclude: list[str] | None = None,
+    include: list[str] = [],
+    exclude: list[str] = [],
 ) -> None: ...
 ```
 
@@ -43,6 +43,8 @@ Harvest newer mapped dest files into src after one confirm.
 | `-d`, `--dest` | `str` | *required* | Destination name (exactly one) |
 | `--dry-run` | `bool` | `False` | Print candidates without writing (same as non-TTY) |
 | `--dest-only` | `bool` | `False` | Also harvest dest files with no src counterpart |
+| `-i`, `--include` | `list[str]` | `[]` | Keep paths matching pattern |
+| `-e`, `--exclude` | `list[str]` | `[]` | Drop paths matching pattern |
 
 ### Changes
 
