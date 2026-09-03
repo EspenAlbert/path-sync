@@ -1,37 +1,35 @@
 <!-- === DO_NOT_EDIT: pkg-ext header === -->
-# pull
+# prune
 
 <!-- === OK_EDIT: pkg-ext header === -->
 
 <!-- === DO_NOT_EDIT: pkg-ext symbols === -->
-- [`pull`](#pull_def)
-- [PullOptions](./pulloptions.md)
+- [`prune`](#prune_def)
 <!-- === OK_EDIT: pkg-ext symbols === -->
 
-<!-- === DO_NOT_EDIT: pkg-ext pull_def === -->
-<a id="pull_def"></a>
+<!-- === DO_NOT_EDIT: pkg-ext prune_def === -->
+<a id="prune_def"></a>
 
-### cli_command: `pull`
-- [source](../../path_sync/_internal/cmd_pull.py#L309)
-> **Since:** 0.8.0
+### cli_command: `prune`
+- [source](../../path_sync/_internal/cmd_prune.py#L54)
+> **Since:** unreleased
 
 ```python
-def pull(
+def prune(
     *,
     name: str = "",
     config_path_opt: str = "",
     src_root_opt: str = "",
     dest_name: str = ...,
     dry_run: bool = False,
-    dest_only: bool = False,
     include: list[str] = [],
     exclude: list[str] = [],
 ) -> None: ...
 ```
 
-Harvest newer mapped dest files into src after one confirm.
+Delete dest-only files after one confirm.
 
---dest-only also copies dest-only files. Quote glob patterns (e.g. -i '.cursor/*').
+Quote glob patterns (e.g. -i '.cursor/*').
 
 **CLI Options:**
 
@@ -41,8 +39,7 @@ Harvest newer mapped dest files into src after one confirm.
 | `-c`, `--config-path` | `str` | `''` | Full path to config file |
 | `--src-root` | `str` | `''` | Source repo root |
 | `-d`, `--dest` | `str` | *required* | Destination name (exactly one) |
-| `--dry-run` | `bool` | `False` | Print candidates without writing (same as non-TTY) |
-| `--dest-only` | `bool` | `False` | Also harvest dest files with no src counterpart |
+| `--dry-run` | `bool` | `False` | Print candidates without deleting |
 | `-i`, `--include` | `list[str]` | `[]` | Keep paths matching pattern |
 | `-e`, `--exclude` | `list[str]` | `[]` | Drop paths matching pattern |
 
@@ -50,5 +47,5 @@ Harvest newer mapped dest files into src after one confirm.
 
 | Version | Change |
 |---------|--------|
-| 0.8.0 | Made public |
-<!-- === OK_EDIT: pkg-ext pull_def === -->
+| unreleased | Made public |
+<!-- === OK_EDIT: pkg-ext prune_def === -->

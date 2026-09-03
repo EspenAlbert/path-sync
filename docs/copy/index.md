@@ -13,7 +13,7 @@
 <a id="copy_def"></a>
 
 ### cli_command: `copy`
-- [source](../../path_sync/_internal/cmd_copy.py#L68)
+- [source](../../path_sync/_internal/cmd_copy.py#L69)
 > **Since:** 0.4.1
 
 ```python

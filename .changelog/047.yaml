@@ -1,0 +1,36 @@
+name: is_opted_out
+ts: 2026-09-03 20:17:12.146651+00:00
+type: keep_private
+full_path: _internal.dest_only.is_opted_out
+---
+name: prune_eligible
+ts: 2026-09-03 20:17:12.146707+00:00
+type: keep_private
+full_path: _internal.dest_only.prune_eligible
+---
+name: collect_dest_only_files
+ts: 2026-09-03 20:17:12.146715+00:00
+type: keep_private
+full_path: _internal.dest_only.collect_dest_only_files
+---
+name: prune
+ts: 2026-09-03 20:17:22.023074+00:00
+type: group_module
+module_path: _internal.cmd_prune
+---
+name: prune
+ts: 2026-09-03 20:17:22.024241+00:00
+type: make_public
+details: CLI command in _internal/cmd_prune.py
+full_path: _internal.cmd_prune.prune
+group: prune
+---
+name: DestOnlyFile
+ts: 2026-09-03 20:17:27.220570+00:00
+type: keep_private
+full_path: _internal.dest_only.DestOnlyFile
+---
+name: PruneOptions
+ts: 2026-09-03 20:17:38.888768+00:00
+type: keep_private
+full_path: _internal.cmd_prune.PruneOptions
