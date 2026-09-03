@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from enum import StrEnum
 from pathlib import Path
-from typing import Annotated, NamedTuple
+from typing import NamedTuple
 
 import typer
 from git import Repo
@@ -30,6 +30,10 @@ from path_sync._internal.typer_app import app
 from path_sync._internal.yaml_utils import load_yaml_model
 
 logger = logging.getLogger(__name__)
+
+_EMPTY_STR_LIST: list[str] = []
+_INCLUDE_OPTION = typer.Option(_EMPTY_STR_LIST, "-i", "--include", help="Keep paths matching pattern")
+_EXCLUDE_OPTION = typer.Option(_EMPTY_STR_LIST, "-e", "--exclude", help="Drop paths matching pattern")
 
 
 class PullKind(StrEnum):
@@ -361,8 +365,8 @@ def pull(
     dest_name: str = typer.Option(..., "-d", "--dest", help="Destination name (exactly one)"),
     dry_run: bool = typer.Option(False, "--dry-run", help="Print candidates without writing (same as non-TTY)"),
     dest_only: bool = typer.Option(False, "--dest-only", help="Also harvest dest files with no src counterpart"),
-    include: Annotated[list[str] | None, typer.Option("-i", "--include", help="Keep paths matching pattern")] = None,
-    exclude: Annotated[list[str] | None, typer.Option("-e", "--exclude", help="Drop paths matching pattern")] = None,
+    include: list[str] = _INCLUDE_OPTION,
+    exclude: list[str] = _EXCLUDE_OPTION,
 ) -> None:
     """Harvest newer mapped dest files into src after one confirm.
 
@@ -392,8 +396,8 @@ def pull(
     opts = PullOptions(
         dry_run=dry_run,
         dest_only=dest_only,
-        include=include or [],
-        exclude=exclude or [],
+        include=include,
+        exclude=exclude,
     )
 
     try:

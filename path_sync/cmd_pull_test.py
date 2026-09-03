@@ -73,6 +73,11 @@ def test_validate_dest_name_rejects_comma():
         _validate_dest_name("a,b")
 
 
+def test_validate_dest_name_rejects_empty():
+    with pytest.raises(ValueError, match="Missing destination"):
+        _validate_dest_name("   ")
+
+
 def test_collect_sectioned_dest_newer(tmp_path):
     src_root, dest_root, src_repo, dest_repo, config, dest = _pull_setup(tmp_path)
     src_file = src_root / "justfile"
@@ -153,6 +158,62 @@ def test_skip_dest_only_path(tmp_path):
     )
     candidates = _collect_mapped_candidates(config, dest, src_root, dest_root, src_repo, dest_repo)
     assert candidates == []
+
+
+def test_skip_src_dirty(tmp_path):
+    src_root, dest_root, src_repo, dest_repo, config, dest = _pull_setup(tmp_path)
+    dest_file = dest_root / "justfile"
+    src_file = src_root / "justfile"
+    _commit_file(src_repo, src_root, "justfile", _sectioned("src"), OLD)
+    _commit_file(
+        dest_repo,
+        dest_root,
+        "justfile",
+        add_header(_sectioned("dest newer"), dest_file, CONFIG_NAME),
+        NEW,
+    )
+    src_file.write_text(src_file.read_text() + "\n# unstaged")
+    candidates = _collect_mapped_candidates(config, dest, src_root, dest_root, src_repo, dest_repo)
+    assert candidates == []
+
+
+def test_skip_opted_out_sync(tmp_path):
+    src_root, dest_root, src_repo, dest_repo, config, dest = _pull_setup(tmp_path)
+    _commit_file(src_repo, src_root, "justfile", _sectioned("src"), OLD)
+    _commit_file(dest_repo, dest_root, "justfile", _sectioned("dest newer"), NEW)
+    candidates = _collect_mapped_candidates(config, dest, src_root, dest_root, src_repo, dest_repo)
+    assert candidates == []
+
+
+def test_collect_mapped_binary(tmp_path):
+    src_root, dest_root, src_repo, dest_repo, config, dest = _pull_setup(tmp_path)
+    config.paths = [PathMapping(src_path="assets/logo.bin")]
+    src_payload = b"\x80\x81\x82"
+    dest_payload = b"\x80\x81\x83"
+    src_path = src_root / "assets/logo.bin"
+    dest_path = dest_root / "assets/logo.bin"
+    src_path.parent.mkdir(parents=True, exist_ok=True)
+    dest_path.parent.mkdir(parents=True, exist_ok=True)
+    src_path.write_bytes(src_payload)
+    dest_path.write_bytes(dest_payload)
+    src_repo.index.add(["assets/logo.bin"])
+    dest_repo.index.add(["assets/logo.bin"])
+    src_repo.git.commit("-m", "src", env={**os.environ, "GIT_AUTHOR_DATE": OLD, "GIT_COMMITTER_DATE": OLD})
+    dest_repo.git.commit("-m", "dest", env={**os.environ, "GIT_AUTHOR_DATE": NEW, "GIT_COMMITTER_DATE": NEW})
+    candidates = _collect_mapped_candidates(config, dest, src_root, dest_root, src_repo, dest_repo)
+    assert len(candidates) == 1
+    assert candidates[0].kind == PullKind.BINARY
+    line = _format_candidate_line(candidates[0], src_root)
+    assert "binary" in line
+    _apply_candidate(candidates[0])
+    assert src_path.read_bytes() == dest_payload
+
+
+def test_run_pull_rejects_non_git_dest(tmp_path):
+    src_root, _dest_root, _src_repo, _dest_repo, config, dest = _pull_setup(tmp_path)
+    dest.dest_path_relative = "../missing"
+    with pytest.raises(ValueError, match="Not a git repository"):
+        _run_pull(config, dest, src_root, PullOptions())
 
 
 def test_skip_dest_dirty(tmp_path):
@@ -499,4 +560,35 @@ def test_pull_cli_rejects_comma_dest(tmp_path):
         "name: test-config\ndestinations:\n  - name: dest\n    dest_path_relative: ../dest\n"
     )
     result = runner.invoke(app, ["pull", "-n", "test-config", "-d", "a,b", "--src-root", str(src_root)])
+    assert result.exit_code == 1
+
+
+def test_pull_cli_rejects_empty_dest(tmp_path):
+    src_root = tmp_path / "src"
+    src_root.mkdir()
+    Repo.init(src_root)
+    (src_root / ".github").mkdir()
+    (src_root / ".github" / "test-config.src.yaml").write_text(
+        "name: test-config\ndestinations:\n  - name: dest\n    dest_path_relative: ../dest\n"
+    )
+    result = runner.invoke(app, ["pull", "-n", "test-config", "-d", " ", "--src-root", str(src_root)])
+    assert result.exit_code == 1
+
+
+def test_pull_cli_rejects_both_name_and_config_path(tmp_path):
+    src_root = tmp_path / "src"
+    src_root.mkdir()
+    Repo.init(src_root)
+    result = runner.invoke(
+        app,
+        ["pull", "-n", "cfg", "-c", "/tmp/cfg.yaml", "-d", "dest", "--src-root", str(src_root)],
+    )
+    assert result.exit_code == 1
+
+
+def test_pull_cli_requires_config_selector(tmp_path):
+    src_root = tmp_path / "src"
+    src_root.mkdir()
+    Repo.init(src_root)
+    result = runner.invoke(app, ["pull", "-d", "dest", "--src-root", str(src_root)])
     assert result.exit_code == 1
