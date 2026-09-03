@@ -9,7 +9,6 @@ from typer.testing import CliRunner
 
 from path_sync._internal import prompt_utils
 from path_sync._internal.cmd_prune import PruneOptions, _run_prune
-from path_sync._internal.dest_only import collect_dest_only_files, prune_eligible
 from path_sync._internal.models import Destination, PathMapping, SrcConfig, SyncMode
 from path_sync._internal.typer_app import app
 
