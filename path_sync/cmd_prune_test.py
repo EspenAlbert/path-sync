@@ -9,6 +9,7 @@ from typer.testing import CliRunner
 
 from path_sync._internal import prompt_utils
 from path_sync._internal.cmd_prune import PruneOptions, _run_prune
+from path_sync._internal.dest_only import collect_dest_only_files, prune_eligible
 from path_sync._internal.models import Destination, PathMapping, SrcConfig, SyncMode
 from path_sync._internal.typer_app import app
 
@@ -148,7 +149,7 @@ def test_prune_cli_rejects_bad_dest():
 
 
 def test_prune_cli_rejects_y_flag(tmp_path):
-    src_root, dest_root, *_rest, _config, dest = _cursor_setup(tmp_path)
+    src_root, _dest_root, *_rest, _config, dest = _cursor_setup(tmp_path)
     config_path = src_root / f"{CONFIG_NAME}.src.yaml"
     config_path.write_text(
         f"name: {CONFIG_NAME}\n"
@@ -172,3 +173,101 @@ def test_readme_contrast():
     assert "path-sync prune" in text
     assert "copy orphans" in text.lower() or "orphaned" in text.lower()
     assert "--dest-only" in text
+
+
+def test_prune_no_candidates(capsys, tmp_path):
+    src_root, _dest_root, *_rest, config, dest = _cursor_setup(tmp_path)
+    _run_prune(config, dest, src_root, PruneOptions())
+    assert "No prune candidates." in capsys.readouterr().err
+
+
+def test_prune_deletes_binary_dest_extra(tmp_path):
+    src_root, dest_root, *_rest, config, dest = _cursor_setup(tmp_path)
+    extra = dest_root / ".cursor/rules/blob.bin"
+    extra.write_bytes(b"\x80\x81\x82")
+    _confirm_prune(config, dest, src_root, PruneOptions())
+    assert not extra.exists()
+
+
+def test_prune_skips_scaffold_mapping(tmp_path):
+    src_root, dest_root, *_rest, config, dest = _cursor_setup(tmp_path)
+    config.paths.append(PathMapping(src_path="scaffold", sync_mode=SyncMode.SCAFFOLD))
+    scaffold_file = dest_root / "scaffold/extra.md"
+    scaffold_file.parent.mkdir(parents=True, exist_ok=True)
+    scaffold_file.write_text("x")
+    _confirm_prune(config, dest, src_root, PruneOptions())
+    assert scaffold_file.exists()
+
+
+def test_prune_eligible_includes_binary(tmp_path):
+    src_root, dest_root, *_rest, config, dest = _cursor_setup(tmp_path)
+    extra = dest_root / ".cursor/rules/blob.bin"
+    extra.write_bytes(b"\x80\x81\x82")
+    dest_repo = Repo(dest_root)
+    rows = prune_eligible(collect_dest_only_files(config, dest, src_root, dest_root, dest_repo, set()))
+    assert [row.dest_path.name for row in rows] == ["blob.bin"]
+
+
+def test_run_prune_rejects_non_git_dest(tmp_path):
+    src_root, _dest_root, *_rest, config, dest = _cursor_setup(tmp_path)
+    dest.dest_path_relative = "../missing"
+    with pytest.raises(ValueError, match="Not a git repository"):
+        _run_prune(config, dest, src_root, PruneOptions())
+
+
+def test_prune_cli_rejects_both_name_and_config_path(tmp_path):
+    src_root = tmp_path / "src"
+    src_root.mkdir()
+    Repo.init(src_root)
+    result = runner.invoke(
+        app,
+        ["prune", "-n", "cfg", "-c", "/tmp/cfg.yaml", "-d", "dest", "--src-root", str(src_root)],
+    )
+    assert result.exit_code == 1
+
+
+def test_prune_cli_requires_config_selector(tmp_path):
+    src_root = tmp_path / "src"
+    src_root.mkdir()
+    Repo.init(src_root)
+    result = runner.invoke(app, ["prune", "-d", "dest", "--src-root", str(src_root)])
+    assert result.exit_code == 1
+
+
+def test_prune_cli_config_not_found(tmp_path):
+    src_root = tmp_path / "src"
+    src_root.mkdir()
+    Repo.init(src_root)
+    result = runner.invoke(app, ["prune", "-n", "missing", "-d", "dest", "--src-root", str(src_root)])
+    assert result.exit_code == 1
+
+
+def test_prune_cli_non_git_dest(tmp_path):
+    src_root, _dest_root, *_rest, _config, dest = _cursor_setup(tmp_path)
+    config_path = src_root / f"{CONFIG_NAME}.src.yaml"
+    config_path.write_text(
+        f"name: {CONFIG_NAME}\n"
+        "paths:\n"
+        "  - src_path: .cursor\n"
+        "    sync_mode: replace\n"
+        "destinations:\n"
+        f"  - name: {dest.name}\n"
+        "    dest_path_relative: ../missing\n"
+    )
+    result = runner.invoke(
+        app,
+        ["prune", "-c", str(config_path), "--src-root", str(src_root), "-d", dest.name],
+    )
+    assert result.exit_code == 1
+
+
+def test_prune_honors_path_exclude_patterns(tmp_path):
+    src_root, dest_root, *_rest, config, dest = _cursor_setup(tmp_path)
+    config.paths = [PathMapping(src_path=".cursor", sync_mode=SyncMode.REPLACE, exclude_file_patterns={"*.pyc"})]
+    for rel in (".cursor/foo.pyc", ".cursor/keep.mdc"):
+        path = dest_root / rel
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("x")
+    _confirm_prune(config, dest, src_root, PruneOptions())
+    assert (dest_root / ".cursor/foo.pyc").exists()
+    assert not (dest_root / ".cursor/keep.mdc").exists()

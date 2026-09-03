@@ -34,7 +34,6 @@ def prune_eligible(files: list[DestOnlyFile]) -> list[DestOnlyFile]:
         try:
             dest_text = row.dest_path.read_text()
         except UnicodeDecodeError:
-            eligible.append(row)
             continue
         if not is_opted_out(dest_text, row.sync_mode):
             eligible.append(row)
