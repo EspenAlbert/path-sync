@@ -33,6 +33,9 @@ nav:
     - UpdateEntry: dep_update/updateentry.md
     - VerifyConfig: dep_update/verifyconfig.md
     - VerifyStep: dep_update/verifystep.md
+  - pull:
+    - Overview: pull/index.md
+    - PullOptions: pull/pulloptions.md
   - validate_no_changes: validate_no_changes/index.md
 # === OK_EDIT: pkg-ext nav ===
 

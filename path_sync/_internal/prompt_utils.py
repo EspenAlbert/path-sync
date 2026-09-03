@@ -23,3 +23,12 @@ def prompt_confirm(message: str, no_prompt: bool = False) -> bool:
         return response == "y"
     except (EOFError, KeyboardInterrupt):
         return False
+
+
+def prompt_pull_confirm(message: str) -> bool:
+    if not sys.stdin.isatty():
+        return False
+    try:
+        return input(f"{message} [y/n]: ").strip().lower() == "y"
+    except (EOFError, KeyboardInterrupt):
+        return False

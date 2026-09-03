@@ -25,6 +25,7 @@ Sync files from a source repo to multiple destination repos.
 - Files with headers are updated on each sync
 - Remove a header to opt-out (file becomes DEST-owned)
 - Orphaned files (removed from SRC) are deleted in DEST
+- Dest improvements can be harvested back to SRC with `pull` (local working tree only; you commit SRC yourself)
 - Idempotent: PR body is left unchanged when already synced from an equal or newer source commit
 - Stale PRs auto-close when source and destination are already in sync (zero file changes)
 
@@ -74,7 +75,72 @@ By default, prompts before each git operation. See [Usage Scenarios](#usage-scen
 | `--pr-reviewers` | Comma-separated PR reviewers |
 | `--pr-assignees` | Comma-separated PR assignees |
 
-### 3. Validate (run in dest repo)
+### 3. Pull changes from a destination
+
+Harvest newer dest content into SRC. Reads one dest working tree and writes into SRC. Does not commit, push, open a PR, or run `copy`. The dest repo must already exist at `dest_path_relative`.
+
+```bash
+path-sync pull -n myconfig -d dest1
+path-sync pull -n myconfig -d dest1 --dest-only
+path-sync pull -n myconfig -d dest1 --dest-only -i '.cursor/*'
+```
+
+Unlike `copy`, `pull` never auto-applies. `--dry-run` and non-TTY list candidates and write nothing.
+
+| | `copy` | `pull` |
+|---|--------|--------|
+| Direction | SRC → DEST | DEST → SRC |
+| `-d` | Comma-separated filter (optional) | Exactly one dest (required) |
+| Non-TTY / no-write flags | `-y` auto-confirms git ops | Never writes (`--dry-run` or non-TTY lists only) |
+| Default | Overwrites dest managed content | Only newer mapped content (git timestamp after content diff) |
+
+| Flag | Description |
+|------|-------------|
+| `-d dest` | Required. Exactly one destination name (not comma-separated). |
+| `--dest-only` | Also harvest dest files with no SRC counterpart (additive on mapped pull). |
+| `--dry-run` | Print candidates; no prompt; no write. Non-TTY behaves the same. |
+| `-i`, `--include` | Allowlist on SRC-relative path ([fnmatch](https://docs.python.org/3/library/fnmatch.html); quote globs in zsh). |
+| `-e`, `--exclude` | Denylist after include (same matcher). |
+
+| Scenario | Command |
+|----------|---------|
+| Interactive harvest | `pull -n cfg -d dest1` |
+| Preview candidates | `pull -n cfg -d dest1 --dry-run` |
+| Scripted / CI list only | `pull -n cfg -d dest1` (non-TTY) |
+
+**Pull behavior**:
+- **Mapped files**: Content compare first; equal content skips git. Pull only when dest git time is newer than SRC. Dirty dest or SRC path: warn and skip.
+- **Sectioned dest files**: Copies managed section bodies only; dest text after `OK_EDIT` stays in dest; `skip_sections` honored.
+- **Whole-file dest**: Copies file with path-sync header stripped; no header added on SRC.
+- **Dest-only**: Whole file to mapped SRC path; does not edit `.src.yaml`.
+- **Path filters**: `-i` / `-e` apply after collect; match SRC-relative path; empty after filter prints `No pull candidates.`
+- **Confirm**: One list, one `y/n`; yes applies all rows.
+
+**Dest-only example** (dir mapping; config unchanged):
+
+```yaml
+# .github/cursor.src.yaml (excerpt)
+paths:
+  - src_path: .cursor/**/*.mdc
+destinations:
+  - name: lz
+    dest_path_relative: ../lz
+```
+
+```bash
+# ../lz/.cursor/rules/bar.mdc exists; SRC has no bar.mdc yet
+path-sync pull -n cursor -d lz --dest-only
+```
+
+Creates `.cursor/rules/bar.mdc` in SRC. To limit a mixed dest-only list:
+
+```bash
+path-sync pull -n cursor -d lz --dest-only -i '.cursor/*'
+```
+
+See also: [pull command reference](docs/pull/index.md).
+
+### 4. Validate (run in dest repo)
 
 ```bash
 uvx path-sync validate-no-changes -b main
