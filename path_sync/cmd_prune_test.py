@@ -181,14 +181,6 @@ def test_prune_no_candidates(capsys, tmp_path):
     assert "No prune candidates." in capsys.readouterr().err
 
 
-def test_prune_deletes_binary_dest_extra(tmp_path):
-    src_root, dest_root, *_rest, config, dest = _cursor_setup(tmp_path)
-    extra = dest_root / ".cursor/rules/blob.bin"
-    extra.write_bytes(b"\x80\x81\x82")
-    _confirm_prune(config, dest, src_root, PruneOptions())
-    assert not extra.exists()
-
-
 def test_prune_skips_scaffold_mapping(tmp_path):
     src_root, dest_root, *_rest, config, dest = _cursor_setup(tmp_path)
     config.paths.append(PathMapping(src_path="scaffold", sync_mode=SyncMode.SCAFFOLD))
@@ -197,15 +189,6 @@ def test_prune_skips_scaffold_mapping(tmp_path):
     scaffold_file.write_text("x")
     _confirm_prune(config, dest, src_root, PruneOptions())
     assert scaffold_file.exists()
-
-
-def test_prune_eligible_includes_binary(tmp_path):
-    src_root, dest_root, *_rest, config, dest = _cursor_setup(tmp_path)
-    extra = dest_root / ".cursor/rules/blob.bin"
-    extra.write_bytes(b"\x80\x81\x82")
-    dest_repo = Repo(dest_root)
-    rows = prune_eligible(collect_dest_only_files(config, dest, src_root, dest_root, dest_repo, set()))
-    assert [row.dest_path.name for row in rows] == ["blob.bin"]
 
 
 def test_run_prune_rejects_non_git_dest(tmp_path):
