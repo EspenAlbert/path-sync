@@ -7,7 +7,7 @@ from path_sync import pull
 from path_sync import validate_no_changes
 from path_sync import config
 
-VERSION = "0.8.0"
+VERSION = "0.9.0"
 __all__ = [
     "copy",
     "dep_update",

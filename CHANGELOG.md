@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.9.0 2026-09-03T21-07Z
+
+### Prune
+- New function `prune`
+
+
 ## 0.8.0 2026-09-03T08-06Z
 
 ### Pull

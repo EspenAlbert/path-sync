@@ -12,7 +12,7 @@
 
 ### cli_command: `prune`
 - [source](../../path_sync/_internal/cmd_prune.py#L54)
-> **Since:** unreleased
+> **Since:** 0.9.0
 
 ```python
 def prune(
@@ -47,5 +47,5 @@ Quote glob patterns (e.g. -i '.cursor/*').
 
 | Version | Change |
 |---------|--------|
-| unreleased | Made public |
+| 0.9.0 | Made public |
 <!-- === OK_EDIT: pkg-ext prune_def === -->

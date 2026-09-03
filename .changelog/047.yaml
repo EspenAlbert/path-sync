@@ -34,3 +34,8 @@ name: PruneOptions
 ts: 2026-09-03 20:17:38.888768+00:00
 type: keep_private
 full_path: _internal.cmd_prune.PruneOptions
+---
+name: 0.9.0
+ts: 2026-09-03 21:07:40.044338+00:00
+type: release
+old_version: 0.8.0
