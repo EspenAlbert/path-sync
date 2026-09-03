@@ -7,7 +7,6 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from enum import StrEnum
 from pathlib import Path
-from typing import NamedTuple
 
 import typer
 from git import Repo
@@ -16,10 +15,10 @@ from pydantic import BaseModel, Field
 from path_sync import sections
 from path_sync._internal import git_ops, header, prompt_utils
 from path_sync._internal.cmd_copy import _iter_sync_files
+from path_sync._internal.dest_only import DestOnlyFile, collect_dest_only_files, is_opted_out
 from path_sync._internal.file_utils import ensure_parents_write_text
 from path_sync._internal.models import (
     Destination,
-    PathMapping,
     SrcConfig,
     SyncMode,
     find_repo_root,
@@ -47,11 +46,6 @@ class PullOptions(BaseModel):
     dest_only: bool = False
     include: list[str] = Field(default_factory=list)
     exclude: list[str] = Field(default_factory=list)
-
-
-class _DestFileMap(NamedTuple):
-    src_path: Path
-    dest_key: str
 
 
 @dataclass
@@ -90,10 +84,6 @@ def _diff_section_ids(dest_map: dict[str, str], src_map: dict[str, str]) -> list
     return sorted(i for i in ids if dest_map.get(i) != src_map.get(i))
 
 
-def _is_opted_out(dest_text: str, sync_mode: SyncMode) -> bool:
-    return sync_mode == SyncMode.SYNC and not header.has_header(dest_text)
-
-
 def _collect_mapped_candidates(
     config: SrcConfig,
     dest: Destination,
@@ -130,43 +120,17 @@ def _collect_mapped_candidates(
     return candidates
 
 
-def _src_for_dest_file(
-    mapping: PathMapping,
-    dest_path: Path,
-    src_root: Path,
-    dest_root: Path,
-) -> _DestFileMap | None:
-    if "*" in mapping.src_path:
-        glob_prefix = mapping.src_path.split("*")[0].rstrip("/")
-        dest_base = mapping.dest_path or glob_prefix
-        src_base = glob_prefix
-    elif (dest_root / mapping.resolved_dest_path()).is_dir():
-        dest_base = mapping.resolved_dest_path()
-        src_base = mapping.src_path
-    elif dest_path == dest_root / mapping.resolved_dest_path():
-        dest_base = mapping.resolved_dest_path()
-        return _DestFileMap(src_root / mapping.src_path, dest_base)
-    else:
-        return None
-
-    dest_anchor = dest_root / dest_base
-    if dest_path.is_relative_to(dest_anchor):
-        rel = dest_path.relative_to(dest_anchor)
-        return _DestFileMap(src_root / src_base / rel, str(Path(dest_base) / rel))
-    return None
-
-
-def _dest_only_candidate(src_path: Path, dest_path: Path, dest_key: str) -> PullCandidate:
+def _dest_only_candidate(row: DestOnlyFile) -> PullCandidate:
     try:
-        dest_path.read_text()
+        row.dest_path.read_text()
     except UnicodeDecodeError:
         kind = PullKind.BINARY
     else:
         kind = PullKind.WHOLE
     return PullCandidate(
-        src_path=src_path,
-        dest_path=dest_path,
-        dest_key=dest_key,
+        src_path=row.src_path,
+        dest_path=row.dest_path,
+        dest_key=row.dest_key,
         kind=kind,
         section_ids=[],
         dest_ts=None,
@@ -184,25 +148,10 @@ def _collect_dest_only_candidates(
     dest_repo: Repo,
     skip_keys: set[str],
 ) -> list[PullCandidate]:
-    candidates: list[PullCandidate] = []
-    seen = set(skip_keys)
-    for mapping in config.resolve_paths(dest):
-        if mapping.sync_mode == SyncMode.SCAFFOLD:
-            continue
-        for dest_path in mapping.expand_dest_paths(dest_root):
-            if dest_path.is_dir() or mapping.is_excluded(dest_path):
-                continue
-            mapped = _src_for_dest_file(mapping, dest_path, src_root, dest_root)
-            if mapped is None:
-                continue
-            if dest.is_skipped(mapped.dest_key) or mapped.src_path.exists() or mapped.dest_key in seen:
-                continue
-            if git_ops.path_is_tracked_dirty(dest_repo, dest_path):
-                logger.warning(f"Skipping dirty dest path: {dest_path}")
-                continue
-            seen.add(mapped.dest_key)
-            candidates.append(_dest_only_candidate(mapped.src_path, dest_path, mapped.dest_key))
-    return candidates
+    return [
+        _dest_only_candidate(row)
+        for row in collect_dest_only_files(config, dest, src_root, dest_root, dest_repo, skip_keys)
+    ]
 
 
 def _text_pull_kind(
@@ -213,7 +162,7 @@ def _text_pull_kind(
     sync_mode: SyncMode,
     skip_list: list[str],
 ) -> tuple[PullKind, list[str]] | None:
-    if _is_opted_out(dest_text, sync_mode):
+    if is_opted_out(dest_text, sync_mode):
         return None
 
     dest_body = header.remove_header(dest_text)

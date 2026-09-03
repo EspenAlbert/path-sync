@@ -2,7 +2,7 @@
 
 <!-- === DO_NOT_EDIT: pkg-ext pulloptions_def === -->
 ## class: PullOptions
-- [source](../../path_sync/_internal/cmd_pull.py#L45)
+- [source](../../path_sync/_internal/cmd_pull.py#L44)
 > **Since:** 0.8.0
 
 ```python

@@ -33,6 +33,7 @@ nav:
     - UpdateEntry: dep_update/updateentry.md
     - VerifyConfig: dep_update/verifyconfig.md
     - VerifyStep: dep_update/verifystep.md
+  - prune: prune/index.md
   - pull:
     - Overview: pull/index.md
     - PullOptions: pull/pulloptions.md

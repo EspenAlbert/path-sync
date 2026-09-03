@@ -9,6 +9,7 @@ from path_sync._internal.cmd_copy import (
     CopyOptions,
     _cleanup_orphans,
     _close_stale_pr,
+    _print_dest_only_hint,
     _skip_already_synced,
     _sync_path,
 )
@@ -586,3 +587,57 @@ def test_skip_already_synced_checks_by_default(tmp_path: Path):
         mock_git.get_pr_body.return_value = body
         result = _skip_already_synced("dest", tmp_path, "sync/test", "2026-01-01T00:00:00", opts, config)
         assert result
+
+
+def _hint_setup(tmp_path):
+    src_root = tmp_path / "src"
+    dest_root = tmp_path / "dest"
+    src_root.mkdir()
+    dest_root.mkdir()
+    Repo.init(src_root)
+    Repo.init(dest_root)
+    config = SrcConfig(name=CONFIG_NAME, paths=[PathMapping(src_path=".cursor", sync_mode=SyncMode.REPLACE)])
+    dest = _make_dest(name="lz", dest_path_relative=".")
+    (src_root / ".cursor/rules/foo.mdc").parent.mkdir(parents=True)
+    (src_root / ".cursor/rules/foo.mdc").write_text("foo")
+    (dest_root / ".cursor/rules/foo.mdc").parent.mkdir(parents=True)
+    (dest_root / ".cursor/rules/foo.mdc").write_text("foo")
+    return src_root, dest_root, config, dest
+
+
+def test_copy_hint_with_dest_extra(capsys, tmp_path):
+    src_root, dest_root, config, dest = _hint_setup(tmp_path)
+    (dest_root / ".cursor/rules/bar.mdc").write_text("extra")
+    _print_dest_only_hint(config, dest, src_root, dest_root)
+    err = capsys.readouterr().err
+    assert "1 dest-only file." in err
+    assert f"path-sync pull -n {CONFIG_NAME} -d lz --dest-only" in err
+    assert f"path-sync prune -n {CONFIG_NAME} -d lz" in err
+    assert (dest_root / ".cursor/rules/bar.mdc").exists()
+
+
+def test_copy_hint_absent_without_extra(capsys, tmp_path):
+    src_root, dest_root, config, dest = _hint_setup(tmp_path)
+    _print_dest_only_hint(config, dest, src_root, dest_root)
+    assert capsys.readouterr().err == ""
+
+
+def test_copy_hint_with_skip_orphan_cleanup(capsys, tmp_path):
+    src_root, dest_root, config, dest = _hint_setup(tmp_path)
+    (dest_root / ".cursor/rules/bar.mdc").write_text("extra")
+    _print_dest_only_hint(config, dest, src_root, dest_root)
+    assert "dest-only" in capsys.readouterr().err
+
+
+def test_copy_hint_absent_for_opted_out_only(capsys, tmp_path):
+    src_root = tmp_path / "src"
+    dest_root = tmp_path / "dest"
+    src_root.mkdir()
+    dest_root.mkdir()
+    Repo.init(src_root)
+    Repo.init(dest_root)
+    config = SrcConfig(name=CONFIG_NAME, paths=[PathMapping(src_path="justfile")])
+    dest = _make_dest(name="lz", dest_path_relative=".")
+    (dest_root / "justfile").write_text("opted out")
+    _print_dest_only_hint(config, dest, src_root, dest_root)
+    assert capsys.readouterr().err == ""

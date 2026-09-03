@@ -12,6 +12,7 @@ from pydantic import BaseModel
 from path_sync import sections
 from path_sync._internal import cmd_options, git_ops, header, prompt_utils, verify
 from path_sync._internal.auto_merge import PRRef, handle_auto_merge
+from path_sync._internal.dest_only import collect_dest_only_files, prune_eligible
 from path_sync._internal.file_utils import ensure_parents_write_text
 from path_sync._internal.log_capture import capture_log
 from path_sync._internal.models import (
@@ -273,6 +274,7 @@ def _sync_destination(
         )
     result = _sync_paths(config, dest, src_root, dest_root, opts)
     _print_sync_summary(result)
+    _print_dest_only_hint(config, dest, src_root, dest_root)
 
     if result.total == 0:
         typer.echo("  No changes", err=True)
@@ -314,6 +316,22 @@ def _print_dest_header(dest: Destination) -> None:
     typer.echo(f"\n{line}", err=True)
     typer.echo(f" {dest.name}", err=True)
     typer.echo(line, err=True)
+
+
+def _print_dest_only_hint(config: SrcConfig, dest: Destination, src_root: Path, dest_root: Path) -> None:
+    if not dest_root.exists() or not git_ops.is_git_repo(dest_root):
+        return
+    dest_repo = git_ops.get_repo(dest_root)
+    files = prune_eligible(collect_dest_only_files(config, dest, src_root, dest_root, dest_repo, set()))
+    if not files:
+        return
+    label = "file" if len(files) == 1 else "files"
+    typer.echo(
+        f"  {len(files)} dest-only {label}. "
+        f"Harvest: path-sync pull -n {config.name} -d {dest.name} --dest-only. "
+        f"Delete: path-sync prune -n {config.name} -d {dest.name}.",
+        err=True,
+    )
 
 
 def _print_sync_summary(result: SyncResult) -> None:
