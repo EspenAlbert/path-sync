@@ -138,7 +138,7 @@ Creates `.cursor/rules/bar.mdc` in SRC. To limit a mixed dest-only list:
 path-sync pull -n cursor -d lz --dest-only -i '.cursor/*'
 ```
 
-See also: [pull command reference](docs/pull/index.md).
+See also: [pull command reference](pull/index.md).
 
 ### 4. Validate (run in dest repo)
 
