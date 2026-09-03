@@ -674,28 +674,29 @@ wheels = [
 
 [[package]]
 name = "pkg-ext"
-version = "0.4.8"
+version = "0.4.9"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "ask-shell" },
+    { name = "click" },
     { name = "gitpython" },
     { name = "model-lib", extra = ["toml"] },
     { name = "ruff" },
     { name = "tomlkit" },
     { name = "zero-3rdparty" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/e1/95/492ba93e5c79a539b7a73c6660abeb9ea138863e94e51cd0bf7f3b54a283/pkg_ext-0.4.8.tar.gz", hash = "sha256:bd614664de13ec968231ced28f61cf36db25f962b5d16fa6ee9d05bc43519651", size = 79380, upload-time = "2026-08-31T19:10:29.186Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/2a/e6/a6814d30de68c997e8a84ab4395f71b30862ff8c6d3484285b3ff6692173/pkg_ext-0.4.9.tar.gz", hash = "sha256:ef795fd3eb42a98e0ff5603b2fe71b9119792effceca38a8bf33965af6fd03fa", size = 80142, upload-time = "2026-09-03T07:58:11.656Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/cf/c3/6ead1a34819d414d4a9731d97a50768dde4830c9416598aa9da580b1b927/pkg_ext-0.4.8-py3-none-any.whl", hash = "sha256:7f68aef71beb5aa493cfe2c8f9d64630b45c1b9ca0899d83f4e2d7e97d35a5ce", size = 113782, upload-time = "2026-08-31T19:10:27.947Z" },
+    { url = "https://files.pythonhosted.org/packages/86/44/856ffdd5df9c0442667401b9a18705cc11cd5b0c022040ce489e919152da/pkg_ext-0.4.9-py3-none-any.whl", hash = "sha256:4be97cd8b43d64fe26cd11f4a3a7a423bcced709f45d4af5f398711a9480dd44", size = 114602, upload-time = "2026-09-03T07:58:09.844Z" },
 ]
 
 [[package]]
 name = "platformdirs"
-version = "4.11.5"
+version = "4.11.7"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/ea/06/cf1564dcc2e2261c8c8c6c05628dc8b418943bdae2a4e58640ceb2f770fa/platformdirs-4.11.5.tar.gz", hash = "sha256:e8b31f4f8bcbbedef91a6b57a706255e4f148d2a4e01648382a0a47342539173", size = 34823, upload-time = "2026-08-27T21:36:37.46Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/69/b7/802a56eca9f2fac455b8bab5375a2647b0f0e14a2cd63ef077de3c4a7658/platformdirs-4.11.7.tar.gz", hash = "sha256:4f41487eeeeeb07f3a6625e61d9bc0ae6809f92d3386dbd74392fbb76108104d", size = 35127, upload-time = "2026-09-01T13:35:10.502Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/c7/12/6f3fcd5067a9cbf4f8664b32957973498da8b083455203c8d9cab83a725c/platformdirs-4.11.5-py3-none-any.whl", hash = "sha256:89f8d42695853b89c7170bd49bc3dc593f98a71e695ede88e06a3b247bc4563b", size = 23900, upload-time = "2026-08-27T21:36:36.227Z" },
+    { url = "https://files.pythonhosted.org/packages/27/6e/80993e10a0482f630cef528635789233224f36b1ffd11592aa15d13ff9ce/platformdirs-4.11.7-py3-none-any.whl", hash = "sha256:8a02cb259042c79d1cd0450facc2fe6dc9d303ae7901afbe33bf8ea0b188cef6", size = 23938, upload-time = "2026-09-01T13:35:09.02Z" },
 ]
 
 [[package]]
@@ -1222,9 +1223,9 @@ wheels = [
 
 [[package]]
 name = "zero-3rdparty"
-version = "0.104.5"
+version = "0.104.6"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/88/67/b5d94912da2d105b7b0e442722bdbfb2ef4116346dc23eaf1d8b9d632175/zero_3rdparty-0.104.5.tar.gz", hash = "sha256:3f1eae75e97b5b620873c8f05b32b72e0201bb11e91361bb5434dbdd5a1a9a44", size = 35952, upload-time = "2026-04-07T08:59:15.648Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/c8/10/b483d764159e47c086b2e41b839dd87bf533e2b1ed293a7a857dbe8336ce/zero_3rdparty-0.104.6.tar.gz", hash = "sha256:0a9a60dfdaf83e1520be4f8cc6ef07107b244f81372639d668fc4b2f511eaaff", size = 36100, upload-time = "2026-09-02T13:32:44.993Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/45/d3/70bf4d2dec09d864ef0a3c1124198b48ebcaa2f46ba43d8bbed5d8b291ba/zero_3rdparty-0.104.5-py3-none-any.whl", hash = "sha256:07431e7223f343225e0e2a2d99a9b3dd7854fbe85a6fd4a573b2524d6cc66c99", size = 45256, upload-time = "2026-04-07T08:59:14.142Z" },
+    { url = "https://files.pythonhosted.org/packages/7c/e7/d0dce9913d0171088aa82c6bc96f8dcf49d4ca3844cdbdfe4c68361d01df/zero_3rdparty-0.104.6-py3-none-any.whl", hash = "sha256:1f2aee6e3ba4a56ebb543cedd03136272d6a4211671a010e0dde7c9ae9a2c9ad", size = 45236, upload-time = "2026-09-02T13:32:43.774Z" },
 ]
