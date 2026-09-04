@@ -69,6 +69,13 @@ target-version = "py313"
 # UP047: use type parameters instead of `Generic[T]` subclass
 extend-ignore = ["E501", "UP006", "UP007", "UP035", "UP040", "UP046", "UP047"]
 extend-select = ["Q", "RUF100", "C90", "UP", "I", "T", "FURB"]
+
+[tool.ruff.lint.flake8-bugbear]
+extend-immutable-calls = ["typer.Option", "typer.Argument"]
+
+[tool.ruff.format]
+# pytest-examples print prefix is `#>`; ruff 0.16 markdown format turns that into `# >`
+exclude = ["docs/examples/**"]
 # === OK_EDIT: path-sync ruff ===
 
 # === DO_NOT_EDIT: path-sync pytest ===
@@ -95,7 +102,7 @@ exclude = [".venv/", "*test.py"]
 # === DO_NOT_EDIT: path-sync dev-lint ===
 [dependency-groups]
 dev-lint = [
-  "pyright>=1.1",
+  "ty==0.0.76",
   "ruff>=0.14",
   "vulture>=2.14",
 ]
