@@ -1,0 +1,38 @@
+name: mark_pr_ready
+ts: 2026-09-05 14:29:20.177463+00:00
+type: keep_private
+full_path: _internal.auto_merge.mark_pr_ready
+---
+name: get_pr_merge_commit
+ts: 2026-09-05 14:29:20.177521+00:00
+type: keep_private
+full_path: _internal.auto_merge.get_pr_merge_commit
+---
+name: get_remote_branch_sha
+ts: 2026-09-05 14:29:20.177530+00:00
+type: keep_private
+full_path: _internal.auto_merge.get_remote_branch_sha
+---
+name: get_commit_checks
+ts: 2026-09-05 14:29:20.177537+00:00
+type: keep_private
+full_path: _internal.auto_merge.get_commit_checks
+---
+name: wait_for_branch_checks
+ts: 2026-09-05 14:29:20.177542+00:00
+type: keep_private
+full_path: _internal.auto_merge.wait_for_branch_checks
+---
+name: AutoMergeEnableResult
+ts: 2026-09-05 14:29:23.384042+00:00
+type: keep_private
+full_path: _internal.auto_merge.AutoMergeEnableResult
+---
+name: copy
+ts: 2026-09-05 14:29:40.777418+00:00
+type: fix
+author: EspenAlbert
+changelog_message: 'fix(merge): Waits for default-branch CI and prompts on draft PRs'
+group: copy
+message: 'fix(merge): Waits for default-branch CI and prompts on draft PRs'
+short_sha: 6f2a1e
