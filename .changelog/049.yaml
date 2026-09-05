@@ -36,3 +36,8 @@ changelog_message: 'fix(merge): Waits for default-branch CI and prompts on draft
 group: copy
 message: 'fix(merge): Waits for default-branch CI and prompts on draft PRs'
 short_sha: 6f2a1e
+---
+name: 0.9.1
+ts: 2026-09-05 14:32:28.131605+00:00
+type: release
+old_version: 0.9.0

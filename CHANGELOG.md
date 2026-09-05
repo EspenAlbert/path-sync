@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.9.1 2026-09-05T14-32Z
+
+### Copy
+- fix(merge): Waits for default-branch CI and prompts on draft PRs [6f2a1e](https://github.com/EspenAlbert/path-sync/commit/6f2a1e)
+
+
 ## 0.9.0 2026-09-03T21-07Z
 
 ### Prune

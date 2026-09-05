@@ -1,5 +1,5 @@
 pkg_import_name: path_sync
-version: 0.9.0
+version: 0.9.1
 groups:
 - name: config
   symbols:
@@ -160,12 +160,12 @@ groups:
     init_signature:
       parameters:
       - name: self
-        kind: positional_or_keyword
+        kind: positional_only
         type_imports: []
       - name: args
         kind: var_positional
         type_imports: []
-      - name: kwds
+      - name: kwargs
         kind: var_keyword
         type_imports: []
       return_type_imports: []
@@ -421,12 +421,12 @@ groups:
     init_signature:
       parameters:
       - name: self
-        kind: positional_or_keyword
+        kind: positional_only
         type_imports: []
       - name: args
         kind: var_positional
         type_imports: []
-      - name: kwds
+      - name: kwargs
         kind: var_keyword
         type_imports: []
       return_type_imports: []
@@ -1129,12 +1129,12 @@ groups:
     init_signature:
       parameters:
       - name: self
-        kind: positional_or_keyword
+        kind: positional_only
         type_imports: []
       - name: args
         kind: var_positional
         type_imports: []
-      - name: kwds
+      - name: kwargs
         kind: var_keyword
         type_imports: []
       return_type_imports: []
@@ -1721,4 +1721,4 @@ groups:
       required: false
       is_argument: false
       hidden: false
-dumped_at: 2026-09-03 21:07:39.990428+00:00
+dumped_at: 2026-09-05 14:32:28.065419+00:00
