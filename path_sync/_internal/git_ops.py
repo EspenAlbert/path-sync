@@ -6,6 +6,7 @@ import re
 import subprocess
 from configparser import NoOptionError, NoSectionError
 from contextlib import suppress
+from dataclasses import dataclass
 from pathlib import Path
 
 from git import GitCommandError, InvalidGitRepositoryError, NoSuchPathError, Repo
@@ -339,3 +340,67 @@ def file_last_commit_unix(repo: Repo, file_path: Path) -> int | None:
         ts = repo.git.log("-1", "--format=%ct", "--", rel_path).strip()
         return int(ts) if ts else None
     return None
+
+
+@dataclass(frozen=True)
+class FileVersion:
+    sha: str
+    commit_unix: int
+    path: str
+    renamed_from: str | None = None
+
+
+def _parse_name_status(line: str) -> tuple[str | None, str | None]:
+    """Parse one --name-status line into (path_at_commit, renamed_from).
+
+    Returns (None, None) when the status carries no usable path (for example a deletion).
+    """
+    fields = line.split("\t")
+    if len(fields) < 2:
+        return None, None
+    code = fields[0][:1]
+    if code in {"A", "M", "T"}:
+        return fields[1], None
+    if code in {"R", "C"} and len(fields) >= 3:
+        return fields[2], fields[1]
+    return None, None
+
+
+def walk_file_history(repo: Repo, rel_path: str) -> list[FileVersion]:
+    """Walk one file's history newest first, following renames.
+
+    ``git log --follow`` takes exactly one pathspec, so this works on one file at a time.
+    Returns ``[]`` when the path has no history.
+    """
+    try:
+        raw = repo.git.log("--follow", "--name-status", "--format=%x00%H %ct", "--", rel_path)
+    except GitCommandError:
+        return []
+    versions: list[FileVersion] = []
+    for block in raw.split("\x00"):
+        lines = [line for line in block.splitlines() if line.strip()]
+        if not lines:
+            continue
+        header = lines[0].split()
+        if len(header) < 2:
+            continue
+        path: str | None = None
+        renamed_from: str | None = None
+        for line in lines[1:]:
+            found_path, found_from = _parse_name_status(line)
+            if found_path is None:
+                continue
+            path = found_path
+            renamed_from = found_from
+        if path is None:
+            continue
+        versions.append(FileVersion(sha=header[0], commit_unix=int(header[1]), path=path, renamed_from=renamed_from))
+    return versions
+
+
+def file_content_at_commit(repo: Repo, sha: str, path: str) -> str | None:
+    """Return the file content at ``sha:path``, or None when the path is missing or binary."""
+    try:
+        return repo.git.show(f"{sha}:{path}", strip_newline_in_stdout=False)
+    except (GitCommandError, UnicodeDecodeError):
+        return None

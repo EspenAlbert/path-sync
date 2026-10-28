@@ -70,6 +70,40 @@ def test_file_last_commit_unix(tmp_repo):
     assert ts2 > ts
 
 
+def test_walk_file_history_two_commits(tmp_repo):
+    repo = git_ops.get_repo(tmp_repo)
+    _commit_file(repo, tmp_repo, "hist.txt", "v1")
+    _commit_file(repo, tmp_repo, "hist.txt", "v2")
+    versions = git_ops.walk_file_history(repo, "hist.txt")
+    assert [v.path for v in versions] == ["hist.txt", "hist.txt"]
+    assert versions[0].commit_unix >= versions[1].commit_unix
+    assert all(v.renamed_from is None for v in versions)
+
+
+def test_walk_file_history_rename(tmp_repo):
+    repo = git_ops.get_repo(tmp_repo)
+    _commit_file(repo, tmp_repo, "old.txt", "content")
+    repo.git.mv("old.txt", "new.txt")
+    repo.git.commit("-m", "rename")
+    versions = git_ops.walk_file_history(repo, "new.txt")
+    assert versions[0].path == "new.txt"
+    assert versions[0].renamed_from == "old.txt"
+    assert versions[-1].path == "old.txt"
+
+
+def test_walk_file_history_missing_path(tmp_repo):
+    repo = git_ops.get_repo(tmp_repo)
+    assert git_ops.walk_file_history(repo, "never.txt") == []
+
+
+def test_file_content_at_commit(tmp_repo):
+    repo = git_ops.get_repo(tmp_repo)
+    _commit_file(repo, tmp_repo, "present.txt", "hello")
+    sha = repo.head.commit.hexsha
+    assert git_ops.file_content_at_commit(repo, sha, "present.txt") == "hello"
+    assert git_ops.file_content_at_commit(repo, sha, "absent.txt") is None
+
+
 def test_truncate_body_short_unchanged():
     body = "short body"
     assert _truncate_body(body) == body

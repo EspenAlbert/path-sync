@@ -2,6 +2,7 @@
 # flake8: noqa
 from path_sync import copy
 from path_sync import dep_update
+from path_sync import merge
 from path_sync import prune
 from path_sync import pull
 from path_sync import validate_no_changes
@@ -11,6 +12,7 @@ VERSION = "0.9.1"
 __all__ = [
     "copy",
     "dep_update",
+    "merge",
     "prune",
     "pull",
     "validate_no_changes",
