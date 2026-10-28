@@ -32,6 +32,11 @@ groups:
   - _internal.models_dep.DepConfig
   - _internal.models_dep.PRConfig
   - _internal.models_dep.UpdateEntry
+- name: merge
+  owned_modules:
+  - _internal.cmd_merge
+  owned_refs:
+  - _internal.cmd_merge.merge
 - name: prune
   owned_modules:
   - _internal.cmd_prune

@@ -1,6 +1,14 @@
 import logging
 
-from path_sync._internal import cmd_boot, cmd_copy, cmd_dep_update, cmd_prune, cmd_pull, cmd_validate  # noqa: F401
+from path_sync._internal import (  # noqa: F401
+    cmd_boot,
+    cmd_copy,
+    cmd_dep_update,
+    cmd_merge,
+    cmd_prune,
+    cmd_pull,
+    cmd_validate,
+)
 from path_sync._internal.models import LOG_FORMAT
 from path_sync._internal.typer_app import app
 

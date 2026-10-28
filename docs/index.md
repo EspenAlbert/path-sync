@@ -13,14 +13,15 @@ Sync files from a source repo to multiple destination repos.
 
 **Solution**: path-sync provides one-way file syncing with clear ownership:
 
-| Term | Definition |
-|------|------------|
-| **SRC** | Source repository containing the canonical files |
-| **DEST** | Destination repository receiving synced files |
-| **Header** | Comment added to synced files marking them as managed |
-| **Section** | Marked region within a file for partial syncing |
+| Term        | Definition                                            |
+| ----------- | ----------------------------------------------------- |
+| **SRC**     | Source repository containing the canonical files      |
+| **DEST**    | Destination repository receiving synced files         |
+| **Header**  | Comment added to synced files marking them as managed |
+| **Section** | Marked region within a file for partial syncing       |
 
 **Key behaviors**:
+
 - SRC owns synced content; DEST should not edit it
 - Files with headers are updated on each sync
 - Remove a header to opt-out (file becomes DEST-owned)
@@ -58,23 +59,23 @@ path-sync copy -n myconfig
 
 By default, prompts before each git operation. See [Usage Scenarios](#usage-scenarios) for common patterns.
 
-| Flag | Description |
-|------|-------------|
-| `-d dest1,dest2` | Filter specific destinations |
-| `--dry-run` | Preview without writing (requires existing repos) |
-| `-y, --no-prompt` | Skip confirmations (for CI) |
-| `--skip-commit` | No git ops after sync (no commit/push/PR). Alias: `--local` |
-| `--no-checkout` | Skip branch switching (assumes already on correct branch) |
-| `--checkout-from-default` | Reset to origin/default before sync |
-| `--no-pr` | Push but skip PR creation |
-| `--force-overwrite` | Overwrite files even if header removed (opted out) |
-| `--detailed-exit-code` | Exit 0=no changes, 1=changes, 2=error |
-| `--skip-orphan-cleanup` | Skip deletion of orphaned synced files |
-| `--skip-verify` | Skip verification steps after syncing |
-| `--pr-title` | Override PR title (supports `{name}`, `{dest_name}`) |
-| `--pr-labels` | Comma-separated PR labels |
-| `--pr-reviewers` | Comma-separated PR reviewers |
-| `--pr-assignees` | Comma-separated PR assignees |
+| Flag                      | Description                                                 |
+| ------------------------- | ----------------------------------------------------------- |
+| `-d dest1,dest2`          | Filter specific destinations                                |
+| `--dry-run`               | Preview without writing (requires existing repos)           |
+| `-y, --no-prompt`         | Skip confirmations (for CI)                                 |
+| `--skip-commit`           | No git ops after sync (no commit/push/PR). Alias: `--local` |
+| `--no-checkout`           | Skip branch switching (assumes already on correct branch)   |
+| `--checkout-from-default` | Reset to origin/default before sync                         |
+| `--no-pr`                 | Push but skip PR creation                                   |
+| `--force-overwrite`       | Overwrite files even if header removed (opted out)          |
+| `--detailed-exit-code`    | Exit 0=no changes, 1=changes, 2=error                       |
+| `--skip-orphan-cleanup`   | Skip deletion of orphaned synced files                      |
+| `--skip-verify`           | Skip verification steps after syncing                       |
+| `--pr-title`              | Override PR title (supports `{name}`, `{dest_name}`)        |
+| `--pr-labels`             | Comma-separated PR labels                                   |
+| `--pr-reviewers`          | Comma-separated PR reviewers                                |
+| `--pr-assignees`          | Comma-separated PR assignees                                |
 
 ### 3. Pull changes from a destination
 
@@ -88,28 +89,29 @@ path-sync pull -n myconfig -d dest1 --dest-only -i '.cursor/*'
 
 Unlike `copy`, `pull` never auto-applies. `--dry-run` and non-TTY list candidates and write nothing.
 
-| | `copy` | `pull` |
-|---|--------|--------|
-| Direction | SRC → DEST | DEST → SRC |
-| `-d` | Comma-separated filter (optional) | Exactly one dest (required) |
-| Non-TTY / no-write flags | `-y` auto-confirms git ops | Never writes (`--dry-run` or non-TTY lists only) |
-| Default | Overwrites dest managed content | Only newer mapped content (git timestamp after content diff) |
+|                          | `copy`                            | `pull`                                                       |
+| ------------------------ | --------------------------------- | ------------------------------------------------------------ |
+| Direction                | SRC → DEST                        | DEST → SRC                                                   |
+| `-d`                     | Comma-separated filter (optional) | Exactly one dest (required)                                  |
+| Non-TTY / no-write flags | `-y` auto-confirms git ops        | Never writes (`--dry-run` or non-TTY lists only)             |
+| Default                  | Overwrites dest managed content   | Only newer mapped content (git timestamp after content diff) |
 
-| Flag | Description |
-|------|-------------|
-| `-d dest` | Required. Exactly one destination name (not comma-separated). |
-| `--dest-only` | Also harvest dest files with no SRC counterpart (additive on mapped pull). |
-| `--dry-run` | Print candidates; no prompt; no write. Non-TTY behaves the same. |
+| Flag              | Description                                                                                                     |
+| ----------------- | --------------------------------------------------------------------------------------------------------------- |
+| `-d dest`         | Required. Exactly one destination name (not comma-separated).                                                   |
+| `--dest-only`     | Also harvest dest files with no SRC counterpart (additive on mapped pull).                                      |
+| `--dry-run`       | Print candidates; no prompt; no write. Non-TTY behaves the same.                                                |
 | `-i`, `--include` | Allowlist on SRC-relative path ([fnmatch](https://docs.python.org/3/library/fnmatch.html); quote globs in zsh). |
-| `-e`, `--exclude` | Denylist after include (same matcher). |
+| `-e`, `--exclude` | Denylist after include (same matcher).                                                                          |
 
-| Scenario | Command |
-|----------|---------|
-| Interactive harvest | `pull -n cfg -d dest1` |
-| Preview candidates | `pull -n cfg -d dest1 --dry-run` |
+| Scenario                | Command                          |
+| ----------------------- | -------------------------------- |
+| Interactive harvest     | `pull -n cfg -d dest1`           |
+| Preview candidates      | `pull -n cfg -d dest1 --dry-run` |
 | Scripted / CI list only | `pull -n cfg -d dest1` (non-TTY) |
 
 **Pull behavior**:
+
 - **Mapped files**: Content compare first; equal content skips git. Pull only when dest git time is newer than SRC. Dirty dest or SRC path: warn and skip.
 - **Sectioned dest files**: Copies managed section bodies only; dest text after `OK_EDIT` stays in dest; `skip_sections` honored.
 - **Whole-file dest**: Copies file with path-sync header stripped; no header added on SRC.
@@ -141,7 +143,34 @@ path-sync pull -n cursor -d lz --dest-only -i '.cursor/*'
 
 See also: [pull command reference](pull/index.md).
 
-### 4. Prune dest-only files
+### 4. Merge a destination into SRC
+
+Reconcile a destination into SRC before the next `copy`. Per file and per managed section, `merge` recovers the last-synced base from the two repos' histories, prefers the changed side, and combines non-overlapping changes with `git merge-file`. A real conflict fails loudly and writes nothing. Use it when a destination moved ahead, so the next `copy` does not revert those edits.
+
+```bash
+path-sync merge -n myconfig -d dest1
+path-sync merge -n myconfig -d dest1 --dry-run
+```
+
+Unlike `pull`, `merge` ranks sides by the recovered history base rather than commit timestamp, so it detects when both sides changed. It writes SRC, prompts to commit SRC, and prints the `path-sync copy` hint. `merge` never runs `copy`; run it separately. The `path-sync-cursor` recipe chains `merge` then `copy`.
+
+| Flag              | Description                                                                                                     |
+| ----------------- | --------------------------------------------------------------------------------------------------------------- |
+| `-d dest`         | Optional filter. Repeatable or comma-separated; omit to merge every destination.                                |
+| `--dry-run`       | Print classifications; no write; no commit.                                                                     |
+| `-i`, `--include` | Allowlist on SRC-relative path ([fnmatch](https://docs.python.org/3/library/fnmatch.html); quote globs in zsh). |
+| `-e`, `--exclude` | Denylist after include (same matcher).                                                                          |
+
+**Merge behavior**:
+
+- **Base from history**: A unit is the whole body for a plain file, or one managed section when the file has sections. The base is the most recent body present in both histories.
+- **Classifications**: `dest-changed` harvests the destination body; `merge` combines both sides; `conflict: no common base` and `conflict: overlapping edit` write nothing and exit non-zero.
+- **Sectioned files**: Only changed sections are replaced in SRC; untouched sections and dest-only text stay put. `skip_sections` honored.
+- **Commit**: After writing SRC, `merge` prompts to commit and prints the suggested message `chore: merge destination {dest}`. A non-TTY prints the message instead of committing.
+
+See also: [merge command reference](merge/index.md).
+
+### 5. Prune dest-only files
 
 Delete dest files whose SRC counterpart is missing. Uses the same collect as `pull --dest-only`, then skips opted-out dest files before listing.
 
@@ -175,7 +204,7 @@ After `copy`, when prune-eligible dest-only files remain, path-sync prints the c
 
 See also: [prune command reference](prune/index.md).
 
-### 5. Validate (run in dest repo)
+### 6. Validate (run in dest repo)
 
 ```bash
 uvx path-sync validate-no-changes -b main
@@ -184,20 +213,21 @@ uvx path-sync validate-no-changes -b main
 In CI, when the workflow runs on `pull_request`, the comparison branch is the PR base. On `push` or locally, pass `-b` with the branch to compare against (e.g. `-b SDLC` for a branch based on SDLC).
 
 Options:
+
 - `-b, --branch` - Branch to compare against (default: main). When `GITHUB_BASE_REF` is set (e.g. in GitHub Actions), it overrides the default so CI can use the PR base without passing `-b`. If you set `GITHUB_BASE_REF`, use a non-empty branch name.
 - `--skip-sections` - Comma-separated `path:section_id` pairs to skip (e.g., `justfile:coverage`)
 
 ## Usage Scenarios
 
-| Scenario | Command |
-|----------|---------|
-| Interactive sync | `copy -n cfg` |
-| CI fresh sync | `copy -n cfg --checkout-from-default -y` |
-| Local preview | `copy -n cfg --dry-run` |
-| Local test files | `copy -n cfg --skip-commit` |
-| Already on branch | `copy -n cfg --no-checkout` |
-| Push, manual PR | `copy -n cfg --no-pr -y` |
-| Force opted-out | `copy -n cfg --force-overwrite` |
+| Scenario          | Command                                  |
+| ----------------- | ---------------------------------------- |
+| Interactive sync  | `copy -n cfg`                            |
+| CI fresh sync     | `copy -n cfg --checkout-from-default -y` |
+| Local preview     | `copy -n cfg --dry-run`                  |
+| Local test files  | `copy -n cfg --skip-commit`              |
+| Already on branch | `copy -n cfg --no-checkout`              |
+| Push, manual PR   | `copy -n cfg --no-pr -y`                 |
+| Force opted-out   | `copy -n cfg --force-overwrite`          |
 
 **Interactive prompt behavior**: Each git operation (checkout, commit, push, PR) prompts independently. Use `--no-checkout` to skip the branch switch prompt. Use `--skip-commit` to skip all git operations after sync.
 
@@ -224,7 +254,7 @@ destinations:
   - name: dest1
     dest_path_relative: ../dest1
     skip_sections:
-      justfile: [coverage]  # keep local coverage recipe
+      justfile: [coverage] # keep local coverage recipe
 ```
 
 ## Wrapping Synced Files
@@ -232,6 +262,7 @@ destinations:
 For files without section markers, `wrap_synced_files` automatically wraps content in a `synced` section. This lets destinations add content before/after the synced content.
 
 **Without wrapping** (default):
+
 ```python
 # path-sync copy -n myconfig
 def hello():
@@ -239,6 +270,7 @@ def hello():
 ```
 
 **With wrapping** (`wrap_synced_files: true`):
+
 ```python
 # path-sync copy -n myconfig
 # === DO_NOT_EDIT: path-sync synced ===
@@ -254,9 +286,9 @@ Destinations can add content outside the section markers. Per-path override via 
 ```yaml
 wrap_synced_files: true
 paths:
-  - src_path: templates/base.py     # wrapped
+  - src_path: templates/base.py # wrapped
   - src_path: .editorconfig
-    wrap: false                     # not wrapped
+    wrap: false # not wrapped
 ```
 
 ## Skipping Files per Destination
@@ -266,12 +298,12 @@ Use `skip_file_patterns` to exclude files for specific destinations. Patterns ma
 ```yaml
 paths:
   - src_path: scripts/
-    dest_path: tools/  # remapped in destination
+    dest_path: tools/ # remapped in destination
 destinations:
   - name: dest1
     dest_path_relative: ../dest1
     skip_file_patterns:
-      - "tools/internal/*"   # matches destination path, not src
+      - "tools/internal/*" # matches destination path, not src
       - "*.test.py"
       - "docs/draft.md"
 ```
@@ -306,55 +338,55 @@ destinations:
       - "scripts/internal/*"
 ```
 
-| Field | Description |
-|-------|-------------|
-| `name` | Config identifier |
-| `src_repo_url` | Source repo URL (auto-detected from git remote) |
-| `schedule` | Cron for scheduled sync workflow |
-| `paths` | Files/globs to sync (see path options below) |
-| `destinations` | Target repos with sync settings |
-| `header_config` | Comment style per extension (has defaults) |
-| `pr_defaults` | PR title, body template, labels, reviewers, assignees |
-| `wrap_synced_files` | Wrap synced files in section markers (default: `false`) |
-| `keep_pr_on_no_changes` | Keep stale PR open instead of auto-closing when sync produces zero changes (default: `false`) |
-| `force_resync` | Ignore the "PR already synced from newer commit" check, always run the full sync (default: `false`) |
-| `verify` | Verification steps to run after syncing (see [Verify Steps](#verify-steps-in-copy)) |
+| Field                   | Description                                                                                         |
+| ----------------------- | --------------------------------------------------------------------------------------------------- |
+| `name`                  | Config identifier                                                                                   |
+| `src_repo_url`          | Source repo URL (auto-detected from git remote)                                                     |
+| `schedule`              | Cron for scheduled sync workflow                                                                    |
+| `paths`                 | Files/globs to sync (see path options below)                                                        |
+| `destinations`          | Target repos with sync settings                                                                     |
+| `header_config`         | Comment style per extension (has defaults)                                                          |
+| `pr_defaults`           | PR title, body template, labels, reviewers, assignees                                               |
+| `wrap_synced_files`     | Wrap synced files in section markers (default: `false`)                                             |
+| `keep_pr_on_no_changes` | Keep stale PR open instead of auto-closing when sync produces zero changes (default: `false`)       |
+| `force_resync`          | Ignore the "PR already synced from newer commit" check, always run the full sync (default: `false`) |
+| `verify`                | Verification steps to run after syncing (see [Verify Steps](#verify-steps-in-copy))                 |
 
 **`body_template` variables** (available in `pr_defaults.body_template`):
 
-| Variable | Description |
-|----------|-------------|
-| `{src_repo_name}` | Source repo name (derived from remote URL) |
-| `{src_repo_url}` | Source repo URL |
-| `{src_sha}` | Full SHA of the source commit |
+| Variable          | Description                                    |
+| ----------------- | ---------------------------------------------- |
+| `{src_repo_name}` | Source repo name (derived from remote URL)     |
+| `{src_repo_url}`  | Source repo URL                                |
+| `{src_sha}`       | Full SHA of the source commit                  |
 | `{src_sha_short}` | Short SHA (first 8 chars) of the source commit |
-| `{src_commit_ts}` | ISO 8601 timestamp of the source commit |
-| `{sync_log}` | Log of synced file operations |
-| `{dest_name}` | Destination name |
+| `{src_commit_ts}` | ISO 8601 timestamp of the source commit        |
+| `{sync_log}`      | Log of synced file operations                  |
+| `{dest_name}`     | Destination name                               |
 
 **Path options**:
 
-| Field | Description |
-|-------|-------------|
-| `src_path` | Source file, directory, or glob pattern (required) |
-| `dest_path` | Destination path (defaults to `src_path`) |
-| `sync_mode` | `sync` (default), `replace`, or `scaffold` |
-| `exclude_dirs` | Directory names to skip (defaults: `__pycache__`, `.git`, `.venv`, etc.) |
-| `exclude_file_patterns` | Filename patterns to skip, supports globs (`*.pyc`, `test_*.py`) |
-| `wrap` | Override global `wrap_synced_files` for this path (`true`/`false`) |
+| Field                   | Description                                                              |
+| ----------------------- | ------------------------------------------------------------------------ |
+| `src_path`              | Source file, directory, or glob pattern (required)                       |
+| `dest_path`             | Destination path (defaults to `src_path`)                                |
+| `sync_mode`             | `sync` (default), `replace`, or `scaffold`                               |
+| `exclude_dirs`          | Directory names to skip (defaults: `__pycache__`, `.git`, `.venv`, etc.) |
+| `exclude_file_patterns` | Filename patterns to skip, supports globs (`*.pyc`, `test_*.py`)         |
+| `wrap`                  | Override global `wrap_synced_files` for this path (`true`/`false`)       |
 
 **Destination options**:
 
-| Field | Description |
-|-------|-------------|
-| `name` | Destination identifier (required) |
-| `repo_url` | Repo URL for cloning if not found locally |
-| `dest_path_relative` | Path to destination repo relative to source (required) |
-| `copy_branch` | Branch for sync (defaults to `sync/{config_name}`) |
-| `default_branch` | Default branch to compare against (defaults to `main`) |
-| `skip_sections` | Map of `{dest_path: [section_ids]}` to preserve locally |
+| Field                | Description                                                               |
+| -------------------- | ------------------------------------------------------------------------- |
+| `name`               | Destination identifier (required)                                         |
+| `repo_url`           | Repo URL for cloning if not found locally                                 |
+| `dest_path_relative` | Path to destination repo relative to source (required)                    |
+| `copy_branch`        | Branch for sync (defaults to `sync/{config_name}`)                        |
+| `default_branch`     | Default branch to compare against (defaults to `main`)                    |
+| `skip_sections`      | Map of `{dest_path: [section_ids]}` to preserve locally                   |
 | `skip_file_patterns` | Patterns to skip for this destination (matches dest path, fnmatch syntax) |
-| `verify` | Per-destination verify config (overrides source-level verify) |
+| `verify`             | Per-destination verify config (overrides source-level verify)             |
 
 ## Verify Steps in Copy
 
@@ -363,7 +395,7 @@ Run verification steps after syncing files. Synced files are committed first, th
 ```yaml
 name: myconfig
 verify:
-  on_fail: warn  # default: warn (also: skip, fail)
+  on_fail: warn # default: warn (also: skip, fail)
   steps:
     - run: just fmt
       commit:
@@ -396,10 +428,10 @@ Synced files have a header comment identifying the source config:
 
 Comment style is extension-aware:
 
-| Extension | Format |
-|-----------|--------|
-| `.py`, `.sh`, `.yaml` | `# path-sync copy -n {name}` |
-| `.go`, `.js`, `.ts` | `// path-sync copy -n {name}` |
+| Extension              | Format                              |
+| ---------------------- | ----------------------------------- |
+| `.py`, `.sh`, `.yaml`  | `# path-sync copy -n {name}`        |
+| `.go`, `.js`, `.ts`    | `// path-sync copy -n {name}`       |
 | `.md`, `.mdc`, `.html` | `<!-- path-sync copy -n {name} -->` |
 
 Remove this header to opt-out of future syncs for that file.
@@ -470,6 +502,7 @@ jobs:
 ```
 
 **Validation skips automatically when:**
+
 - On a `sync/*` branch (path-sync uses `sync/{config_name}` by default)
 - On the default branch (comparing against itself)
 
@@ -479,23 +512,23 @@ The workflow triggers exclude these branches too, reducing unnecessary CI runs.
 
 Create a **Fine-grained PAT** at <https://github.com/settings/tokens?type=beta>
 
-| Permission | Scope |
-|------------|-------|
-| Contents | Read/write (push branches) |
-| Pull requests | Read/write (create PRs) |
-| Workflows | Read/write (if syncing `.github/workflows/`) |
-| Metadata | Read (always required) |
+| Permission    | Scope                                        |
+| ------------- | -------------------------------------------- |
+| Contents      | Read/write (push branches)                   |
+| Pull requests | Read/write (create PRs)                      |
+| Workflows     | Read/write (if syncing `.github/workflows/`) |
+| Metadata      | Read (always required)                       |
 
 Add as repository secret: `GH_PAT`
 
 ### Common Errors
 
-| Error | Fix |
-|-------|-----|
-| `HTTP 404: Not Found` | Add repo to PAT's repository access |
+| Error                               | Fix                                      |
+| ----------------------------------- | ---------------------------------------- |
+| `HTTP 404: Not Found`               | Add repo to PAT's repository access      |
 | `HTTP 403: Resource not accessible` | Add Contents + Pull requests permissions |
-| `GraphQL: Resource not accessible` | Use GH_PAT, not GITHUB_TOKEN |
-| `HTTP 422: Required status check` | Exclude `sync/*` from branch protection |
+| `GraphQL: Resource not accessible`  | Use GH_PAT, not GITHUB_TOKEN             |
+| `HTTP 422: Required status check`   | Exclude `sync/*` from branch protection  |
 
 ## Dependency Updates
 
@@ -521,23 +554,23 @@ path-sync dep-update -n myconfig -d repo1,repo2
 
 ```yaml
 name: uv-deps
-from_config: python-template  # references .github/python-template.src.yaml for destinations
+from_config: python-template # references .github/python-template.src.yaml for destinations
 exclude_destinations:
-  - path-sync  # skip self
+  - path-sync # skip self
 
 updates:
   - command: uv lock --upgrade
-  - workdir: packages/sub  # optional subdirectory
+  - workdir: packages/sub # optional subdirectory
     command: uv lock --upgrade
 
 verify:
-  on_fail: skip  # default strategy: skip, fail, warn
+  on_fail: skip # default strategy: skip, fail, warn
   steps:
     - run: uv sync
     - run: just fmt
       commit:
         message: "chore: format after update"
-        add_paths: [".", "!uv.lock"]  # ! prefix excludes
+        add_paths: [".", "!uv.lock"] # ! prefix excludes
       on_fail: warn
     - run: just test
 
@@ -545,33 +578,33 @@ pr:
   branch: deps/uv-lock-update
   title: "chore(deps): update uv.lock"
   labels: [dependencies]
-  reviewers: []  # optional
-  assignees: []  # optional
+  reviewers: [] # optional
+  assignees: [] # optional
   auto_merge: true
 ```
 
-| Field | Description |
-|-------|-------------|
-| `from_config` | Source config name for destination list |
-| `include_destinations` | Only process these destinations |
-| `exclude_destinations` | Skip these destinations |
-| `updates` | Commands to run (in order) |
-| `verify.on_fail` | Default failure strategy: `skip`, `fail`, `warn` |
-| `verify.steps` | Verification commands with optional commit/on_fail |
+| Field                   | Description                                                                   |
+| ----------------------- | ----------------------------------------------------------------------------- |
+| `from_config`           | Source config name for destination list                                       |
+| `include_destinations`  | Only process these destinations                                               |
+| `exclude_destinations`  | Skip these destinations                                                       |
+| `updates`               | Commands to run (in order)                                                    |
+| `verify.on_fail`        | Default failure strategy: `skip`, `fail`, `warn`                              |
+| `verify.steps`          | Verification commands with optional commit/on_fail                            |
 | `keep_pr_on_no_changes` | Keep stale PR open instead of auto-closing when no changes (default: `false`) |
-| `pr.auto_merge` | Enable GitHub auto-merge after PR creation |
+| `pr.auto_merge`         | Enable GitHub auto-merge after PR creation                                    |
 
 ### CLI Flags
 
-| Flag | Description |
-|------|-------------|
-| `-n, --name` | Config name (required) |
-| `-d, --dest` | Filter destinations (comma-separated) |
-| `--work-dir` | Clone directory for repos without `dest_path_relative` |
-| `--dry-run` | Preview without creating PRs |
-| `--skip-verify` | Skip verification steps |
-| `--pr-reviewers` | Override PR reviewers (comma-separated) |
-| `--pr-assignees` | Override PR assignees (comma-separated) |
+| Flag             | Description                                            |
+| ---------------- | ------------------------------------------------------ |
+| `-n, --name`     | Config name (required)                                 |
+| `-d, --dest`     | Filter destinations (comma-separated)                  |
+| `--work-dir`     | Clone directory for repos without `dest_path_relative` |
+| `--dry-run`      | Preview without creating PRs                           |
+| `--skip-verify`  | Skip verification steps                                |
+| `--pr-reviewers` | Override PR reviewers (comma-separated)                |
+| `--pr-assignees` | Override PR assignees (comma-separated)                |
 
 ### Failure Strategies
 
@@ -587,7 +620,7 @@ Per-step `on_fail` overrides the verify-level default.
 name: dep-update
 on:
   schedule:
-    - cron: "0 6 * * 1"  # Weekly Monday
+    - cron: "0 6 * * 1" # Weekly Monday
   workflow_dispatch:
 
 jobs:
@@ -603,13 +636,14 @@ jobs:
 
 ## Alternatives Considered
 
-| Tool | Why Not |
-|------|---------|
-| [repo-file-sync-action](https://github.com/BetaHuhn/repo-file-sync-action) | No local CLI, no validation |
-| [Copier](https://copier.readthedocs.io/) | Merge-based (conflicts), no multi-dest |
-| [Cruft](https://cruft.github.io/cruft/) | Patch-based, single dest |
+| Tool                                                                       | Why Not                                |
+| -------------------------------------------------------------------------- | -------------------------------------- |
+| [repo-file-sync-action](https://github.com/BetaHuhn/repo-file-sync-action) | No local CLI, no validation            |
+| [Copier](https://copier.readthedocs.io/)                                   | Merge-based (conflicts), no multi-dest |
+| [Cruft](https://cruft.github.io/cruft/)                                    | Patch-based, single dest               |
 
 **Why path-sync:**
+
 - One SRC to many DEST repos
 - Local CLI + CI support
 - Section-level sync for shared files

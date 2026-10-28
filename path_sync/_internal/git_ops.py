@@ -6,6 +6,7 @@ import re
 import subprocess
 from configparser import NoOptionError, NoSectionError
 from contextlib import suppress
+from dataclasses import dataclass
 from pathlib import Path
 
 from git import GitCommandError, InvalidGitRepositoryError, NoSuchPathError, Repo
@@ -148,6 +149,16 @@ def stage_and_commit(repo: Repo, add_paths: list[str], message: str) -> bool:
         return False
     _ensure_git_user(repo)
     repo.git.commit("-m", message)
+    logger.info(f"Committed: {message}")
+    return True
+
+
+def commit_paths(repo: Repo, paths: list[str], message: str) -> bool:
+    """Commit only ``paths`` from the working tree, leaving other staged changes staged."""
+    if not paths or not repo.git.status("--porcelain", "--", *paths).strip():
+        return False
+    _ensure_git_user(repo)
+    repo.git.commit("-m", message, "--", *paths)
     logger.info(f"Committed: {message}")
     return True
 
@@ -339,3 +350,65 @@ def file_last_commit_unix(repo: Repo, file_path: Path) -> int | None:
         ts = repo.git.log("-1", "--format=%ct", "--", rel_path).strip()
         return int(ts) if ts else None
     return None
+
+
+@dataclass(frozen=True)
+class FileVersion:
+    sha: str
+    commit_unix: int
+    path: str
+    renamed_from: str | None = None
+
+
+_COMMIT_HEADER_RE = re.compile(r"^COMMIT:(?P<sha>[0-9a-f]{40}):(?P<ct>\d+)$")
+
+
+def walk_file_history(repo: Repo, rel_path: str) -> list[FileVersion]:
+    """Walk one file's history newest first, following renames.
+
+    ``git log --follow`` takes exactly one pathspec, so this works on one file at a time.
+    ``-z`` keeps paths raw (no C-quoting), so non-ASCII and special characters resolve.
+    Returns ``[]`` when the path has no history.
+    """
+    try:
+        raw = repo.git.log("--follow", "--name-status", "-z", "--format=%x00COMMIT:%H:%ct", "--", rel_path)
+    except GitCommandError:
+        return []
+    tokens = raw.split("\x00")
+    versions: list[FileVersion] = []
+    idx = 0
+    while idx < len(tokens):
+        if (header := _COMMIT_HEADER_RE.match(tokens[idx])) is None:
+            idx += 1
+            continue
+        idx += 1
+        path: str | None = None
+        renamed_from: str | None = None
+        while idx < len(tokens) and _COMMIT_HEADER_RE.match(tokens[idx]) is None:
+            status = tokens[idx].strip()
+            idx += 1
+            if not status:
+                continue
+            code = status[:1]
+            if code in {"A", "M", "T"}:
+                path, renamed_from = tokens[idx], None
+                idx += 1
+            elif code in {"R", "C"}:
+                renamed_from, path = tokens[idx], tokens[idx + 1]
+                idx += 2
+            elif code == "D":
+                path, renamed_from = None, None
+                idx += 1
+        if path is not None:
+            versions.append(
+                FileVersion(sha=header["sha"], commit_unix=int(header["ct"]), path=path, renamed_from=renamed_from)
+            )
+    return versions
+
+
+def file_content_at_commit(repo: Repo, sha: str, path: str) -> str | None:
+    """Return the file content at ``sha:path``, or None when the path is missing or binary."""
+    try:
+        return repo.git.show(f"{sha}:{path}", strip_newline_in_stdout=False)
+    except (GitCommandError, UnicodeDecodeError):
+        return None

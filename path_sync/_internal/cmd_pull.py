@@ -224,7 +224,7 @@ def _candidate_for_path(
     )
 
 
-def _keep_pull_path(rel: str, include: list[str], exclude: list[str]) -> bool:
+def keep_pull_path(rel: str, include: list[str], exclude: list[str]) -> bool:
     if include and not any(fnmatch.fnmatch(rel, pat) for pat in include):
         return False
     return not (exclude and any(fnmatch.fnmatch(rel, pat) for pat in exclude))
@@ -290,7 +290,7 @@ def _run_pull(config: SrcConfig, dest: Destination, src_root: Path, opts: PullOp
         candidates.extend(_collect_dest_only_candidates(config, dest, src_root, dest_root, dest_repo, skip_keys))
 
     candidates = [
-        c for c in candidates if _keep_pull_path(str(c.src_path.relative_to(src_root)), opts.include, opts.exclude)
+        c for c in candidates if keep_pull_path(str(c.src_path.relative_to(src_root)), opts.include, opts.exclude)
     ]
 
     if not candidates:
