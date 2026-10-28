@@ -1,0 +1,51 @@
+name: walk_file_history
+ts: 2026-10-27 11:11:55.599951+00:00
+type: keep_private
+full_path: _internal.git_ops.walk_file_history
+---
+name: file_content_at_commit
+ts: 2026-10-27 11:11:55.599988+00:00
+type: keep_private
+full_path: _internal.git_ops.file_content_at_commit
+---
+name: merge
+ts: 2026-10-27 11:16:11.833246+00:00
+type: group_module
+module_path: _internal.cmd_merge
+---
+name: merge
+ts: 2026-10-27 11:16:11.834148+00:00
+type: make_public
+details: CLI command in _internal/cmd_merge.py
+full_path: _internal.cmd_merge.merge
+group: merge
+---
+name: FileVersion
+ts: 2026-10-27 11:16:11.834843+00:00
+type: keep_private
+full_path: _internal.git_ops.FileVersion
+---
+name: MergeClassification
+ts: 2026-10-27 11:16:11.834858+00:00
+type: keep_private
+full_path: _internal.cmd_merge.MergeClassification
+---
+name: MergeOptions
+ts: 2026-10-27 11:16:11.834863+00:00
+type: keep_private
+full_path: _internal.cmd_merge.MergeOptions
+---
+name: MergeUnit
+ts: 2026-10-27 11:16:11.834867+00:00
+type: keep_private
+full_path: _internal.cmd_merge.MergeUnit
+---
+name: UnitVersion
+ts: 2026-10-27 11:16:11.834871+00:00
+type: keep_private
+full_path: _internal.cmd_merge.UnitVersion
+---
+name: MergeCandidate
+ts: 2026-10-27 11:16:11.834875+00:00
+type: keep_private
+full_path: _internal.cmd_merge.MergeCandidate
