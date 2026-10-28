@@ -153,6 +153,16 @@ def stage_and_commit(repo: Repo, add_paths: list[str], message: str) -> bool:
     return True
 
 
+def commit_paths(repo: Repo, paths: list[str], message: str) -> bool:
+    """Commit only ``paths`` from the working tree, leaving other staged changes staged."""
+    if not paths or not repo.git.status("--porcelain", "--", *paths).strip():
+        return False
+    _ensure_git_user(repo)
+    repo.git.commit("-m", message, "--", *paths)
+    logger.info(f"Committed: {message}")
+    return True
+
+
 def _ensure_git_user(repo: Repo) -> None:
     """Configure git user if not already set."""
     try:
@@ -350,51 +360,49 @@ class FileVersion:
     renamed_from: str | None = None
 
 
-def _parse_name_status(line: str) -> tuple[str | None, str | None]:
-    """Parse one --name-status line into (path_at_commit, renamed_from).
-
-    Returns (None, None) when the status carries no usable path (for example a deletion).
-    """
-    fields = line.split("\t")
-    if len(fields) < 2:
-        return None, None
-    code = fields[0][:1]
-    if code in {"A", "M", "T"}:
-        return fields[1], None
-    if code in {"R", "C"} and len(fields) >= 3:
-        return fields[2], fields[1]
-    return None, None
+_COMMIT_HEADER_RE = re.compile(r"^COMMIT:(?P<sha>[0-9a-f]{40}):(?P<ct>\d+)$")
 
 
 def walk_file_history(repo: Repo, rel_path: str) -> list[FileVersion]:
     """Walk one file's history newest first, following renames.
 
     ``git log --follow`` takes exactly one pathspec, so this works on one file at a time.
+    ``-z`` keeps paths raw (no C-quoting), so non-ASCII and special characters resolve.
     Returns ``[]`` when the path has no history.
     """
     try:
-        raw = repo.git.log("--follow", "--name-status", "--format=%x00%H %ct", "--", rel_path)
+        raw = repo.git.log("--follow", "--name-status", "-z", "--format=%x00COMMIT:%H:%ct", "--", rel_path)
     except GitCommandError:
         return []
+    tokens = raw.split("\x00")
     versions: list[FileVersion] = []
-    for block in raw.split("\x00"):
-        lines = [line for line in block.splitlines() if line.strip()]
-        if not lines:
+    idx = 0
+    while idx < len(tokens):
+        if (header := _COMMIT_HEADER_RE.match(tokens[idx])) is None:
+            idx += 1
             continue
-        header = lines[0].split()
-        if len(header) < 2:
-            continue
+        idx += 1
         path: str | None = None
         renamed_from: str | None = None
-        for line in lines[1:]:
-            found_path, found_from = _parse_name_status(line)
-            if found_path is None:
+        while idx < len(tokens) and _COMMIT_HEADER_RE.match(tokens[idx]) is None:
+            status = tokens[idx].strip()
+            idx += 1
+            if not status:
                 continue
-            path = found_path
-            renamed_from = found_from
-        if path is None:
-            continue
-        versions.append(FileVersion(sha=header[0], commit_unix=int(header[1]), path=path, renamed_from=renamed_from))
+            code = status[:1]
+            if code in {"A", "M", "T"}:
+                path, renamed_from = tokens[idx], None
+                idx += 1
+            elif code in {"R", "C"}:
+                renamed_from, path = tokens[idx], tokens[idx + 1]
+                idx += 2
+            elif code == "D":
+                path, renamed_from = None, None
+                idx += 1
+        if path is not None:
+            versions.append(
+                FileVersion(sha=header["sha"], commit_unix=int(header["ct"]), path=path, renamed_from=renamed_from)
+            )
     return versions
 
 

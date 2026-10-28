@@ -96,6 +96,27 @@ def test_walk_file_history_missing_path(tmp_repo):
     assert git_ops.walk_file_history(repo, "never.txt") == []
 
 
+def test_walk_file_history_non_ascii_path(tmp_repo):
+    repo = git_ops.get_repo(tmp_repo)
+    _commit_file(repo, tmp_repo, "café.md", "v1")
+    _commit_file(repo, tmp_repo, "café.md", "v2")
+    versions = git_ops.walk_file_history(repo, "café.md")
+    assert [v.path for v in versions] == ["café.md", "café.md"]
+    assert git_ops.file_content_at_commit(repo, versions[0].sha, versions[0].path) == "v2"
+
+
+def test_commit_paths_leaves_other_staged(tmp_repo):
+    repo = git_ops.get_repo(tmp_repo)
+    _commit_file(repo, tmp_repo, "merged.txt", "base")
+    _commit_file(repo, tmp_repo, "other.txt", "base")
+    (tmp_repo / "merged.txt").write_text("merged")
+    (tmp_repo / "other.txt").write_text("staged")
+    repo.git.add("other.txt")
+    assert git_ops.commit_paths(repo, ["merged.txt"], "merge merged.txt")
+    assert repo.head.commit.message.strip() == "merge merged.txt"
+    assert repo.git.diff("--cached", "--name-only").splitlines() == ["other.txt"]
+
+
 def test_file_content_at_commit(tmp_repo):
     repo = git_ops.get_repo(tmp_repo)
     _commit_file(repo, tmp_repo, "present.txt", "hello")

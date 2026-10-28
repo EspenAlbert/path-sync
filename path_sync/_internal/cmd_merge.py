@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import fnmatch
 import logging
 import subprocess
 import sys
@@ -16,6 +15,7 @@ from pydantic import BaseModel, Field
 from path_sync import sections
 from path_sync._internal import git_ops, header, prompt_utils
 from path_sync._internal.cmd_copy import _iter_sync_files
+from path_sync._internal.cmd_pull import _EMPTY_STR_LIST, _EXCLUDE_OPTION, _INCLUDE_OPTION, keep_pull_path
 from path_sync._internal.dest_only import is_opted_out
 from path_sync._internal.file_utils import ensure_parents_write_text
 from path_sync._internal.models import (
@@ -30,10 +30,6 @@ from path_sync._internal.typer_app import app
 from path_sync._internal.yaml_utils import load_yaml_model
 
 logger = logging.getLogger(__name__)
-
-_EMPTY_STR_LIST: list[str] = []
-_INCLUDE_OPTION = typer.Option(_EMPTY_STR_LIST, "-i", "--include", help="Keep paths matching pattern")
-_EXCLUDE_OPTION = typer.Option(_EMPTY_STR_LIST, "-e", "--exclude", help="Drop paths matching pattern")
 
 
 class MergeClassification(StrEnum):
@@ -56,6 +52,7 @@ class MergeUnit:
     dest_key: str
     section_id: str | None
     skip_sections: list[str] = field(default_factory=list)
+    wrap: bool = False
 
 
 @dataclass(frozen=True)
@@ -78,6 +75,13 @@ class MergeCandidate:
     @property
     def is_conflict(self) -> bool:
         return self.classification == MergeClassification.NO_COMMON_BASE or self.conflicted
+
+    @property
+    def effective_body(self) -> str:
+        if self.classification == MergeClassification.MERGE:
+            assert self.merged_body is not None
+            return self.merged_body
+        return self.dest_body
 
 
 def _unit_body(content: str, path: Path, section_id: str | None) -> str | None:
@@ -148,6 +152,7 @@ def _units_for_path(
     dest_path: Path,
     dest_key: str,
     skip_list: list[str],
+    wrap: bool,
 ) -> list[MergeUnit]:
     body = header.remove_header(src_text)
     if header.has_known_comment_prefix(dest_path) and sections.has_sections(body, dest_path):
@@ -162,6 +167,19 @@ def _units_for_path(
             )
             for section_id in section_ids
             if section_id not in skip_list
+        ]
+    if wrap:
+        if "synced" in skip_list:
+            return []
+        return [
+            MergeUnit(
+                src_path=src_path,
+                dest_path=dest_path,
+                dest_key=dest_key,
+                section_id=None,
+                skip_sections=skip_list,
+                wrap=True,
+            )
         ]
     return [
         MergeUnit(src_path=src_path, dest_path=dest_path, dest_key=dest_key, section_id=None, skip_sections=skip_list)
@@ -182,15 +200,16 @@ def _candidate_for_unit(
     src_repo: Repo,
     dest_repo: Repo,
 ) -> MergeCandidate | None:
+    dest_section_id = unit.section_id if unit.section_id is not None else ("synced" if unit.wrap else None)
     src_body = _unit_body(src_text, unit.src_path, unit.section_id)
-    dest_body = _unit_body(dest_text, unit.dest_path, unit.section_id)
+    dest_body = _unit_body(dest_text, unit.dest_path, dest_section_id)
     if src_body is None or dest_body is None:
         return None
     if src_body == dest_body:
         return None
 
     src_versions = _unit_bodies(src_repo, unit.src_path, unit.section_id)
-    dest_versions = _unit_bodies(dest_repo, unit.dest_path, unit.section_id)
+    dest_versions = _unit_bodies(dest_repo, unit.dest_path, dest_section_id)
     base = _find_base(src_versions, dest_versions)
     classification = _classify(src_body, dest_body, base)
     if classification == MergeClassification.SRC_CHANGED:
@@ -216,6 +235,7 @@ def _candidates_for_path(
     dest_key: str,
     sync_mode: SyncMode,
     skip_list: list[str],
+    wrap: bool,
     src_repo: Repo,
     dest_repo: Repo,
 ) -> list[MergeCandidate]:
@@ -234,7 +254,7 @@ def _candidates_for_path(
         return []
 
     candidates: list[MergeCandidate] = []
-    for unit in _units_for_path(src_path, src_text, dest_path, dest_key, skip_list):
+    for unit in _units_for_path(src_path, src_text, dest_path, dest_key, skip_list, wrap):
         candidate = _candidate_for_unit(unit, src_text, dest_text, src_repo, dest_repo)
         if candidate is not None:
             candidates.append(candidate)
@@ -262,8 +282,11 @@ def _collect_merge_candidates(
                 logger.warning(f"Dest not found: {dest_path}")
                 continue
             skip_list = dest.skip_sections.get(dest_key, [])
+            wrap = mapping.should_wrap(config.wrap_synced_files)
             candidates.extend(
-                _candidates_for_path(src_path, dest_path, dest_key, mapping.sync_mode, skip_list, src_repo, dest_repo)
+                _candidates_for_path(
+                    src_path, dest_path, dest_key, mapping.sync_mode, skip_list, wrap, src_repo, dest_repo
+                )
             )
     return candidates
 
@@ -286,12 +309,6 @@ def _apply_merge(candidate: MergeCandidate) -> Path:
         ensure_parents_write_text(unit.src_path, new_content)
     logger.info(f"Merged: {unit.src_path}")
     return unit.src_path
-
-
-def _keep_merge_path(rel: str, include: list[str], exclude: list[str]) -> bool:
-    if include and not any(fnmatch.fnmatch(rel, pat) for pat in include):
-        return False
-    return not (exclude and any(fnmatch.fnmatch(rel, pat) for pat in exclude))
 
 
 def _candidate_label(candidate: MergeCandidate, src_root: Path) -> str:
@@ -335,7 +352,7 @@ def _collect_dest_candidates(
     return [
         candidate
         for candidate in candidates
-        if _keep_merge_path(str(candidate.unit.src_path.relative_to(src_root)), opts.include, opts.exclude)
+        if keep_pull_path(str(candidate.unit.src_path.relative_to(src_root)), opts.include, opts.exclude)
     ]
 
 
@@ -348,16 +365,38 @@ def _conflict_labels(candidates_by_dest: dict[str, list[MergeCandidate]], src_ro
     ]
 
 
+def _duplicate_conflicts(candidates_by_dest: dict[str, list[MergeCandidate]], src_root: Path) -> list[str]:
+    units: dict[tuple[str, str | None], list[tuple[str, MergeCandidate]]] = {}
+    for name, candidates in candidates_by_dest.items():
+        for candidate in candidates:
+            if candidate.is_conflict:
+                continue
+            key = (str(candidate.unit.src_path), candidate.unit.section_id)
+            units.setdefault(key, []).append((name, candidate))
+    conflicts: list[str] = []
+    for entries in units.values():
+        if len({candidate.effective_body for _, candidate in entries}) <= 1:
+            continue
+        names = ", ".join(sorted({name for name, _ in entries}))
+        conflicts.append(f"{names}: {_candidate_label(entries[0][1], src_root)}")
+    return conflicts
+
+
+def _apply_candidates(candidates: list[MergeCandidate]) -> None:
+    for candidate in candidates:
+        _apply_merge(candidate)
+
+
 def _apply_and_report(
-    config: SrcConfig,
     src_root: Path,
     src_repo: Repo,
     changed: list[Destination],
     candidates_by_dest: dict[str, list[MergeCandidate]],
 ) -> None:
+    touched = sorted({c.unit.src_path for dest in changed for c in candidates_by_dest[dest.name]})
+    originals = {path: path.read_text() for path in touched}
     for dest in changed:
-        for candidate in candidates_by_dest[dest.name]:
-            _apply_merge(candidate)
+        _apply_candidates(candidates_by_dest[dest.name])
         typer.echo(f"  {dest.name}: chore: merge destination {dest.name}", err=True)
 
     if not sys.stdin.isatty():
@@ -366,9 +405,12 @@ def _apply_and_report(
         return
     if not prompt_utils.prompt_confirm("Commit src?"):
         return
+    for path, content in originals.items():
+        ensure_parents_write_text(path, content)
     for dest in changed:
+        _apply_candidates(candidates_by_dest[dest.name])
         paths = sorted({str(c.unit.src_path.relative_to(src_root)) for c in candidates_by_dest[dest.name]})
-        git_ops.stage_and_commit(src_repo, paths, f"chore: merge destination {dest.name}")
+        git_ops.commit_paths(src_repo, paths, f"chore: merge destination {dest.name}")
 
 
 def _run_merge(config: SrcConfig, src_root: Path, dest_names: list[str], opts: MergeOptions) -> None:
@@ -383,6 +425,11 @@ def _run_merge(config: SrcConfig, src_root: Path, dest_names: list[str], opts: M
         for label in conflicts:
             typer.echo(f"  {label}", err=True)
         raise typer.Exit(1)
+    if duplicates := _duplicate_conflicts(candidates_by_dest, src_root):
+        typer.echo("\nDestinations disagree on the same unit; nothing written:", err=True)
+        for label in duplicates:
+            typer.echo(f"  {label}", err=True)
+        raise typer.Exit(1)
 
     if opts.dry_run:
         return
@@ -392,7 +439,7 @@ def _run_merge(config: SrcConfig, src_root: Path, dest_names: list[str], opts: M
         typer.echo("Nothing to merge.", err=True)
         return
 
-    _apply_and_report(config, src_root, src_repo, changed, candidates_by_dest)
+    _apply_and_report(src_root, src_repo, changed, candidates_by_dest)
 
     for dest in changed:
         typer.echo(f"path-sync copy -n {config.name} -d {dest.name}", err=True)

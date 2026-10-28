@@ -8,7 +8,7 @@ import typer
 from pydantic import BaseModel, Field
 
 from path_sync._internal import git_ops, prompt_utils
-from path_sync._internal.cmd_pull import _EXCLUDE_OPTION, _INCLUDE_OPTION, _keep_pull_path, _validate_dest_name
+from path_sync._internal.cmd_pull import _EXCLUDE_OPTION, _INCLUDE_OPTION, _validate_dest_name, keep_pull_path
 from path_sync._internal.dest_only import collect_dest_only_files, prune_eligible
 from path_sync._internal.models import Destination, SrcConfig, find_repo_root, resolve_config_path
 from path_sync._internal.repo_utils import resolve_repo_path
@@ -32,7 +32,7 @@ def _run_prune(config: SrcConfig, dest: Destination, src_root: Path, opts: Prune
     dest_repo = git_ops.get_repo(dest_root)
     files = prune_eligible(collect_dest_only_files(config, dest, src_root, dest_root, dest_repo, set()))
     files = [
-        row for row in files if _keep_pull_path(str(row.dest_path.relative_to(dest_root)), opts.include, opts.exclude)
+        row for row in files if keep_pull_path(str(row.dest_path.relative_to(dest_root)), opts.include, opts.exclude)
     ]
 
     if not files:

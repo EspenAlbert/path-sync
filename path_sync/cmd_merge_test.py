@@ -4,15 +4,18 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
+import typer
 from git import Repo
 from typer.testing import CliRunner
 
+from path_sync import sections
 from path_sync._internal import prompt_utils
 from path_sync._internal.cmd_merge import (
     MergeClassification,
     MergeOptions,
     UnitVersion,
     _apply_merge,
+    _candidate_detail,
     _classify,
     _collect_merge_candidates,
     _merge_bodies,
@@ -72,6 +75,17 @@ def _two_sections(alpha: str, beta: str, trailer: str = "") -> str:
     if trailer:
         body += f"\n{trailer}"
     return body
+
+
+def _merge_setup_two_dests(tmp_path):
+    src_root, dest_root, src_repo, dest_repo, config, dest = _merge_setup(tmp_path)
+    dest2_root = tmp_path / "workspace" / "dest2"
+    dest2_root.mkdir()
+    dest2_repo = Repo.init(dest2_root)
+    _commit_file(dest2_repo, dest2_root, ".gitkeep", "", OLD)
+    dest2 = Destination(name="dest2", dest_path_relative="../dest2")
+    config.destinations = [dest, dest2]
+    return src_root, dest_root, dest2_root, src_repo, dest_repo, dest2_repo, config, dest, dest2
 
 
 def _write_config(src_root: Path) -> None:
@@ -199,6 +213,26 @@ def test_merge_rename_edit_finds_base(tmp_path):
     assert (src_root / "rule.md").read_text() == base + "dest-add\n"
 
 
+def test_merge_no_common_base_reports_rename(tmp_path):
+    src_root, dest_root, src_repo, dest_repo, config, dest = _merge_setup(tmp_path)
+    config.paths = [PathMapping(src_path="rule.md", sync_mode=SyncMode.REPLACE)]
+    _commit_file(src_repo, src_root, "rule.md", "src line1\nline2\nline3\nline4\nline5\n", OLD)
+    _commit_file(dest_repo, dest_root, "old-rule.md", "dest line1\nline2\nline3\nline4\nline5\n", OLD)
+    dest_repo.git.mv("old-rule.md", "rule.md")
+    (dest_root / "rule.md").write_text("dest line1\nCHANGED\nline3\nline4\nline5\n")
+    dest_repo.index.add(["rule.md"])
+    env = os.environ.copy()
+    env["GIT_AUTHOR_DATE"] = NEW
+    env["GIT_COMMITTER_DATE"] = NEW
+    dest_repo.git.commit("-m", "rename and edit", env=env)
+
+    candidates = _collect_merge_candidates(config, dest, src_root, dest_root, src_repo, dest_repo)
+    assert len(candidates) == 1
+    assert candidates[0].classification == MergeClassification.NO_COMMON_BASE
+    assert candidates[0].renamed_from == "old-rule.md"
+    assert _candidate_detail(candidates[0]) == "conflict: no common base (old-rule.md -> rule.md)"
+
+
 def test_merge_skip_sections_honored(tmp_path):
     src_root, dest_root, src_repo, dest_repo, config, dest = _merge_setup(tmp_path)
     config.paths = [PathMapping(src_path="justfile", sync_mode=SyncMode.REPLACE)]
@@ -272,3 +306,85 @@ def test_merge_cli_config_selector(tmp_path, args):
     Repo.init(src_root)
     result = runner.invoke(app, [*args, "--src-root", str(src_root)])
     assert result.exit_code == 1
+
+
+def test_merge_keeps_unrelated_staged_changes(tmp_path):
+    src_root, dest_root, src_repo, dest_repo, config, _dest = _merge_setup(tmp_path)
+    _commit_file(src_repo, src_root, "file.txt", "base\n", OLD)
+    _commit_file(dest_repo, dest_root, "file.txt", "base\n", OLD)
+    _commit_file(dest_repo, dest_root, "file.txt", "dest-new\n", NEW)
+    _commit_file(src_repo, src_root, "other.txt", "other-base\n", OLD)
+    (src_root / "other.txt").write_text("other-staged\n")
+    src_repo.index.add(["other.txt"])
+
+    with (
+        patch.object(sys.stdin, "isatty", return_value=True),
+        patch.object(prompt_utils, "prompt_confirm", return_value=True),
+    ):
+        _run_merge(config, src_root, ["dest"], MergeOptions())
+
+    assert src_repo.git.show("--name-only", "--format=", "HEAD").splitlines() == ["file.txt"]
+    assert src_repo.git.diff("--cached", "--name-only").splitlines() == ["other.txt"]
+
+
+def test_merge_multi_dest_same_unit_conflict(tmp_path):
+    src_root, dest_root, dest2_root, src_repo, dest_repo, dest2_repo, config, _dest, _dest2 = _merge_setup_two_dests(
+        tmp_path
+    )
+    _commit_file(src_repo, src_root, "file.txt", "base\n", OLD)
+    _commit_file(dest_repo, dest_root, "file.txt", "base\n", OLD)
+    _commit_file(dest2_repo, dest2_root, "file.txt", "base\n", OLD)
+    _commit_file(dest_repo, dest_root, "file.txt", "dest-a\n", NEW)
+    _commit_file(dest2_repo, dest2_root, "file.txt", "dest-b\n", NEW)
+
+    with pytest.raises(typer.Exit) as exc:
+        _run_merge(config, src_root, ["dest", "dest2"], MergeOptions())
+
+    assert exc.value.exit_code == 1
+    assert (src_root / "file.txt").read_text() == "base\n"
+    assert dest_repo.head.commit.message.strip() != "chore: merge destination dest"
+
+
+def test_merge_multi_dest_distinct_sections_commit_separately(tmp_path):
+    src_root, dest_root, dest2_root, src_repo, dest_repo, dest2_repo, config, _dest, _dest2 = _merge_setup_two_dests(
+        tmp_path
+    )
+    config.paths = [PathMapping(src_path="justfile", sync_mode=SyncMode.REPLACE)]
+    _commit_file(src_repo, src_root, "justfile", _two_sections("a-src", "b-src"), OLD)
+    _commit_file(dest_repo, dest_root, "justfile", _two_sections("a-src", "b-src"), OLD)
+    _commit_file(dest2_repo, dest2_root, "justfile", _two_sections("a-src", "b-src"), OLD)
+    _commit_file(dest_repo, dest_root, "justfile", _two_sections("a-dest", "b-src"), NEW)
+    _commit_file(dest2_repo, dest2_root, "justfile", _two_sections("a-src", "b-dest"), NEW)
+
+    with (
+        patch.object(sys.stdin, "isatty", return_value=True),
+        patch.object(prompt_utils, "prompt_confirm", return_value=True),
+    ):
+        _run_merge(config, src_root, ["dest", "dest2"], MergeOptions())
+
+    result = (src_root / "justfile").read_text()
+    assert "a-dest" in result
+    assert "b-dest" in result
+    assert src_repo.git.log("--format=%s").splitlines()[:2] == [
+        "chore: merge destination dest2",
+        "chore: merge destination dest",
+    ]
+
+
+def test_merge_wrapped_synced_file(tmp_path):
+    src_root, dest_root, src_repo, dest_repo, config, dest = _merge_setup(tmp_path)
+    config.wrap_synced_files = True
+    config.paths = [PathMapping(src_path="file.md", sync_mode=SyncMode.REPLACE)]
+    _commit_file(src_repo, src_root, "file.md", "base\n", OLD)
+    _commit_file(dest_repo, dest_root, "file.md", sections.wrap_in_synced_section("base\n", dest_root / "file.md"), OLD)
+    _commit_file(
+        dest_repo, dest_root, "file.md", sections.wrap_in_synced_section("dest-new\n", dest_root / "file.md"), NEW
+    )
+
+    candidates = _collect_merge_candidates(config, dest, src_root, dest_root, src_repo, dest_repo)
+    assert len(candidates) == 1
+    assert candidates[0].classification == MergeClassification.DEST_CHANGED
+    assert candidates[0].dest_body == "dest-new\n"
+
+    _apply_merge(candidates[0])
+    assert (src_root / "file.md").read_text() == "dest-new\n"

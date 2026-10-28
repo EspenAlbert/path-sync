@@ -15,9 +15,9 @@ from path_sync._internal.cmd_pull import (
     _collect_dest_only_candidates,
     _collect_mapped_candidates,
     _format_candidate_line,
-    _keep_pull_path,
     _run_pull,
     _validate_dest_name,
+    keep_pull_path,
 )
 from path_sync._internal.header import add_header, has_header
 from path_sync._internal.models import Destination, PathMapping, SrcConfig, SyncMode
@@ -529,7 +529,7 @@ def _dest_only_mixed_setup(tmp_path):
     ],
 )
 def test_keep_pull_path(rel, include, exclude, keep):
-    assert _keep_pull_path(rel, include, exclude) is keep
+    assert keep_pull_path(rel, include, exclude) is keep
 
 
 def test_run_pull_include_filters_dest_only(tmp_path):
