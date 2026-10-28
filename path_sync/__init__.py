@@ -8,7 +8,7 @@ from path_sync import pull
 from path_sync import prune
 from path_sync import validate_no_changes
 
-VERSION = "0.9.1"
+VERSION = "0.10.0"
 __all__ = [
     "copy",
     "dep_update",

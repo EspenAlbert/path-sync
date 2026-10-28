@@ -1,5 +1,5 @@
 pkg_import_name: path_sync
-version: 0.9.1
+version: 0.10.0
 groups:
 - name: config
   symbols:
@@ -1336,6 +1336,144 @@ groups:
       type_imports: []
       is_class_var: false
       is_computed: false
+- name: merge
+  symbols:
+  - name: merge
+    module_path: _internal.cmd_merge
+    docstring: 'Reconcile destination changes into src before the next copy.
+
+
+      Recovers the last-synced base from both repos'' histories, prefers the changed side, and
+
+      combines non-overlapping changes. Writes and commits src, then prints the copy hint.
+
+      merge never runs copy.
+
+      '
+    line_number: 448
+    type: cli_command
+    signature:
+      parameters:
+      - name: name
+        kind: positional_or_keyword
+        type_annotation: str
+        type_imports: []
+        default:
+          value_repr: <typer.models.OptionInfo object>
+          is_factory: false
+      - name: config_path_opt
+        kind: positional_or_keyword
+        type_annotation: str
+        type_imports: []
+        default:
+          value_repr: <typer.models.OptionInfo object>
+          is_factory: false
+      - name: src_root_opt
+        kind: positional_or_keyword
+        type_annotation: str
+        type_imports: []
+        default:
+          value_repr: <typer.models.OptionInfo object>
+          is_factory: false
+      - name: dest_filter
+        kind: positional_or_keyword
+        type_annotation: list[str]
+        type_imports: []
+        default:
+          value_repr: <typer.models.OptionInfo object>
+          is_factory: false
+      - name: dry_run
+        kind: positional_or_keyword
+        type_annotation: bool
+        type_imports: []
+        default:
+          value_repr: <typer.models.OptionInfo object>
+          is_factory: false
+      - name: include
+        kind: positional_or_keyword
+        type_annotation: list[str]
+        type_imports: []
+        default:
+          value_repr: <typer.models.OptionInfo object>
+          is_factory: false
+      - name: exclude
+        kind: positional_or_keyword
+        type_annotation: list[str]
+        type_imports: []
+        default:
+          value_repr: <typer.models.OptionInfo object>
+          is_factory: false
+      return_annotation: None
+      return_type_imports: []
+    cli_params:
+    - param_name: name
+      type_annotation: str
+      flags:
+      - -n
+      - --name
+      help: Config name
+      default_repr: ''''''
+      required: false
+      is_argument: false
+      hidden: false
+    - param_name: config_path_opt
+      type_annotation: str
+      flags:
+      - -c
+      - --config-path
+      help: Full path to config file
+      default_repr: ''''''
+      required: false
+      is_argument: false
+      hidden: false
+    - param_name: src_root_opt
+      type_annotation: str
+      flags:
+      - --src-root
+      help: Source repo root
+      default_repr: ''''''
+      required: false
+      is_argument: false
+      hidden: false
+    - param_name: dest_filter
+      type_annotation: list[str]
+      flags:
+      - -d
+      - --dest
+      help: Destination filter (repeatable or comma-separated)
+      default_repr: '[]'
+      required: false
+      is_argument: false
+      hidden: false
+    - param_name: dry_run
+      type_annotation: bool
+      flags:
+      - --dry-run
+      help: Print classifications without writing
+      default_repr: 'False'
+      required: false
+      is_argument: false
+      hidden: false
+    - param_name: include
+      type_annotation: list[str]
+      flags:
+      - -i
+      - --include
+      help: Keep paths matching pattern
+      default_repr: '[]'
+      required: false
+      is_argument: false
+      hidden: false
+    - param_name: exclude
+      type_annotation: list[str]
+      flags:
+      - -e
+      - --exclude
+      help: Drop paths matching pattern
+      default_repr: '[]'
+      required: false
+      is_argument: false
+      hidden: false
 - name: prune
   symbols:
   - name: prune
@@ -1721,4 +1859,4 @@ groups:
       required: false
       is_argument: false
       hidden: false
-dumped_at: 2026-09-05 14:32:28.065419+00:00
+dumped_at: 2026-10-28 10:17:47.677416+00:00

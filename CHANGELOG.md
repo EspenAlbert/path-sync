@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.10.0 2026-10-28T10-17Z
+
+### Merge
+- New function `merge`
+
+
 ## 0.9.1 2026-09-05T14-32Z
 
 ### Copy

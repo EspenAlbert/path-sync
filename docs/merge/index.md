@@ -12,7 +12,7 @@
 
 ### cli_command: `merge`
 - [source](../../path_sync/_internal/cmd_merge.py#L448)
-> **Since:** unreleased
+> **Since:** 0.10.0
 
 ```python
 def merge(
@@ -49,5 +49,5 @@ merge never runs copy.
 
 | Version | Change |
 |---------|--------|
-| unreleased | Made public |
+| 0.10.0 | Made public |
 <!-- === OK_EDIT: pkg-ext merge_def === -->
