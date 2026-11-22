@@ -67,7 +67,6 @@ exclude = [
 # === DO_NOT_EDIT: path-sync ruff ===
 [tool.ruff]
 line-length = 120
-target-version = "py313"
 
 [tool.ruff.lint]
 # E501: line too long (handled by formatter)
