@@ -70,10 +70,12 @@ def invalid_repo(tmp_path: Path) -> Path:
     return repo_path
 
 
-def test_ensure_repo_keeps_invalid_repo_without_repo_url(invalid_repo: Path):
+@pytest.mark.parametrize("interactive", [False, True], ids=["non_interactive", "interactive"])
+def test_ensure_repo_keeps_invalid_repo_without_repo_url(invalid_repo: Path, interactive: bool):
     dest = Destination(name="my-repo", dest_path_relative="code/my-repo")
     with (
-        patch.object(sys.stdin, "isatty", return_value=False),
+        patch.object(sys.stdin, "isatty", return_value=interactive),
+        patch("builtins.input", return_value="y"),
         pytest.raises(ValueError, match="no repo_url configured, not removing it"),
     ):
         ensure_repo(dest, invalid_repo)
