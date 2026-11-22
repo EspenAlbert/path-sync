@@ -47,3 +47,9 @@ def test_file_has_header(tmp_path):
     justfile = tmp_path / "justfile"
     justfile.write_text(header.add_header("default:", justfile, "my-config"))
     assert header.file_has_header(justfile)
+
+
+def test_file_has_header_utf8_content(tmp_path, locale_cp1252):
+    py_file = tmp_path / "test.py"
+    py_file.write_text(header.add_header("name = 'Ángel ✓'", py_file, "my-config"), encoding="utf-8")
+    assert header.file_has_header(py_file)

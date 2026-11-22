@@ -29,3 +29,13 @@ def test_capture_log_read_after_flush_includes_all():
     assert "before flush" in content1
     assert "before flush" in content2
     assert "after first read" in content2
+
+
+def test_capture_log_utf8_message(locale_cp1252):
+    test_logger = logging.getLogger("path_sync.test3")
+
+    with capture_log("test3") as read_log:
+        test_logger.info("Wrote: café ✓")
+        content = read_log()
+
+    assert "Wrote: café ✓" in content

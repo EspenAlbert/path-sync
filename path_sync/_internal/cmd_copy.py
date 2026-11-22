@@ -448,7 +448,7 @@ def _copy_file(
     should_wrap: bool = False,
 ) -> int:
     try:
-        src_content = header.remove_header(src.read_text())
+        src_content = header.remove_header(src.read_text(encoding="utf-8"))
     except UnicodeDecodeError:
         return _copy_binary_file(src, dest_path, sync_mode, dry_run)
 
@@ -491,7 +491,7 @@ def _handle_scaffold(content: str, dest_path: Path, dry_run: bool) -> int:
 
 
 def _handle_replace(content: str, dest_path: Path, dry_run: bool) -> int:
-    if dest_path.exists() and dest_path.read_text() == content:
+    if dest_path.exists() and dest_path.read_text(encoding="utf-8") == content:
         return 0
     return _write_file(dest_path, content, dry_run)
 
@@ -517,7 +517,7 @@ def _handle_sync(
         return _handle_sync_sections(wrapped, dest_path, skip_list, config_name, dry_run, force_overwrite)
 
     if dest_path.exists():
-        existing = dest_path.read_text()
+        existing = dest_path.read_text(encoding="utf-8")
         has_hdr = header.has_header(existing)
         if not has_hdr and not force_overwrite:
             logger.info(f"Skipping {dest_path} (header removed - opted out)")
@@ -549,7 +549,7 @@ def _handle_sync_sections(
     src_sections = sections.parse_sections(src_content, dest_path)
 
     if dest_path.exists():
-        existing = dest_path.read_text()
+        existing = dest_path.read_text(encoding="utf-8")
         if not header.has_header(existing) and not force_overwrite:
             logger.info(f"Skipping {dest_path} (header removed - opted out)")
             return 0
@@ -563,7 +563,7 @@ def _handle_sync_sections(
 
     new_content = header.add_header(new_body, dest_path, config_name)
 
-    if dest_path.exists() and dest_path.read_text() == new_content:
+    if dest_path.exists() and dest_path.read_text(encoding="utf-8") == new_content:
         return 0
 
     return _write_file(dest_path, new_content, dry_run)

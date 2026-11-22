@@ -12,7 +12,7 @@ def _setup_baseline(repo_path, filename: str, content: str) -> None:
     """Commit content as baseline on main and create origin/main ref."""
     repo = Repo(repo_path)
     file_path = repo_path / filename
-    file_path.write_text(content)
+    file_path.write_text(content, encoding="utf-8")
     repo.index.add([filename])
     repo.index.commit("baseline")
     repo.create_head("origin/main", repo.head.commit.hexsha)
@@ -113,3 +113,26 @@ def test_parse_skip_sections():
 
     result = validation.parse_skip_sections("path:a,path:b")
     assert result == {"path": {"a", "b"}}
+
+
+def test_unchanged_utf8_do_not_edit_passes(tmp_repo, locale_cp1252):
+    baseline = f"""{HEADER}
+# === OK_EDIT: path-sync header ===
+user content
+# === DO_NOT_EDIT: path-sync standard ===
+protected café ✓
+# === OK_EDIT: path-sync standard ===
+"""
+    _setup_baseline(tmp_repo, "test.py", baseline)
+
+    current = f"""{HEADER}
+# === OK_EDIT: path-sync header ===
+modified user content
+# === DO_NOT_EDIT: path-sync standard ===
+protected café ✓
+# === OK_EDIT: path-sync standard ===
+"""
+    (tmp_repo / "test.py").write_text(current, encoding="utf-8")
+
+    result = validation.validate_no_unauthorized_changes(tmp_repo, "main")
+    assert result == []

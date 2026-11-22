@@ -134,13 +134,14 @@ def _merge_bodies(base: str, src: str, dest: str) -> tuple[str, bool]:
         base_file = tmp_path / "base"
         src_file = tmp_path / "src"
         dest_file = tmp_path / "dest"
-        base_file.write_text(base)
-        src_file.write_text(src)
-        dest_file.write_text(dest)
+        base_file.write_text(base, encoding="utf-8")
+        src_file.write_text(src, encoding="utf-8")
+        dest_file.write_text(dest, encoding="utf-8")
         result = subprocess.run(
             ["git", "merge-file", "-p", str(src_file), str(base_file), str(dest_file)],
             capture_output=True,
             text=True,
+            encoding="utf-8",
             check=False,
         )
     return result.stdout, result.returncode != 0
@@ -240,8 +241,8 @@ def _candidates_for_path(
     dest_repo: Repo,
 ) -> list[MergeCandidate]:
     try:
-        src_text = src_path.read_text()
-        dest_text = dest_path.read_text()
+        src_text = src_path.read_text(encoding="utf-8")
+        dest_text = dest_path.read_text(encoding="utf-8")
     except UnicodeDecodeError:
         return []
     if is_opted_out(dest_text, sync_mode):
@@ -300,7 +301,7 @@ def _apply_merge(candidate: MergeCandidate) -> Path:
     else:
         section = sections.Section(id=unit.section_id, parts=[sections.SectionPart(body, 0, 0)])
         new_content = sections.replace_sections(
-            unit.src_path.read_text(),
+            unit.src_path.read_text(encoding="utf-8"),
             [section],
             unit.src_path,
             skip_sections=unit.skip_sections,
@@ -394,7 +395,7 @@ def _apply_and_report(
     candidates_by_dest: dict[str, list[MergeCandidate]],
 ) -> None:
     touched = sorted({c.unit.src_path for dest in changed for c in candidates_by_dest[dest.name]})
-    originals = {path: path.read_text() for path in touched}
+    originals = {path: path.read_text(encoding="utf-8") for path in touched}
     for dest in changed:
         _apply_candidates(candidates_by_dest[dest.name])
         typer.echo(f"  {dest.name}: chore: merge destination {dest.name}", err=True)

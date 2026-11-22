@@ -641,3 +641,38 @@ def test_copy_hint_absent_for_opted_out_only(capsys, tmp_path):
     (dest_root / "justfile").write_text("opted out")
     _print_dest_only_hint(config, dest, src_root, dest_root)
     assert capsys.readouterr().err == ""
+
+
+def test_sync_with_sections_utf8_content(tmp_path, locale_cp1252):
+    src_root = tmp_path / "src"
+    dest_root = tmp_path / "dest"
+    src_root.mkdir()
+    dest_root.mkdir()
+
+    src_content = """\
+# === DO_NOT_EDIT: path-sync standard ===
+echo "Ángel ✓"
+# === OK_EDIT: path-sync standard ==="""
+    (src_root / "file.sh").write_text(src_content, encoding="utf-8")
+
+    dest_file = dest_root / "file.sh"
+    dest_content = add_header(
+        """\
+# === DO_NOT_EDIT: path-sync standard ===
+old recipe
+# === OK_EDIT: path-sync standard ===
+# my custom stuff: café""",
+        dest_file,
+        CONFIG_NAME,
+    )
+    dest_file.write_text(dest_content, encoding="utf-8")
+
+    mapping = PathMapping(src_path="file.sh")
+    changes, _ = _sync_path(mapping, src_root, dest_root, _make_dest(), CONFIG_NAME, False, False)
+
+    assert changes == 1
+    result = dest_file.read_text(encoding="utf-8")
+    assert has_header(result)
+    assert 'echo "Ángel ✓"' in result
+    assert "old recipe" not in result
+    assert "# my custom stuff: café" in result
