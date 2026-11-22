@@ -4,41 +4,80 @@
 name = "path-sync"
 version = "0.10.0"
 description = "Sync files from a source repo to multiple destination repos"
+readme = "README.md"
 requires-python = ">=3.13"
 license = "MIT"
 license-files = [
   "LICENSE",
 ]
-readme = "README.md"
+authors = [
+  { name = "EspenAlbert", email = "espen.albert1@gmail.com" },
+]
 keywords = [
+  "cli",
+  "repository",
   "sync",
   "template",
-  "repository",
-  "cli",
 ]
 classifiers = [
   "Development Status :: 4 - Beta",
   "Programming Language :: Python :: 3.13",
 ]
-authors = [
-  { name = "EspenAlbert", email = "espen.albert1@gmail.com" },
-]
 dependencies = [
+  "gitpython>=3.1.0",
   "pydantic>=2.0",
   "pyyaml>=6.0",
   "typer>=0.16.0",
-  "gitpython>=3.1.0",
   "zero-3rdparty>=0.104.2",
 ]
 
 [project.scripts]
 path-sync = "path_sync.__main__:main"
 
+# === DO_NOT_EDIT: path-sync dev-lint ===
+[dependency-groups]
+dev-lint = [
+  "ruff>=0.14",
+  "ty==0.0.76",
+  "vulture>=2.14",
+]
+# === OK_EDIT: path-sync dev-lint ===
+
+# === DO_NOT_EDIT: path-sync dev-test ===
+dev-test = [
+  "pytest>=9.0",
+  "pytest-asyncio>=0.24",
+  "pytest-cov>=7.0",
+  "pytest-examples>=0.0.18",
+  "pytest-regressions>=2.6",
+]
+# === OK_EDIT: path-sync dev-test ===
+
+# === DO_NOT_EDIT: path-sync dev ===
+dev = [{ include-group = "dev-lint" }, { include-group = "dev-test" }]
+# === OK_EDIT: path-sync dev ===
+
+# === DO_NOT_EDIT: path-sync docs ===
+docs = [
+  "mkdocs-material>=9.5",
+]
+# === OK_EDIT: path-sync docs ===
+
+# === DO_NOT_EDIT: path-sync release ===
+release = ["pkg-ext"]
+# === OK_EDIT: path-sync release ===
+
 [build-system]
 requires = [
   "hatchling",
 ]
 build-backend = "hatchling.build"
+
+# === DO_NOT_EDIT: path-sync coverage ===
+[tool.coverage.report]
+omit = ["*_test.py"]
+exclude_lines = ["no cov", "if __name__ == .__main__.:"]
+# === OK_EDIT: path-sync coverage ===
 
 [tool.hatch.build.targets.sdist]
 include = [
@@ -50,11 +89,6 @@ exclude = [
   "test_*.json",
 ]
 
-[tool.pkg-ext]
-tag_prefix = "v"
-max_bump_type = "minor"
-expose_mode = "cli_only"
-
 # === DO_NOT_EDIT: path-sync wheel ===
 [tool.hatch.build.targets.wheel]
 exclude = [
@@ -64,6 +98,20 @@ exclude = [
   "*_test/",
 ]
 # === OK_EDIT: path-sync wheel ===
+
+[tool.pkg-ext]
+tag_prefix = "v"
+max_bump_type = "minor"
+expose_mode = "cli_only"
+
+# === DO_NOT_EDIT: path-sync pytest ===
+[tool.pytest.ini_options]
+addopts = "-s -vv --log-cli-level=INFO -m 'not manual'"
+markers = ["manual: test requires manual env setup (not run in CI)"]
+python_files = ["*_test.py", "test_*.py"]
+asyncio_mode = "auto"
+# === OK_EDIT: path-sync pytest ===
+
 # === DO_NOT_EDIT: path-sync ruff ===
 [tool.ruff]
 line-length = 120
@@ -87,56 +135,9 @@ extend-immutable-calls = ["typer.Option", "typer.Argument"]
 exclude = ["docs/examples/**"]
 # === OK_EDIT: path-sync ruff ===
 
-# === DO_NOT_EDIT: path-sync pytest ===
-[tool.pytest.ini_options]
-addopts = "-s -vv --log-cli-level=INFO -m 'not manual'"
-markers = ["manual: test requires manual env setup (not run in CI)"]
-python_files = ["*_test.py", "test_*.py"]
-asyncio_mode = "auto"
-# === OK_EDIT: path-sync pytest ===
-
-# === DO_NOT_EDIT: path-sync coverage ===
-[tool.coverage.report]
-omit = ["*_test.py"]
-exclude_lines = ["no cov", "if __name__ == .__main__.:"]
-# === OK_EDIT: path-sync coverage ===
-
 # === DO_NOT_EDIT: path-sync vulture ===
 [tool.vulture]
 min_confidence = 80
 ignore_names = ["mock_*", "Mock*", "*_mock"]
 exclude = [".venv/", "*test.py"]
 # === OK_EDIT: path-sync vulture ===
-
-# === DO_NOT_EDIT: path-sync dev-lint ===
-[dependency-groups]
-dev-lint = [
-  "ty==0.0.76",
-  "ruff>=0.14",
-  "vulture>=2.14",
-]
-# === OK_EDIT: path-sync dev-lint ===
-
-# === DO_NOT_EDIT: path-sync dev-test ===
-dev-test = [
-  "pytest>=9.0",
-  "pytest-asyncio>=0.24",
-  "pytest-cov>=7.0",
-  "pytest-examples>=0.0.18",
-  "pytest-regressions>=2.6",
-]
-# === OK_EDIT: path-sync dev-test ===
-
-# === DO_NOT_EDIT: path-sync dev ===
-dev = [{include-group = "dev-lint"}, {include-group = "dev-test"}]
-# === OK_EDIT: path-sync dev ===
-
-# === DO_NOT_EDIT: path-sync docs ===
-docs = [
-  "mkdocs-material>=9.5",
-]
-# === OK_EDIT: path-sync docs ===
-
-# === DO_NOT_EDIT: path-sync release ===
-release = ["pkg-ext"]
-# === OK_EDIT: path-sync release ===
