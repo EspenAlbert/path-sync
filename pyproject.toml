@@ -55,6 +55,15 @@ tag_prefix = "v"
 max_bump_type = "minor"
 expose_mode = "cli_only"
 
+# === DO_NOT_EDIT: path-sync wheel ===
+[tool.hatch.build.targets.wheel]
+exclude = [
+  "*_examples.py",
+  "*_test.py",
+  "conftest.py",
+  "*_test/",
+]
+# === OK_EDIT: path-sync wheel ===
 # === DO_NOT_EDIT: path-sync ruff ===
 [tool.ruff]
 line-length = 120
@@ -132,12 +141,3 @@ docs = [
 # === DO_NOT_EDIT: path-sync release ===
 release = ["pkg-ext"]
 # === OK_EDIT: path-sync release ===
-# === DO_NOT_EDIT: path-sync wheel ===
-[tool.hatch.build.targets.wheel]
-exclude = [
-  "*_examples.py",
-  "*_test.py",
-  "conftest.py",
-  "*_test/",
-]
-# === OK_EDIT: path-sync wheel ===
