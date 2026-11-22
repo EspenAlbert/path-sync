@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
+import pytest
 from git import Repo
 
 from path_sync._internal import git_ops
@@ -242,3 +243,36 @@ def test_push_branch_pushes_when_content_differs(tmp_path: Path):
     clone.index.commit("second")
 
     assert push_branch(clone, "feature", force=True)
+
+
+@pytest.mark.parametrize(
+    ("func", "args"),
+    [
+        (git_ops._get_repo_full_name, ()),
+        (git_ops._get_pr_number, ("branch",)),
+        (git_ops.get_pr_body, ("branch",)),
+        (git_ops.create_or_update_pr, ("branch", "title")),
+    ],
+)
+def test_gh_stdout_utf8(tmp_path, locale_cp1252, commands_print_utf8, func, args):
+    assert func(tmp_path, *args) == "Ángel ✓"
+
+
+@pytest.mark.parametrize("commands_print_utf8", [1], indirect=True)
+@pytest.mark.parametrize(
+    ("func", "args"),
+    [
+        (git_ops._get_repo_full_name, ()),
+        (git_ops._get_pr_number, ("branch",)),
+        (git_ops.close_pr, ("branch", "comment")),
+    ],
+)
+def test_gh_stderr_utf8_logged(tmp_path, caplog, locale_cp1252, commands_print_utf8, func, args):
+    func(tmp_path, *args)
+    assert "Ángel ✓" in caplog.text
+
+
+@pytest.mark.parametrize("commands_print_utf8", [1], indirect=True)
+def test_create_or_update_pr_error_utf8(tmp_path, locale_cp1252, commands_print_utf8):
+    with pytest.raises(RuntimeError, match="Ángel ✓"):
+        git_ops.create_or_update_pr(tmp_path, "branch", "title")

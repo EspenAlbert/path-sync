@@ -39,7 +39,9 @@ def run_command(cmd: str, cwd: Path, dry_run: bool = False) -> None:
         logger.info(f"[DRY RUN] Would run: {cmd} from {cwd}")
         return
     logger.info(f"Running: {cmd}")
-    result = subprocess.run(cmd, shell=True, cwd=cwd, capture_output=True, text=True, check=False)
+    result = subprocess.run(
+        cmd, shell=True, cwd=cwd, capture_output=True, text=True, encoding="utf-8", errors="replace", check=False
+    )
     prefix = cmd.split()[0]
     for line in result.stdout.strip().splitlines():
         logger.info(f"[{prefix}] {line}")

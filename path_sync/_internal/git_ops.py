@@ -203,7 +203,7 @@ def _get_repo_full_name(repo_path: Path) -> str | None:
         "-q",
         '.owner.login + "/" + .name',
     ]
-    result = subprocess.run(cmd, cwd=repo_path, capture_output=True, text=True, check=False)
+    result = subprocess.run(cmd, cwd=repo_path, capture_output=True, text=True, encoding="utf-8", check=False)
     if result.returncode != 0:
         logger.warning(f"Failed to get repo info: {result.stderr}")
         return None
@@ -213,7 +213,7 @@ def _get_repo_full_name(repo_path: Path) -> str | None:
 def _get_pr_number(repo_path: Path, branch: str) -> str | None:
     """Get PR number for a branch."""
     cmd = ["gh", "pr", "view", branch, "--json", "number", "-q", ".number"]
-    result = subprocess.run(cmd, cwd=repo_path, capture_output=True, text=True, check=False)
+    result = subprocess.run(cmd, cwd=repo_path, capture_output=True, text=True, encoding="utf-8", check=False)
     if result.returncode != 0:
         logger.warning(f"Failed to get PR number: {result.stderr}")
         return None
@@ -240,7 +240,7 @@ def update_pr_body(repo_path: Path, branch: str, body: str) -> bool:
         "-f",
         f"body={body}",
     ]
-    result = subprocess.run(cmd, cwd=repo_path, capture_output=True, text=True, check=False)
+    result = subprocess.run(cmd, cwd=repo_path, capture_output=True, text=True, encoding="utf-8", check=False)
     if result.returncode != 0:
         logger.warning(f"Failed to update PR body: {result.stderr}")
         return False
@@ -251,7 +251,7 @@ def update_pr_body(repo_path: Path, branch: str, body: str) -> bool:
 
 def get_pr_body(repo_path: Path, branch: str) -> str | None:
     cmd = ["gh", "pr", "view", branch, "--json", "body,state", "-q", 'select(.state == "OPEN") | .body']
-    result = subprocess.run(cmd, cwd=repo_path, capture_output=True, text=True, check=False)
+    result = subprocess.run(cmd, cwd=repo_path, capture_output=True, text=True, encoding="utf-8", check=False)
     if result.returncode != 0:
         return None
     body = result.stdout.strip()
@@ -260,7 +260,7 @@ def get_pr_body(repo_path: Path, branch: str) -> str | None:
 
 def has_open_pr(repo_path: Path, branch: str) -> bool:
     cmd = ["gh", "pr", "view", branch, "--json", "state", "-q", ".state"]
-    result = subprocess.run(cmd, cwd=repo_path, capture_output=True, text=True, check=False)
+    result = subprocess.run(cmd, cwd=repo_path, capture_output=True, text=True, encoding="utf-8", check=False)
     if result.returncode != 0:
         return False
     return result.stdout.strip() == "OPEN"
@@ -268,7 +268,7 @@ def has_open_pr(repo_path: Path, branch: str) -> bool:
 
 def close_pr(repo_path: Path, branch: str, comment: str) -> bool:
     cmd = ["gh", "pr", "close", branch, "-c", comment]
-    result = subprocess.run(cmd, cwd=repo_path, capture_output=True, text=True, check=False)
+    result = subprocess.run(cmd, cwd=repo_path, capture_output=True, text=True, encoding="utf-8", check=False)
     if result.returncode != 0:
         logger.warning(f"Failed to close PR for {branch}: {result.stderr}")
         return False
@@ -295,7 +295,7 @@ def create_or_update_pr(
     if assignees:
         cmd.extend(["--assignee", ",".join(assignees)])
 
-    result = subprocess.run(cmd, cwd=repo_path, capture_output=True, text=True, check=False)
+    result = subprocess.run(cmd, cwd=repo_path, capture_output=True, text=True, encoding="utf-8", check=False)
     if result.returncode != 0:
         if "already exists" in result.stderr:
             logger.info("PR already exists, updating body")
