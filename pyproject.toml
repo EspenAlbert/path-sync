@@ -4,107 +4,41 @@
 name = "path-sync"
 version = "0.10.0"
 description = "Sync files from a source repo to multiple destination repos"
+readme = "README.md"
 requires-python = ">=3.13"
 license = "MIT"
 license-files = [
   "LICENSE",
 ]
-readme = "README.md"
+authors = [
+  { name = "EspenAlbert", email = "espen.albert1@gmail.com" },
+]
 keywords = [
+  "cli",
+  "repository",
   "sync",
   "template",
-  "repository",
-  "cli",
 ]
 classifiers = [
   "Development Status :: 4 - Beta",
   "Programming Language :: Python :: 3.13",
 ]
-authors = [
-  { name = "EspenAlbert", email = "espen.albert1@gmail.com" },
-]
 dependencies = [
+  "gitpython>=3.1.0",
   "pydantic>=2.0",
   "pyyaml>=6.0",
   "typer>=0.16.0",
-  "gitpython>=3.1.0",
   "zero-3rdparty>=0.104.2",
 ]
 
 [project.scripts]
 path-sync = "path_sync.__main__:main"
 
-[build-system]
-requires = [
-  "hatchling",
-]
-build-backend = "hatchling.build"
-
-[tool.hatch.build.targets.sdist]
-include = [
-  "path_sync/**/*.py",
-]
-exclude = [
-  "*_test.py",
-  "conftest.py",
-  "test_*.json",
-]
-
-[tool.pkg-ext]
-tag_prefix = "v"
-max_bump_type = "minor"
-expose_mode = "cli_only"
-
-# === DO_NOT_EDIT: path-sync ruff ===
-[tool.ruff]
-line-length = 120
-target-version = "py313"
-
-[tool.ruff.lint]
-# E501: line too long (handled by formatter)
-# UP006: use `type` instead of `Type` from typing module
-# UP007: use `X | Y` instead of `Union[X, Y]`
-# UP035: use `typing` instead of `typing_extensions`
-# UP040: use `type` keyword instead of `TypeAlias`
-# UP046: use type parameters on functions instead of TypeVar
-# UP047: use type parameters instead of `Generic[T]` subclass
-extend-ignore = ["E501", "UP006", "UP007", "UP035", "UP040", "UP046", "UP047"]
-extend-select = ["Q", "RUF100", "C90", "UP", "I", "T", "FURB"]
-
-[tool.ruff.lint.flake8-bugbear]
-extend-immutable-calls = ["typer.Option", "typer.Argument"]
-
-[tool.ruff.format]
-# pytest-examples print prefix is `#>`; ruff 0.16 markdown format turns that into `# >`
-exclude = ["docs/examples/**"]
-# === OK_EDIT: path-sync ruff ===
-
-# === DO_NOT_EDIT: path-sync pytest ===
-[tool.pytest.ini_options]
-addopts = "-s -vv --log-cli-level=INFO -m 'not manual'"
-markers = ["manual: test requires manual env setup (not run in CI)"]
-python_files = ["*_test.py", "test_*.py"]
-asyncio_mode = "auto"
-# === OK_EDIT: path-sync pytest ===
-
-# === DO_NOT_EDIT: path-sync coverage ===
-[tool.coverage.report]
-omit = ["*_test.py"]
-exclude_lines = ["no cov", "if __name__ == .__main__.:"]
-# === OK_EDIT: path-sync coverage ===
-
-# === DO_NOT_EDIT: path-sync vulture ===
-[tool.vulture]
-min_confidence = 80
-ignore_names = ["mock_*", "Mock*", "*_mock"]
-exclude = [".venv/", "*test.py"]
-# === OK_EDIT: path-sync vulture ===
-
 # === DO_NOT_EDIT: path-sync dev-lint ===
 [dependency-groups]
 dev-lint = [
-  "ty==0.0.76",
   "ruff>=0.14",
+  "ty==0.0.76",
   "vulture>=2.14",
 ]
 # === OK_EDIT: path-sync dev-lint ===
@@ -120,7 +54,7 @@ dev-test = [
 # === OK_EDIT: path-sync dev-test ===
 
 # === DO_NOT_EDIT: path-sync dev ===
-dev = [{include-group = "dev-lint"}, {include-group = "dev-test"}]
+dev = [{ include-group = "dev-lint" }, { include-group = "dev-test" }]
 # === OK_EDIT: path-sync dev ===
 
 # === DO_NOT_EDIT: path-sync docs ===
@@ -132,6 +66,29 @@ docs = [
 # === DO_NOT_EDIT: path-sync release ===
 release = ["pkg-ext"]
 # === OK_EDIT: path-sync release ===
+
+[build-system]
+requires = [
+  "hatchling",
+]
+build-backend = "hatchling.build"
+
+# === DO_NOT_EDIT: path-sync coverage ===
+[tool.coverage.report]
+omit = ["*_test.py"]
+exclude_lines = ["no cov", "if __name__ == .__main__.:"]
+# === OK_EDIT: path-sync coverage ===
+
+[tool.hatch.build.targets.sdist]
+include = [
+  "path_sync/**/*.py",
+]
+exclude = [
+  "*_test.py",
+  "conftest.py",
+  "test_*.json",
+]
+
 # === DO_NOT_EDIT: path-sync wheel ===
 [tool.hatch.build.targets.wheel]
 exclude = [
@@ -141,3 +98,46 @@ exclude = [
   "*_test/",
 ]
 # === OK_EDIT: path-sync wheel ===
+
+[tool.pkg-ext]
+tag_prefix = "v"
+max_bump_type = "minor"
+expose_mode = "cli_only"
+
+# === DO_NOT_EDIT: path-sync pytest ===
+[tool.pytest.ini_options]
+addopts = "-s -vv --log-cli-level=INFO -m 'not manual'"
+markers = ["manual: test requires manual env setup (not run in CI)"]
+python_files = ["*_test.py", "test_*.py"]
+asyncio_mode = "auto"
+# === OK_EDIT: path-sync pytest ===
+
+# === DO_NOT_EDIT: path-sync ruff ===
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+# E501: line too long (handled by formatter)
+# UP006: use `type` instead of `Type` from typing module
+# UP007: use `X | Y` instead of `Union[X, Y]`
+# UP035: use `typing` instead of `typing_extensions`
+# UP040: use `type` keyword instead of `TypeAlias`
+# UP046: use type parameters on functions instead of TypeVar
+# UP047: use type parameters instead of `Generic[T]` subclass
+ignore = ["E501", "UP006", "UP007", "UP035", "UP040", "UP046", "UP047"]
+extend-select = ["Q", "RUF100", "C90", "UP", "I", "T", "FURB"]
+
+[tool.ruff.lint.flake8-bugbear]
+extend-immutable-calls = ["typer.Option", "typer.Argument"]
+
+[tool.ruff.format]
+# pytest-examples print prefix is `#>`; ruff 0.16 markdown format turns that into `# >`
+exclude = ["docs/examples/**"]
+# === OK_EDIT: path-sync ruff ===
+
+# === DO_NOT_EDIT: path-sync vulture ===
+[tool.vulture]
+min_confidence = 80
+ignore_names = ["mock_*", "Mock*", "*_mock"]
+exclude = [".venv/", "*test.py"]
+# === OK_EDIT: path-sync vulture ===
