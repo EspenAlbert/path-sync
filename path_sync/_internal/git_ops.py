@@ -321,10 +321,15 @@ def get_changed_files(repo: Repo, base_ref: str = "HEAD") -> list[Path]:
     return [repo_root / p for p in diff.strip().split("\n")]
 
 
+def _translate_newlines(text: str) -> str:
+    """Translate CRLF and CR to LF, as `Path.read_text` does, so git content matches working-tree content."""
+    return text.replace("\r\n", "\n").replace("\r", "\n")
+
+
 def get_file_content_at_ref(repo: Repo, file_path: Path, ref: str) -> str | None:
     rel_path = str(file_path.relative_to(repo.working_dir))
     with suppress(GitCommandError):
-        return repo.git.show(f"{ref}:{rel_path}")
+        return _translate_newlines(repo.git.show(f"{ref}:{rel_path}", strip_newline_in_stdout=False))
     return None
 
 
@@ -409,6 +414,6 @@ def walk_file_history(repo: Repo, rel_path: str) -> list[FileVersion]:
 def file_content_at_commit(repo: Repo, sha: str, path: str) -> str | None:
     """Return the file content at ``sha:path``, or None when the path is missing or binary."""
     try:
-        return repo.git.show(f"{sha}:{path}", strip_newline_in_stdout=False)
+        return _translate_newlines(repo.git.show(f"{sha}:{path}", strip_newline_in_stdout=False))
     except (GitCommandError, UnicodeDecodeError):
         return None

@@ -276,3 +276,29 @@ def test_gh_stderr_utf8_logged(tmp_path, caplog, locale_cp1252, commands_print_u
 def test_create_or_update_pr_error_utf8(tmp_path, locale_cp1252, commands_print_utf8):
     with pytest.raises(RuntimeError, match="Ángel ✓"):
         git_ops.create_or_update_pr(tmp_path, "branch", "title")
+
+
+@pytest.mark.parametrize(
+    "content",
+    [b"one\r\ntwo\r\n", b"one\ntwo\n", b"one\rtwo\r"],
+    ids=["crlf", "lf", "cr"],
+)
+def test_file_content_at_commit_translates_newlines(tmp_repo, content):
+    repo = git_ops.get_repo(tmp_repo)
+    (tmp_repo / "file.txt").write_bytes(content)
+    repo.index.add(["file.txt"])
+    repo.index.commit("file")
+    assert git_ops.file_content_at_commit(repo, repo.head.commit.hexsha, "file.txt") == "one\ntwo\n"
+
+
+@pytest.mark.parametrize(
+    "content",
+    [b"one\r\ntwo\r\n", b"one\ntwo\n", b"one\rtwo\r"],
+    ids=["crlf", "lf", "cr"],
+)
+def test_get_file_content_at_ref_translates_newlines(tmp_repo, content):
+    repo = git_ops.get_repo(tmp_repo)
+    (tmp_repo / "file.txt").write_bytes(content)
+    repo.index.add(["file.txt"])
+    repo.index.commit("file")
+    assert git_ops.get_file_content_at_ref(repo, tmp_repo / "file.txt", "HEAD") == "one\ntwo\n"

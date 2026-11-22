@@ -136,3 +136,42 @@ protected café ✓
 
     result = validation.validate_no_unauthorized_changes(tmp_repo, "main")
     assert result == []
+
+
+def _setup_crlf_baseline(repo_path, filename: str, content: str) -> None:
+    """Commit content with CRLF line endings as baseline on main and create origin/main ref."""
+    repo = Repo(repo_path)
+    (repo_path / filename).write_bytes(content.replace("\n", "\r\n").encode())
+    repo.index.add([filename])
+    repo.index.commit("baseline")
+    repo.create_head("origin/main", repo.head.commit.hexsha)
+
+
+def test_modify_ok_edit_passes_crlf_baseline(tmp_repo):
+    baseline = f"""{HEADER}
+# === OK_EDIT: path-sync header ===
+user content
+# === DO_NOT_EDIT: path-sync standard ===
+protected
+# === OK_EDIT: path-sync standard ===
+"""
+    _setup_crlf_baseline(tmp_repo, "test.py", baseline)
+    current = baseline.replace("user content", "modified user content")
+    (tmp_repo / "test.py").write_bytes(current.replace("\n", "\r\n").encode())
+
+    result = validation.validate_no_unauthorized_changes(tmp_repo, "main")
+    assert result == []
+
+
+def test_modify_do_not_edit_fails_crlf_baseline(tmp_repo):
+    baseline = f"""{HEADER}
+# === DO_NOT_EDIT: path-sync standard ===
+protected content
+# === OK_EDIT: path-sync standard ===
+"""
+    _setup_crlf_baseline(tmp_repo, "test.py", baseline)
+    current = baseline.replace("protected content", "MODIFIED protected content")
+    (tmp_repo / "test.py").write_bytes(current.replace("\n", "\r\n").encode())
+
+    result = validation.validate_no_unauthorized_changes(tmp_repo, "main")
+    assert result == ["test.py:standard"]
