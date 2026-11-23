@@ -30,7 +30,7 @@ def validate_no_changes(
     src_root_opt: str = typer.Option(
         "",
         "--src-root",
-        help="Source repo root (default: find git root from cwd)",
+        help="Repo root to validate (default: find git root from cwd)",
     ),
 ) -> None:
     """Validate no unauthorized changes to synced files."""
@@ -51,7 +51,7 @@ def validate_no_changes(
 
     if unauthorized:
         files_list = "\n  ".join(unauthorized)
-        logger.error(f"Unauthorized changes in {len(unauthorized)} files:\n  {files_list}")
+        logger.error(f"Unauthorized changes in {len(unauthorized)} files or sections:\n  {files_list}")
         raise typer.Exit(1)
 
     logger.info("Validation passed: no unauthorized changes")

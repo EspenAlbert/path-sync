@@ -244,7 +244,8 @@ class SrcConfig(BaseModel):
         for dest in self.destinations:
             if dest.name == name:
                 return dest
-        raise ValueError(f"Destination not found: {name}")
+        available = ", ".join(dest.name for dest in self.destinations)
+        raise ValueError(f"Destination not found: {name} (available: {available})")
 
 
 def resolve_config_path(repo_root: Path, name: str) -> Path:

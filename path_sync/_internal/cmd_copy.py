@@ -101,7 +101,7 @@ def copy(
     checkout_from_default: bool = typer.Option(
         False,
         "--checkout-from-default",
-        help="Reset to origin/default before sync (for CI)",
+        help="Reset default_branch to origin/<default_branch> and recreate the copy branch (for CI)",
     ),
     skip_commit: bool = typer.Option(
         False,
@@ -506,7 +506,10 @@ def _handle_sync(
     should_wrap: bool = False,
 ) -> int:
     if not header.has_known_comment_prefix(dest_path):
-        logger.warning(f"No comment config for {dest_path.suffix!r}, cannot sync sections/headers for: {dest_path}")
+        logger.warning(
+            f"No comment config for {dest_path.name} (extension={dest_path.suffix!r}), skipping: {dest_path}. "
+            "Use sync_mode: replace to copy it without a header."
+        )
         return 0
 
     if sections.has_sections(src_content, dest_path):
@@ -520,7 +523,7 @@ def _handle_sync(
         existing = dest_path.read_text()
         has_hdr = header.has_header(existing)
         if not has_hdr and not force_overwrite:
-            logger.info(f"Skipping {dest_path} (header removed - opted out)")
+            logger.info(f"Skipping {dest_path} (no path-sync header on line 1 - opted out, see --force-overwrite)")
             return 0
         if header.remove_header(existing) == src_content and has_hdr:
             return 0
@@ -551,7 +554,7 @@ def _handle_sync_sections(
     if dest_path.exists():
         existing = dest_path.read_text()
         if not header.has_header(existing) and not force_overwrite:
-            logger.info(f"Skipping {dest_path} (header removed - opted out)")
+            logger.info(f"Skipping {dest_path} (no path-sync header on line 1 - opted out, see --force-overwrite)")
             return 0
         dest_body = header.remove_header(existing)
         new_body = sections.replace_sections(dest_body, src_sections, dest_path, skip_list)

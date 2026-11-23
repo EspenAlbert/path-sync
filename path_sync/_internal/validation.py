@@ -58,7 +58,9 @@ def validate_no_unauthorized_changes(
             file_skip = skip.get(rel_path, set())
             changes = sections.changed_sections(baseline_content, current_content, path, file_skip)
             for sid in changes.missing:
-                logger.warning(f"Section '{sid}' removed from {rel_path}, consider updating src.yaml")
+                logger.warning(
+                    f"Section '{sid}' removed from {rel_path}, the next copy restores it unless skip_sections lists it"
+                )
             unauthorized.extend(f"{rel_path}:{sid}" for sid in changes.modified)
         elif current_has_sections:
             unauthorized.append(rel_path)

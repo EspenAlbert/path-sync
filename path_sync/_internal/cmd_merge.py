@@ -460,7 +460,7 @@ def merge(
     """Reconcile destination changes into src before the next copy.
 
     Recovers the last-synced base from both repos' histories, prefers the changed side, and
-    combines non-overlapping changes. Writes and commits src, then prints the copy hint.
+    combines non-overlapping changes. Writes src, prompts to commit it, then prints the copy hint.
     merge never runs copy.
     """
     if name and config_path_opt:

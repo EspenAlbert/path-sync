@@ -26,7 +26,7 @@ Validate no unauthorized changes to synced files.
 |---|---|---|---|---|
 | `-b`, `--branch` | `str` | `'main'` | `GITHUB_BASE_REF` | Branch to compare against (default: main; uses GITHUB_BASE_REF when set and -b not passed) |
 | `--skip-sections` | `str` | `''` | - | Comma-separated path:section_id pairs to skip (e.g., 'justfile:coverage,pyproject.toml:default') |
-| `--src-root` | `str` | `''` | - | Source repo root (default: find git root from cwd) |
+| `--src-root` | `str` | `''` | - | Repo root to validate (default: find git root from cwd) |
 
 ### Changes
 
