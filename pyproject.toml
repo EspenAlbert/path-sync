@@ -93,6 +93,9 @@ omit = ["*_test.py"]
 exclude_lines = ["no cov", "if __name__ == .__main__.:"]
 # === OK_EDIT: path-sync coverage ===
 
+[tool.uv]
+default-groups = ["dev", "dev-tools"]
+
 # === DO_NOT_EDIT: path-sync vulture ===
 [tool.vulture]
 min_confidence = 80
@@ -132,6 +135,13 @@ docs = [
 # === DO_NOT_EDIT: path-sync release ===
 release = ["pkg-ext"]
 # === OK_EDIT: path-sync release ===
+
+# Tools the justfile calls directly (not through `uv run`)
+dev-tools = [
+  "rust-just>=1.59",
+  "typos>=1.52",
+]
+
 # === DO_NOT_EDIT: path-sync wheel ===
 [tool.hatch.build.targets.wheel]
 exclude = [
