@@ -34,7 +34,7 @@ def boot(
         help="Source repo root (default: find git root from cwd)",
     ),
 ) -> None:
-    """Initialize or update SRC repo config."""
+    """Initialize SRC repo config (--regen overwrites an existing one)."""
     if sync_paths is None:
         sync_paths = []
     if dest_paths is None:

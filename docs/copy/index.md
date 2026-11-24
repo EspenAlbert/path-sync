@@ -58,7 +58,7 @@ Copy files from SRC to DEST repositories.
 | `--force-overwrite` | `bool` | `False` | Overwrite files even if header removed (opted out) |
 | `--detailed-exit-code` | `bool` | `False` | Exit 0=no changes, 1=changes, 2=error |
 | `--no-checkout` | `bool` | `False` | Skip branch switching before sync |
-| `--checkout-from-default` | `bool` | `False` | Reset to origin/default before sync (for CI) |
+| `--checkout-from-default` | `bool` | `False` | Reset default_branch to origin/<default_branch> and recreate the copy branch (for CI) |
 | `--skip-commit`, `--local` | `bool` | `False` | No git operations after sync (no commit/push/PR) |
 | `-y`, `--no-prompt` | `bool` | `False` | Skip confirmations (for CI) |
 | `--no-pr` | `bool` | `False` | Push but skip PR creation |

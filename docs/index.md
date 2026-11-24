@@ -24,11 +24,11 @@ Sync files from a source repo to multiple destination repos.
 
 - SRC owns synced content; DEST should not edit it
 - Files with headers are updated on each sync
-- Remove a header to opt-out (file becomes DEST-owned)
-- Orphaned files (removed from SRC) are deleted in DEST
+- Remove a header to opt out (file becomes DEST-owned)
+- Orphaned files (DEST files with this config's header that no path mapping covers, e.g. removed from SRC) are deleted in DEST
 - Dest-only extras under dir or glob mappings survive `copy`; `pull --dest-only` harvests them; `prune` deletes them
 - Dest improvements can be harvested back to SRC with `pull` (local working tree only; you commit SRC yourself)
-- Idempotent: PR body is left unchanged when already synced from an equal or newer source commit
+- Idempotent: a destination is skipped when its open PR was already synced from an equal or newer source commit
 - Stale PRs auto-close when source and destination are already in sync (zero file changes)
 
 ## Installation
@@ -57,16 +57,19 @@ Creates `.github/myconfig.src.yaml` with auto-detected git remote and destinatio
 path-sync copy -n myconfig
 ```
 
-By default, prompts before each git operation. See [Usage Scenarios](#usage-scenarios) for common patterns.
+By default, prompts before each git operation. Without a terminal (CI, scripts), prompts auto-confirm, as with `-y`. See [Usage Scenarios](#usage-scenarios) for common patterns.
 
 | Flag                      | Description                                                 |
 | ------------------------- | ----------------------------------------------------------- |
 | `-d dest1,dest2`          | Filter specific destinations                                |
+| `-c, --config-path`       | Full path to config file (alternative to `-n`)              |
+| `--src-root`              | Source repo root (default: git root of cwd)                 |
+| `--work-dir`              | Clone destinations here (overrides `dest_path_relative`)    |
 | `--dry-run`               | Preview without writing (requires existing repos)           |
 | `-y, --no-prompt`         | Skip confirmations (for CI)                                 |
 | `--skip-commit`           | No git ops after sync (no commit/push/PR). Alias: `--local` |
 | `--no-checkout`           | Skip branch switching (assumes already on correct branch)   |
-| `--checkout-from-default` | Reset to origin/default before sync                         |
+| `--checkout-from-default` | Reset to `origin/<default_branch>`, recreate copy branch    |
 | `--no-pr`                 | Push but skip PR creation                                   |
 | `--force-overwrite`       | Overwrite files even if header removed (opted out)          |
 | `--detailed-exit-code`    | Exit 0=no changes, 1=changes, 2=error                       |
@@ -76,6 +79,8 @@ By default, prompts before each git operation. See [Usage Scenarios](#usage-scen
 | `--pr-labels`             | Comma-separated PR labels                                   |
 | `--pr-reviewers`          | Comma-separated PR reviewers                                |
 | `--pr-assignees`          | Comma-separated PR assignees                                |
+| `--no-auto-merge`         | Skip auto-merge even when `auto_merge` is configured        |
+| `--no-wait`               | Enable auto-merge without polling for the merge             |
 
 ### 3. Pull changes from a destination
 
@@ -93,7 +98,7 @@ Unlike `copy`, `pull` never auto-applies. `--dry-run` and non-TTY list candidate
 | ------------------------ | --------------------------------- | ------------------------------------------------------------ |
 | Direction                | SRC → DEST                        | DEST → SRC                                                   |
 | `-d`                     | Comma-separated filter (optional) | Exactly one dest (required)                                  |
-| Non-TTY / no-write flags | `-y` auto-confirms git ops        | Never writes (`--dry-run` or non-TTY lists only)             |
+| Non-TTY / no-write flags | `-y`/non-TTY auto-confirm git ops | Never writes (`--dry-run` or non-TTY lists only)             |
 | Default                  | Overwrites dest managed content   | Only newer mapped content (git timestamp after content diff) |
 
 | Flag              | Description                                                                                                     |
@@ -216,6 +221,7 @@ Options:
 
 - `-b, --branch` - Branch to compare against (default: main). When `GITHUB_BASE_REF` is set (e.g. in GitHub Actions), it overrides the default so CI can use the PR base without passing `-b`. If you set `GITHUB_BASE_REF`, use a non-empty branch name.
 - `--skip-sections` - Comma-separated `path:section_id` pairs to skip (e.g., `justfile:coverage`)
+- `--src-root` - Repo root to validate (default: git root of cwd)
 
 ## Usage Scenarios
 
@@ -239,13 +245,17 @@ For partial file syncing (e.g., `justfile`, `pyproject.toml`), wrap sections wit
 # === DO_NOT_EDIT: path-sync default ===
 lint:
     ruff check .
-# === OK_EDIT ===
+# === OK_EDIT: path-sync default ===
 ```
 
 - **`DO_NOT_EDIT: path-sync {id}`** - Start of managed section with identifier
-- **`OK_EDIT`** - End marker (content below is editable)
+- **`OK_EDIT: path-sync {id}`** - End marker with the same identifier (content below is editable)
 
-During sync, only content within markers is replaced. Destination can have extra sections.
+Identifiers use letters, digits, `_`, and `-`. A marker with any other character, such as `.`, is not recognized.
+
+During sync, only content within markers is replaced. Destination content outside the markers is kept. A section that only the destination has is removed, and a section new in SRC is appended at the end of the file.
+
+The same identifier can mark several regions of one file. path-sync treats them as parts of one section and matches them by position.
 
 Use `skip_sections` in destination config to exclude specific sections from sync:
 
@@ -342,15 +352,18 @@ destinations:
 | ----------------------- | --------------------------------------------------------------------------------------------------- |
 | `name`                  | Config identifier                                                                                   |
 | `src_repo_url`          | Source repo URL (auto-detected from git remote)                                                     |
+| `git_remote`            | Source repo remote whose URL fills `{src_repo_url}` in the PR body (default: `origin`)              |
 | `schedule`              | Cron for scheduled sync workflow                                                                    |
-| `paths`                 | Files/globs to sync (see path options below)                                                        |
+| `paths`                 | Files/globs to sync to every destination (see path options below)                                   |
+| `path_groups`           | Named lists of path mappings that a destination opts into (see [Path Groups](#path-groups))         |
 | `destinations`          | Target repos with sync settings                                                                     |
 | `header_config`         | Comment style per extension (has defaults)                                                          |
-| `pr_defaults`           | PR title, body template, labels, reviewers, assignees                                               |
+| `pr_defaults`           | PR title, body template, body suffix, labels, reviewers, assignees                                  |
 | `wrap_synced_files`     | Wrap synced files in section markers (default: `false`)                                             |
 | `keep_pr_on_no_changes` | Keep stale PR open instead of auto-closing when sync produces zero changes (default: `false`)       |
 | `force_resync`          | Ignore the "PR already synced from newer commit" check, always run the full sync (default: `false`) |
 | `verify`                | Verification steps to run after syncing (see [Verify Steps](#verify-steps-in-copy))                 |
+| `auto_merge`            | Enable GitHub auto-merge on created PRs and wait for them to merge (see [Auto-merge](#auto-merge))  |
 
 **`body_template` variables** (available in `pr_defaults.body_template`):
 
@@ -370,10 +383,18 @@ destinations:
 | ----------------------- | ------------------------------------------------------------------------ |
 | `src_path`              | Source file, directory, or glob pattern (required)                       |
 | `dest_path`             | Destination path (defaults to `src_path`)                                |
-| `sync_mode`             | `sync` (default), `replace`, or `scaffold`                               |
+| `sync_mode`             | `sync` (default), `replace`, or `scaffold` (see below)                   |
 | `exclude_dirs`          | Directory names to skip (defaults: `__pycache__`, `.git`, `.venv`, etc.) |
 | `exclude_file_patterns` | Filename patterns to skip, supports globs (`*.pyc`, `test_*.py`)         |
 | `wrap`                  | Override global `wrap_synced_files` for this path (`true`/`false`)       |
+
+**Sync modes**:
+
+| Mode       | Behavior                                                                             |
+| ---------- | ------------------------------------------------------------------------------------ |
+| `sync`     | Adds the header, replaces managed sections, and skips files whose header was removed |
+| `replace`  | Overwrites the whole file when it differs from SRC; no header, so no opt-out         |
+| `scaffold` | Writes the file only when it is missing in DEST                                      |
 
 **Destination options**:
 
@@ -386,7 +407,41 @@ destinations:
 | `default_branch`     | Default branch to compare against (defaults to `main`)                    |
 | `skip_sections`      | Map of `{dest_path: [section_ids]}` to preserve locally                   |
 | `skip_file_patterns` | Patterns to skip for this destination (matches dest path, fnmatch syntax) |
+| `include_groups`     | Names of `path_groups` to sync here, in addition to `paths`               |
 | `verify`             | Per-destination verify config (overrides source-level verify)             |
+
+### Path Groups
+
+`paths` go to every destination. A destination also gets the mappings of each group named in its `include_groups`:
+
+```yaml
+paths:
+  - src_path: .editorconfig # every destination
+path_groups:
+  python:
+    - src_path: templates/pyproject.toml
+      dest_path: pyproject.toml
+destinations:
+  - name: dest1
+    dest_path_relative: ../dest1
+    include_groups: [python] # .editorconfig and pyproject.toml
+  - name: dest2
+    dest_path_relative: ../dest2 # .editorconfig only
+```
+
+An unknown or repeated group name in `include_groups` fails config validation. Removing a group from `include_groups` turns the files that group synced with a header into orphans, so the next `copy` deletes them from that destination unless `--skip-orphan-cleanup` is passed.
+
+### Auto-merge
+
+```yaml
+auto_merge:
+  method: squash # default: merge (also: rebase)
+  delete_branch: true # default: true
+  poll_interval_seconds: 30 # default: 30
+  timeout_seconds: 900 # default: 900
+```
+
+After creating PRs, `copy` enables GitHub auto-merge on each one (`gh pr merge --auto`) and polls until each PR merges or closes, or the timeout passes. `--no-wait` enables auto-merge without polling; `--no-auto-merge` skips it. `dep-update` accepts the same `auto_merge` block and flags.
 
 ## Verify Steps in Copy
 
@@ -416,11 +471,13 @@ destinations:
         - run: npm run build
 ```
 
+Each `run` is a shell command, run from the destination repo root. Verify steps also run with `--skip-commit`, without their `commit`. With `--dry-run`, steps are printed, not run.
+
 Use `--skip-verify` to disable verification steps.
 
 ## Header Format
 
-Synced files have a header comment identifying the source config:
+Synced files have a header comment on line 1 identifying the source config:
 
 ```python
 # path-sync copy -n myconfig
@@ -434,7 +491,9 @@ Comment style is extension-aware:
 | `.go`, `.js`, `.ts`    | `// path-sync copy -n {name}`       |
 | `.md`, `.mdc`, `.html` | `<!-- path-sync copy -n {name} -->` |
 
-Remove this header to opt-out of future syncs for that file.
+Other recognized types include `.yml`, `.toml`, `.css` (`/* ... */`), `.sql` (`--`), and the file names `justfile`, `Makefile`, `Dockerfile`, and `.gitignore`. In `sync` mode, a file of any other type is skipped with a `No comment config` warning; `sync_mode: replace` copies it without a header.
+
+Remove this header to opt out of future syncs for that file (`sync` mode). An existing DEST file without the header also counts as opted out, so `copy` skips it; `--force-overwrite` adds the header and syncs it.
 
 ## PR Body Metadata
 
@@ -444,7 +503,7 @@ path-sync embeds a hidden HTML comment in PR bodies to track the source commit:
 <!-- path-sync: sha=abc1234 ts=2026-02-12T10:00:00+00:00 -->
 ```
 
-This is primarily useful when syncing from a feature/PR branch instead of `main`. When a scheduled CI job runs against `main`, the source commit timestamp will be older than the PR branch sync. path-sync detects this and skips the PR body overwrite, preserving the newer sync state.
+This is primarily useful when syncing from a feature/PR branch instead of `main`. When a scheduled CI job runs against `main`, the source commit timestamp will be older than the PR branch sync. path-sync detects this and skips that destination (no file writes, push, or PR body update), preserving the newer sync state. The check does not run with `--skip-commit`, `--dry-run`, or `--no-pr`.
 
 If `copy` or `dep-update` finds zero file changes, any open PR for the sync branch is closed automatically (disable with `keep_pr_on_no_changes: true`). The timestamp check can be bypassed with `force_resync: true` (copy only). Existing PRs without metadata are always overwritten.
 
@@ -504,7 +563,7 @@ jobs:
 **Validation skips automatically when:**
 
 - On a `sync/*` branch (path-sync uses `sync/{config_name}` by default)
-- On the default branch (comparing against itself)
+- On the branch it compares against (`-b` or `GITHUB_BASE_REF`)
 
 The workflow triggers exclude these branches too, reducing unnecessary CI runs.
 
@@ -534,14 +593,14 @@ Add as repository secret: `GH_PAT`
 
 The `dep-update` command runs dependency updates across multiple repositories. It clones repos, runs update commands, verifies changes, and creates PRs.
 
-### Quick Start
+### Dep Quick Start
 
 ```bash
 # Create config at .github/myconfig.dep.yaml (see example below)
 # Then run:
 path-sync dep-update -n myconfig
 
-# Preview without creating PRs
+# Run updates locally without pushing or creating PRs
 path-sync dep-update -n myconfig --dry-run
 
 # Filter specific destinations
@@ -564,7 +623,7 @@ updates:
     command: uv lock --upgrade
 
 verify:
-  on_fail: skip # default strategy: skip, fail, warn
+  on_fail: skip # default: warn (also: skip, fail)
   steps:
     - run: uv sync
     - run: just fmt
@@ -580,7 +639,9 @@ pr:
   labels: [dependencies]
   reviewers: [] # optional
   assignees: [] # optional
-  auto_merge: true
+
+auto_merge: # optional, see Auto-merge
+  method: squash
 ```
 
 | Field                   | Description                                                                   |
@@ -592,29 +653,34 @@ pr:
 | `verify.on_fail`        | Default failure strategy: `skip`, `fail`, `warn`                              |
 | `verify.steps`          | Verification commands with optional commit/on_fail                            |
 | `keep_pr_on_no_changes` | Keep stale PR open instead of auto-closing when no changes (default: `false`) |
-| `pr.auto_merge`         | Enable GitHub auto-merge after PR creation                                    |
+| `pr.branch`             | Branch for the update PR (required)                                           |
+| `pr.title`              | PR title and commit message (required)                                        |
+| `auto_merge`            | Enable GitHub auto-merge after PR creation (see [Auto-merge](#auto-merge))    |
 
 ### CLI Flags
 
-| Flag             | Description                                            |
-| ---------------- | ------------------------------------------------------ |
-| `-n, --name`     | Config name (required)                                 |
-| `-d, --dest`     | Filter destinations (comma-separated)                  |
-| `--work-dir`     | Clone directory for repos without `dest_path_relative` |
-| `--dry-run`      | Preview without creating PRs                           |
-| `--skip-verify`  | Skip verification steps                                |
-| `--pr-reviewers` | Override PR reviewers (comma-separated)                |
-| `--pr-assignees` | Override PR assignees (comma-separated)                |
+| Flag              | Description                                          |
+| ----------------- | ---------------------------------------------------- |
+| `-n, --name`      | Config name (required)                               |
+| `-d, --dest`      | Filter destinations (comma-separated)                |
+| `--src-root`      | Source repo root (default: git root of cwd)          |
+| `--work-dir`      | Clone repos here (overrides `dest_path_relative`)    |
+| `--dry-run`       | Run updates and verify locally; no push or PR        |
+| `--skip-verify`   | Skip verification steps                              |
+| `--no-auto-merge` | Skip auto-merge even when `auto_merge` is configured |
+| `--no-wait`       | Enable auto-merge without polling for the merge      |
+| `--pr-reviewers`  | Override PR reviewers (comma-separated)              |
+| `--pr-assignees`  | Override PR assignees (comma-separated)              |
 
 ### Failure Strategies
 
-- **skip**: Skip PR for this repo, continue with others (default)
+- **skip**: Skip PR for this repo, continue with others. A failed `updates` command always skips its repo. `dep-update` exits 1 when any repo was skipped.
 - **fail**: Stop all processing immediately
-- **warn**: Create PR anyway with warning in body
+- **warn**: Create PR anyway with warning in body (default)
 
 Per-step `on_fail` overrides the verify-level default.
 
-### GitHub Actions
+### Dep GitHub Actions
 
 ```yaml
 name: dep-update

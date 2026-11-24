@@ -1,0 +1,8 @@
+name: __ROOT__
+ts: 2026-11-24 21:40:07.370625+00:00
+type: fix
+author: Hunter Hogan
+changelog_message: 'fix: typos and ambiguities.'
+group: __ROOT__
+message: 'fix: typos and ambiguities.'
+short_sha: 61c553
