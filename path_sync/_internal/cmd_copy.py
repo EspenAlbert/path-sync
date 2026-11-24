@@ -385,14 +385,14 @@ def _iter_sync_files(
             logger.warning(f"Glob matched no files: {mapping.src_path}")
         for src_file in matches:
             src_path = Path(src_file)
-            if src_path.is_file() and not mapping.is_excluded(src_path):
+            if src_path.is_file() and not mapping.is_excluded(src_path.relative_to(src_root)):
                 rel = src_path.relative_to(src_root / glob_prefix)
                 dest_key = str(Path(dest_base) / rel)
                 yield src_path, dest_key, dest_root / dest_base / rel
     elif src_pattern.is_dir():
         dest_base = mapping.resolved_dest_path()
         for src_file in src_pattern.rglob("*"):
-            if src_file.is_file() and not mapping.is_excluded(src_file):
+            if src_file.is_file() and not mapping.is_excluded(src_file.relative_to(src_root)):
                 rel = src_file.relative_to(src_pattern)
                 dest_key = str(Path(dest_base) / rel)
                 yield src_file, dest_key, dest_root / dest_base / rel

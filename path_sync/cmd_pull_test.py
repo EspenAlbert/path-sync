@@ -493,6 +493,18 @@ def test_dest_only_honors_copy_filters(tmp_path):
     assert [c.dest_key for c in candidates] == [".cursor/keep.mdc"]
 
 
+def test_dest_only_repos_under_excluded_dir_name(tmp_path):
+    """Only dirs below the dest root are excluded; the folder holding the repos is not."""
+    (tmp_path / "venv").mkdir()
+    src_root, dest_root, _src_repo, dest_repo, config, dest = _cursor_dir_setup(tmp_path / "venv")
+    for rel in (".cursor/rules/bar.mdc", ".cursor/venv/skipped.mdc"):
+        path = dest_root / rel
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("x")
+    candidates = _collect_dest_only_candidates(config, dest, src_root, dest_root, dest_repo, set())
+    assert [c.dest_path for c in candidates] == [dest_root / ".cursor/rules/bar.mdc"]
+
+
 def test_dest_only_binary_copies_bytes(tmp_path):
     src_root, dest_root, *_rest, config, dest = _cursor_dir_setup(tmp_path)
     payload = b"\x80\x81\x82"
