@@ -118,6 +118,35 @@ def test_pr_already_synced_older_proceeds():
     assert not pr_already_synced(body, "2026-02-12T10:00:00+00:00")
 
 
+def test_pr_already_synced_older_instant_with_higher_string_proceeds():
+    # 12:00+02:00 is 10:00 UTC, older than 11:00 UTC, although the string sorts higher
+    body = "<!-- path-sync: sha=abcd1234 ts=2026-01-01T12:00:00+02:00 -->\nSynced from ..."
+    assert pr_already_synced(body, "2026-01-01T11:00:00+00:00") is None
+
+
+def test_pr_already_synced_newer_instant_with_lower_string_skips():
+    # 09:00-03:00 is 12:00 UTC, newer than 11:00 UTC, although the string sorts lower
+    body = "<!-- path-sync: sha=abcd1234 ts=2026-01-01T09:00:00-03:00 -->\nSynced from ..."
+    result = pr_already_synced(body, "2026-01-01T11:00:00+00:00")
+    assert result == SyncMetadata(sha="abcd1234", ts="2026-01-01T09:00:00-03:00")
+
+
+def test_pr_already_synced_same_instant_other_offset_skips():
+    body = "<!-- path-sync: sha=abcd1234 ts=2026-01-01T12:00:00+02:00 -->\nSynced from ..."
+    assert pr_already_synced(body, "2026-01-01T10:00:00+00:00")
+
+
+def test_pr_already_synced_unparsable_ts_proceeds():
+    body = "<!-- path-sync: sha=abcd1234 ts=not-a-timestamp -->\nSynced from ..."
+    assert pr_already_synced(body, "2026-02-12T10:00:00+00:00") is None
+
+
+def test_pr_already_synced_naive_ts_is_utc():
+    body = "<!-- path-sync: sha=abcd1234 ts=2026-02-12T10:00:00 -->\nSynced from ..."
+    assert pr_already_synced(body, "2026-02-12T11:00:00+02:00")  # 09:00 UTC
+    assert pr_already_synced(body, "2026-02-12T13:00:00+02:00") is None  # 11:00 UTC
+
+
 def test_pr_already_synced_no_body():
     assert not pr_already_synced(None, "2026-02-12T10:00:00+00:00")
     assert not pr_already_synced("", "2026-02-12T10:00:00+00:00")

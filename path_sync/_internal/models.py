@@ -3,6 +3,7 @@ from __future__ import annotations
 import fnmatch
 import glob as glob_mod
 import re
+from datetime import UTC, datetime
 from enum import StrEnum
 from pathlib import Path
 from typing import ClassVar, NamedTuple
@@ -119,12 +120,29 @@ def parse_sync_metadata(body: str) -> SyncMetadata | None:
     return None
 
 
+def _parse_ts(ts: str) -> datetime | None:
+    """Parse an ISO-8601 timestamp, assuming UTC when it has no offset. None if unparsable."""
+    try:
+        parsed = datetime.fromisoformat(ts)
+    except ValueError:
+        return None
+    return parsed if parsed.tzinfo else parsed.replace(tzinfo=UTC)
+
+
 def pr_already_synced(pr_body: str | None, commit_ts: str) -> SyncMetadata | None:
-    """Return metadata if pr_body was synced from a source commit >= commit_ts."""
+    """Return metadata if pr_body was synced from a source commit >= commit_ts.
+
+    Timestamps are compared as instants, because their UTC offsets can differ.
+    A timestamp without an offset is read as UTC. An unparsable one counts as not synced.
+    """
     if not pr_body:
         return None
     metadata = parse_sync_metadata(pr_body)
-    if metadata and metadata.ts >= commit_ts:
+    if not metadata:
+        return None
+    synced_ts = _parse_ts(metadata.ts)
+    current_ts = _parse_ts(commit_ts)
+    if synced_ts and current_ts and synced_ts >= current_ts:
         return metadata
     return None
 
