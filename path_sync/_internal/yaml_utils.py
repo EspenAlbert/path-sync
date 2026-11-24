@@ -10,7 +10,7 @@ T = TypeVar("T", bound=BaseModel)
 
 
 def load_yaml_model(path: Path, model_type: type[T]) -> T:
-    data = yaml.safe_load(path.read_text())
+    data = yaml.safe_load(path.read_text(encoding="utf-8"))
     return model_type.model_validate(data)
 
 

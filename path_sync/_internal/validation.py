@@ -45,7 +45,7 @@ def validate_no_unauthorized_changes(
             continue
 
         rel_path = str(path.relative_to(repo_root))
-        current_content = path.read_text()
+        current_content = path.read_text(encoding="utf-8")
         baseline_content = git_ops.get_file_content_at_ref(repo, path, base_ref)
 
         if baseline_content is None:

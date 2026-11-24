@@ -32,7 +32,7 @@ def prune_eligible(files: list[DestOnlyFile]) -> list[DestOnlyFile]:
     eligible: list[DestOnlyFile] = []
     for row in files:
         try:
-            dest_text = row.dest_path.read_text()
+            dest_text = row.dest_path.read_text(encoding="utf-8")
         except UnicodeDecodeError:
             continue
         if not is_opted_out(dest_text, row.sync_mode):

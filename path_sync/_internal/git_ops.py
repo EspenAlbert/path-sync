@@ -203,7 +203,7 @@ def _get_repo_full_name(repo_path: Path) -> str | None:
         "-q",
         '.owner.login + "/" + .name',
     ]
-    result = subprocess.run(cmd, cwd=repo_path, capture_output=True, text=True, check=False)
+    result = subprocess.run(cmd, cwd=repo_path, capture_output=True, text=True, encoding="utf-8", check=False)
     if result.returncode != 0:
         logger.warning(f"Failed to get repo info: {result.stderr}")
         return None
@@ -213,7 +213,7 @@ def _get_repo_full_name(repo_path: Path) -> str | None:
 def _get_pr_number(repo_path: Path, branch: str) -> str | None:
     """Get PR number for a branch."""
     cmd = ["gh", "pr", "view", branch, "--json", "number", "-q", ".number"]
-    result = subprocess.run(cmd, cwd=repo_path, capture_output=True, text=True, check=False)
+    result = subprocess.run(cmd, cwd=repo_path, capture_output=True, text=True, encoding="utf-8", check=False)
     if result.returncode != 0:
         logger.warning(f"Failed to get PR number: {result.stderr}")
         return None
@@ -240,7 +240,7 @@ def update_pr_body(repo_path: Path, branch: str, body: str) -> bool:
         "-f",
         f"body={body}",
     ]
-    result = subprocess.run(cmd, cwd=repo_path, capture_output=True, text=True, check=False)
+    result = subprocess.run(cmd, cwd=repo_path, capture_output=True, text=True, encoding="utf-8", check=False)
     if result.returncode != 0:
         logger.warning(f"Failed to update PR body: {result.stderr}")
         return False
@@ -251,7 +251,7 @@ def update_pr_body(repo_path: Path, branch: str, body: str) -> bool:
 
 def get_pr_body(repo_path: Path, branch: str) -> str | None:
     cmd = ["gh", "pr", "view", branch, "--json", "body,state", "-q", 'select(.state == "OPEN") | .body']
-    result = subprocess.run(cmd, cwd=repo_path, capture_output=True, text=True, check=False)
+    result = subprocess.run(cmd, cwd=repo_path, capture_output=True, text=True, encoding="utf-8", check=False)
     if result.returncode != 0:
         return None
     body = result.stdout.strip()
@@ -260,7 +260,7 @@ def get_pr_body(repo_path: Path, branch: str) -> str | None:
 
 def has_open_pr(repo_path: Path, branch: str) -> bool:
     cmd = ["gh", "pr", "view", branch, "--json", "state", "-q", ".state"]
-    result = subprocess.run(cmd, cwd=repo_path, capture_output=True, text=True, check=False)
+    result = subprocess.run(cmd, cwd=repo_path, capture_output=True, text=True, encoding="utf-8", check=False)
     if result.returncode != 0:
         return False
     return result.stdout.strip() == "OPEN"
@@ -268,7 +268,7 @@ def has_open_pr(repo_path: Path, branch: str) -> bool:
 
 def close_pr(repo_path: Path, branch: str, comment: str) -> bool:
     cmd = ["gh", "pr", "close", branch, "-c", comment]
-    result = subprocess.run(cmd, cwd=repo_path, capture_output=True, text=True, check=False)
+    result = subprocess.run(cmd, cwd=repo_path, capture_output=True, text=True, encoding="utf-8", check=False)
     if result.returncode != 0:
         logger.warning(f"Failed to close PR for {branch}: {result.stderr}")
         return False
@@ -295,7 +295,7 @@ def create_or_update_pr(
     if assignees:
         cmd.extend(["--assignee", ",".join(assignees)])
 
-    result = subprocess.run(cmd, cwd=repo_path, capture_output=True, text=True, check=False)
+    result = subprocess.run(cmd, cwd=repo_path, capture_output=True, text=True, encoding="utf-8", check=False)
     if result.returncode != 0:
         if "already exists" in result.stderr:
             logger.info("PR already exists, updating body")
@@ -321,10 +321,15 @@ def get_changed_files(repo: Repo, base_ref: str = "HEAD") -> list[Path]:
     return [repo_root / p for p in diff.strip().split("\n")]
 
 
+def _translate_newlines(text: str) -> str:
+    """Translate CRLF and CR to LF, as `Path.read_text` does, so git content matches working-tree content."""
+    return text.replace("\r\n", "\n").replace("\r", "\n")
+
+
 def get_file_content_at_ref(repo: Repo, file_path: Path, ref: str) -> str | None:
     rel_path = str(file_path.relative_to(repo.working_dir))
     with suppress(GitCommandError):
-        return repo.git.show(f"{ref}:{rel_path}")
+        return _translate_newlines(repo.git.show(f"{ref}:{rel_path}", strip_newline_in_stdout=False))
     return None
 
 
@@ -409,6 +414,6 @@ def walk_file_history(repo: Repo, rel_path: str) -> list[FileVersion]:
 def file_content_at_commit(repo: Repo, sha: str, path: str) -> str | None:
     """Return the file content at ``sha:path``, or None when the path is missing or binary."""
     try:
-        return repo.git.show(f"{sha}:{path}", strip_newline_in_stdout=False)
+        return _translate_newlines(repo.git.show(f"{sha}:{path}", strip_newline_in_stdout=False))
     except (GitCommandError, UnicodeDecodeError):
         return None

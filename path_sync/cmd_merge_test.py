@@ -34,7 +34,7 @@ CONFIG_NAME = "test-config"
 def _commit_file(repo: Repo, root: Path, rel: str, content: str, when: str = "") -> None:
     path = root / rel
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(content)
+    path.write_text(content, encoding="utf-8")
     repo.index.add([rel])
     env = os.environ.copy()
     if when:
@@ -388,3 +388,31 @@ def test_merge_wrapped_synced_file(tmp_path):
 
     _apply_merge(candidates[0])
     assert (src_root / "file.md").read_text() == "dest-new\n"
+
+
+def test_merge_file_utf8_content(locale_cp1252):
+    base = "café\nline2\nline3\nline4\nline5\n"
+    merged, conflicted = _merge_bodies(
+        base, "café\nsrc ✓\nline3\nline4\nline5\n", "café\nline2\nline3\ndest Ángel\nline5\n"
+    )
+    assert not conflicted
+    assert merged == "café\nsrc ✓\nline3\ndest Ángel\nline5\n"
+
+
+def test_merge_section_utf8_content(tmp_path, locale_cp1252):
+    src_root, dest_root, src_repo, dest_repo, config, dest = _merge_setup(tmp_path)
+    config.paths = [PathMapping(src_path="justfile", sync_mode=SyncMode.REPLACE)]
+    _commit_file(src_repo, src_root, "justfile", _two_sections("a-src", "b-src ✓", "src trailer"), OLD)
+    _commit_file(dest_repo, dest_root, "justfile", _two_sections("a-src", "b-src ✓"), OLD)
+    _commit_file(dest_repo, dest_root, "justfile", _two_sections("a-dest Ángel", "b-src ✓", "dest trailer"), NEW)
+
+    candidates = _collect_merge_candidates(config, dest, src_root, dest_root, src_repo, dest_repo)
+    assert len(candidates) == 1
+    assert candidates[0].unit.section_id == "alpha"
+    assert candidates[0].classification == MergeClassification.DEST_CHANGED
+
+    _apply_merge(candidates[0])
+    result = (src_root / "justfile").read_text(encoding="utf-8")
+    assert "a-dest Ángel" in result
+    assert "b-src ✓" in result
+    assert "src trailer" in result

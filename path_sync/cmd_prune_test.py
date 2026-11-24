@@ -253,3 +253,11 @@ def test_prune_honors_path_exclude_patterns(tmp_path):
     _confirm_prune(config, dest, src_root, PruneOptions())
     assert (dest_root / ".cursor/foo.pyc").exists()
     assert not (dest_root / ".cursor/keep.mdc").exists()
+
+
+def test_prune_deletes_utf8_dest_extra(tmp_path, locale_cp1252):
+    src_root, dest_root, *_rest, config, dest = _cursor_setup(tmp_path)
+    extra = dest_root / ".cursor/rules/bar.mdc"
+    extra.write_text("Ángel ✓", encoding="utf-8")
+    _confirm_prune(config, dest, src_root, PruneOptions())
+    assert not extra.exists()

@@ -5,18 +5,24 @@ import subprocess
 from pathlib import Path
 from unittest.mock import patch
 
+import pytest
+
 from path_sync._internal.auto_merge import (
     AutoMergeEnableResult,
     CheckRun,
     PRMergeResult,
     PRRef,
     PRState,
+    _fetch_origin,
     _log_summary,
+    _repo_slug,
     enable_auto_merge,
     get_commit_checks,
     get_pr_checks,
     get_pr_merge_commit,
     get_pr_state,
+    get_pr_url,
+    get_remote_branch_sha,
     handle_auto_merge,
     mark_pr_ready,
     wait_for_branch_checks,
@@ -234,3 +240,38 @@ def test_wait_for_merge_merged(tmp_path: Path):
     assert result.state == PRState.MERGED
     assert result.dest_name == "repo1"
     assert result.pr_url == "https://github.com/o/r/pull/1"
+
+
+@pytest.mark.parametrize(
+    ("func", "args"),
+    [
+        (get_pr_url, ("1",)),
+        (get_pr_merge_commit, ("1",)),
+        (_repo_slug, ()),
+        (get_remote_branch_sha, ("main",)),
+    ],
+)
+def test_gh_stdout_utf8(tmp_path: Path, locale_cp1252, commands_print_utf8, func, args):
+    assert func(tmp_path, *args) == "Ángel ✓"
+
+
+def test_fetch_origin_utf8_output(tmp_path: Path, locale_cp1252, commands_print_utf8):
+    _fetch_origin(tmp_path)
+
+
+@pytest.mark.parametrize("commands_print_utf8", [1], indirect=True)
+@pytest.mark.parametrize(
+    ("func", "args"),
+    [
+        (enable_auto_merge, ("1", AutoMergeConfig())),
+        (mark_pr_ready, ("1",)),
+        (get_pr_checks, ("1",)),
+        (get_pr_state, ("1",)),
+        (get_pr_merge_commit, ("1",)),
+        (_repo_slug, ()),
+        (get_pr_url, ("1",)),
+    ],
+)
+def test_gh_stderr_utf8_logged(tmp_path: Path, caplog, locale_cp1252, commands_print_utf8, func, args):
+    func(tmp_path, *args)
+    assert "Ángel ✓" in caplog.text

@@ -122,7 +122,7 @@ def _collect_mapped_candidates(
 
 def _dest_only_candidate(row: DestOnlyFile) -> PullCandidate:
     try:
-        row.dest_path.read_text()
+        row.dest_path.read_text(encoding="utf-8")
     except UnicodeDecodeError:
         kind = PullKind.BINARY
     else:
@@ -188,8 +188,8 @@ def _candidate_for_path(
     dest_repo: Repo,
 ) -> PullCandidate | None:
     try:
-        dest_text = dest_path.read_text()
-        src_text = src_path.read_text()
+        dest_text = dest_path.read_text(encoding="utf-8")
+        src_text = src_path.read_text(encoding="utf-8")
     except UnicodeDecodeError:
         if dest_path.read_bytes() == src_path.read_bytes():
             return None
@@ -261,17 +261,17 @@ def _apply_candidate(candidate: PullCandidate) -> None:
         return
 
     if candidate.kind == PullKind.SECTIONS:
-        dest_body = header.remove_header(candidate.dest_path.read_text())
+        dest_body = header.remove_header(candidate.dest_path.read_text(encoding="utf-8"))
         dest_sections = sections.parse_sections(dest_body, candidate.dest_path)
         new_content = sections.replace_sections(
-            candidate.src_path.read_text(),
+            candidate.src_path.read_text(encoding="utf-8"),
             dest_sections,
             candidate.src_path,
             skip_sections=candidate.skip_sections,
             keep_deleted_sections=True,
         )
     else:
-        new_content = header.remove_header(candidate.dest_path.read_text())
+        new_content = header.remove_header(candidate.dest_path.read_text(encoding="utf-8"))
 
     ensure_parents_write_text(candidate.src_path, new_content)
     logger.info(f"Pulled: {candidate.src_path}")

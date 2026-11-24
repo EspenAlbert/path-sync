@@ -21,7 +21,7 @@ def capture_log(name: str) -> Generator[Callable[[], str]]:
     """
     with tempfile.TemporaryDirectory(prefix="path-sync-") as tmpdir:
         log_path = Path(tmpdir) / f"{name}.log"
-        file_handler = logging.FileHandler(log_path, mode="w")
+        file_handler = logging.FileHandler(log_path, mode="w", encoding="utf-8")
         file_handler.setLevel(logging.INFO)
         file_handler.setFormatter(logging.Formatter(LOG_FORMAT))
         root_logger = logging.getLogger("path_sync")
@@ -30,7 +30,7 @@ def capture_log(name: str) -> Generator[Callable[[], str]]:
 
             def read_log() -> str:
                 file_handler.flush()
-                return log_path.read_text() if log_path.exists() else ""
+                return log_path.read_text(encoding="utf-8") if log_path.exists() else ""
 
             yield read_log
         finally:

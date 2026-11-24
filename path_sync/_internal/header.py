@@ -70,7 +70,7 @@ def file_get_config_name(path: Path) -> str | None:
     if not path.exists() or not has_known_comment_prefix(path):
         return None
     try:
-        with path.open() as f:
+        with path.open(encoding="utf-8") as f:
             first_line = f.readline()
     except (UnicodeDecodeError, OSError):
         return None

@@ -33,7 +33,7 @@ CONFIG_NAME = "test-config"
 def _commit_file(repo: Repo, root: Path, rel: str, content: str, when: str = "") -> None:
     path = root / rel
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(content)
+    path.write_text(content, encoding="utf-8")
     repo.index.add([rel])
     env = os.environ.copy()
     if when:
@@ -592,3 +592,28 @@ def test_pull_cli_requires_config_selector(tmp_path):
     Repo.init(src_root)
     result = runner.invoke(app, ["pull", "-d", "dest", "--src-root", str(src_root)])
     assert result.exit_code == 1
+
+
+def test_collect_sectioned_utf8_content(tmp_path, locale_cp1252):
+    src_root, dest_root, src_repo, dest_repo, config, dest = _pull_setup(tmp_path)
+    src_file = src_root / "justfile"
+    dest_file = dest_root / "justfile"
+    _commit_file(src_repo, src_root, "justfile", _sectioned("old"), OLD)
+    dest_body = add_header(_sectioned('echo "Ángel ✓"'), dest_file, CONFIG_NAME)
+    _commit_file(dest_repo, dest_root, "justfile", dest_body, NEW)
+
+    candidates = _collect_mapped_candidates(config, dest, src_root, dest_root, src_repo, dest_repo)
+    assert len(candidates) == 1
+    assert candidates[0].kind == PullKind.SECTIONS
+    _apply_candidate(candidates[0])
+    result = src_file.read_text(encoding="utf-8")
+    assert 'echo "Ángel ✓"' in result
+    assert not has_header(result)
+
+
+def test_dest_only_utf8_content_copies_text(tmp_path, locale_cp1252):
+    src_root, dest_root, *_rest, config, dest = _cursor_dir_setup(tmp_path)
+    dest_file = dest_root / ".cursor/rules/bar.mdc"
+    dest_file.write_text(add_header("Ángel ✓", dest_file, CONFIG_NAME), encoding="utf-8")
+    _confirm_pull(config, dest, src_root, PullOptions(dest_only=True))
+    assert (src_root / ".cursor/rules/bar.mdc").read_text(encoding="utf-8") == "Ángel ✓"

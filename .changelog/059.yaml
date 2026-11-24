@@ -1,0 +1,48 @@
+name: __ROOT__
+ts: 2026-11-24 21:39:31.239424+00:00
+type: fix
+author: Hunter Hogan
+changelog_message: 'fix: decode git, gh, and verify-step output as UTF-8'
+group: __ROOT__
+message: 'fix: decode git, gh, and verify-step output as UTF-8
+
+
+  subprocess.run(text=True) decoded output with the locale encoding. On
+
+  Windows with Python 3.13 and 3.14 that is the ANSI code page (cp1252),
+
+  but git and gh write UTF-8: PR bodies, URLs, and error messages came
+
+  back as mojibake, or raised UnicodeDecodeError (e.g. for "Á"), and
+
+  _fetch_origin could crash on output it discards.
+
+
+  Pass encoding="utf-8" to every subprocess.run in git_ops and
+
+  auto_merge. Verify steps run arbitrary user commands whose output is
+
+  only logged, so run_command also uses errors="replace".
+
+
+  Tests: locale_cp1252 now also covers subprocess._text_encoding, and the
+
+  commands_print_utf8 fixture makes subprocess.run run a command that
+
+  prints UTF-8. All 22 new tests fail on main.
+
+
+  Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>'
+rephrased: true
+short_sha: 8a7723
+---
+name: __ROOT__
+ts: 2026-11-24 21:39:42.724139+00:00
+type: fix
+author: Hunter Hogan
+changelog_message: 'fix: write LF and translate line endings of text read from git'
+group: __ROOT__
+message: "fix: write LF and translate line endings of text read from git\n\nText path_sync reads from the working tree has LF line endings\n(Path.read_text translates CRLF and CR), but:\n\n- ensure_parents_write_text wrote os.linesep, so on Windows every file\n  path_sync copied, pulled, or merged became CRLF, whatever its line\n  endings were before. Write LF, as on Linux and macOS.\n- get_file_content_at_ref and file_content_at_commit returned the\n  blob's raw line endings. A CRLF blob (committed without autocrlf)\n  hid every section marker from the section parser, so\n  validate-no-changes reported the whole file instead of the changed\n  section, or failed a file whose fenced sections were unchanged, and\n  merge misclassified changes against the base. Translate CRLF and CR\n  to LF. get_file_content_at_ref also keeps the final newline now\n  (strip_newline_in_stdout=False, as file_content_at_commit already\n  did); otherwise a CRLF blob ended in a stray CR, and an LF blob\n  compared\
+  \ unequal to the same file read from disk.\n\nOn Windows this fixes 16 of the 18 tests that failed there; the other\ntwo fail on the path separator in dest_key, which is a separate bug.\n8 of the 9 new tests fail before this commit on Windows, 7 on Linux\n(writing LF already worked there).\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+rephrased: true
+short_sha: 42dedd
