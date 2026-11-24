@@ -1,0 +1,21 @@
+name: __ROOT__
+ts: 2026-11-24 21:39:04.754457+00:00
+type: fix
+author: Hunter Hogan
+changelog_message: 'fix(repo_utils): keep a non-git destination folder unless the user confirms'
+group: __ROOT__
+message: 'fix(repo_utils): keep a non-git destination folder unless the user confirms
+
+
+  ensure_repo removed a non-git destination folder even when no repo_url
+
+  was configured (then failed), and auto-confirmed the removal when stdin
+
+  was not a terminal. Now it raises without a repo_url, and asks with
+
+  prompt_pull_confirm, which declines in non-interactive runs.
+
+
+  Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>'
+rephrased: true
+short_sha: 1cecec

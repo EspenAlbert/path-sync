@@ -27,8 +27,10 @@ def ensure_repo(dest: Destination, repo_path: Path, dry_run: bool = False) -> Re
         logger.warning(f"Invalid git repo at {repo_path}")
         if dry_run:
             raise ValueError(f"Invalid git repo at {repo_path}, cannot re-clone in dry-run mode")
-        if not prompt_utils.prompt_confirm(f"Remove {repo_path} and re-clone?"):
-            raise ValueError(f"Aborted: user declined to remove invalid repo at {repo_path}")
+        if not dest.repo_url:
+            raise ValueError(f"Invalid git repo at {repo_path} and no repo_url configured, not removing it")
+        if not prompt_utils.prompt_pull_confirm(f"Remove {repo_path} and re-clone?"):
+            raise ValueError(f"Aborted: invalid repo at {repo_path} not removed (needs an interactive 'y')")
         shutil.rmtree(repo_path)
     if dry_run:
         raise ValueError(f"Destination repo not found: {repo_path}. Clone it first or run without --dry-run.")
