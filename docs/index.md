@@ -649,3 +649,34 @@ jobs:
 - Section-level sync for shared files
 - Validation enforced across repos
 - Clear ownership (no merge conflicts)
+
+## Development
+
+The `justfile` has a recipe for each check. `uv sync` installs the `dev` and `dev-tools` dependency groups, which include `just` (the `rust-just` package) and `typos`. Activate `.venv`, or prefix commands with `uv run` (`uv run just test`).
+
+| Tool                                                      | Install                                                                                          | Used by                                      |
+| --------------------------------------------------------- | ------------------------------------------------------------------------------------------------ | -------------------------------------------- |
+| [uv](https://docs.astral.sh/uv/)                          | [uv installation](https://docs.astral.sh/uv/getting-started/installation/)                       | every recipe                                 |
+| [just](https://github.com/casey/just)                     | `uv sync` (`dev-tools` group)                                                                    | the `justfile`                               |
+| [typos](https://github.com/crate-ci/typos)                | `uv sync` (`dev-tools` group)                                                                    | `just typos`, `just typos-fix`               |
+| [betterleaks](https://github.com/betterleaks/betterleaks) | not on PyPI: [betterleaks installation](https://github.com/betterleaks/betterleaks#installation) | `just secrets-check`, `just secrets-history` |
+| [pkg-ext](https://github.com/EspenAlbert/pkg-ext)         | `release` group, installed by the `pkg-*` recipes                                                | `just pkg-pre-change`, `just pkg-pre-commit` |
+| [gh](https://cli.github.com/)                             | [gh installation](https://github.com/cli/cli#installation)                                       | pkg-ext, to find the pull request number     |
+
+Before pushing:
+
+```bash
+just pre-push   # lint, fmt-check, test, vulture
+just type-check
+just typos
+just secrets-check
+just path-sync-validate
+just docs-build
+```
+
+### Pull Requests
+
+- Start the title with a [Conventional Commits](https://www.conventionalcommits.org/) type: `fix:`, `feat:`, `docs:`, `chore:`. A squash merge uses the title as the commit message, and pkg-ext lists `fix:` commits in the changelog.
+- After opening the pull request, run `just pkg-pre-change`. It asks about each new symbol and each `fix:` commit, and writes `.changelog/<pull request number>.yaml`. Commit that file and any files pkg-ext regenerates (`docs/`, `path_sync/__init__.py`). CI runs `just pkg-pre-commit`, which fails when an answer is missing or a generated file is out of date.
+- pkg-ext doesn't run on native Windows (its dependency `ask-shell` imports `fcntl`); run the `pkg-*` recipes in WSL.
+- Files with `# path-sync copy -n python-template` on line 1 are synced from a template. `just path-sync-validate` (and CI) fails on edits between a `DO_NOT_EDIT` and an `OK_EDIT` marker, so make changes outside those sections.
