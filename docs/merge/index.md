@@ -11,7 +11,7 @@
 <a id="merge_def"></a>
 
 ### cli_command: `merge`
-- [source](../../path_sync/_internal/cmd_merge.py#L448)
+- [source](../../path_sync/_internal/cmd_merge.py#L449)
 > **Since:** 0.10.0
 
 ```python
