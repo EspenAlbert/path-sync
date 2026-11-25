@@ -20,7 +20,7 @@
 <a id="automergeconfig_def"></a>
 
 ### class: `AutoMergeConfig`
-- [source](../../path_sync/_internal/models.py#L39)
+- [source](../../path_sync/_internal/models.py#L40)
 > **Since:** 0.7.0
 
 ```python
@@ -48,7 +48,7 @@ class AutoMergeConfig(BaseModel):
 <a id="mergemethod_def"></a>
 
 ### class: `MergeMethod`
-- [source](../../path_sync/_internal/models.py#L33)
+- [source](../../path_sync/_internal/models.py#L34)
 > **Since:** 0.7.0
 
 ```python

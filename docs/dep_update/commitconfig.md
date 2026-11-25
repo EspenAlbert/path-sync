@@ -2,7 +2,7 @@
 
 <!-- === DO_NOT_EDIT: pkg-ext commitconfig_def === -->
 ## class: CommitConfig
-- [source](../../path_sync/_internal/models.py#L58)
+- [source](../../path_sync/_internal/models.py#L59)
 > **Since:** 0.4.0
 
 ```python
