@@ -309,6 +309,26 @@ skip this
     assert "skip this" not in result
 
 
+@pytest.mark.parametrize("src_path", ["pkg", "pkg/**/*.py"], ids=["dir", "glob"])
+def test_sync_repos_under_excluded_dir_names(tmp_path, src_path):
+    """Only dirs below the repo root are excluded; the folders holding the repos are not."""
+    src_root = tmp_path / "venv" / "src"
+    dest_root = tmp_path / "node_modules" / "dest"
+    for rel in ("pkg/mod.py", "pkg/sub/deep.py", "pkg/venv/skipped.py", "pkg/node_modules/skipped.py"):
+        path = src_root / rel
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("content")
+    dest_root.mkdir(parents=True)
+
+    mapping = PathMapping(src_path=src_path)
+    changes, synced = _sync_path(mapping, src_root, dest_root, _make_dest(), CONFIG_NAME, False, False)
+
+    assert changes == 2
+    assert synced == {dest_root / "pkg/mod.py", dest_root / "pkg/sub/deep.py"}
+    assert not (dest_root / "pkg/venv").exists()
+    assert not (dest_root / "pkg/node_modules").exists()
+
+
 MODULE = run_verify_steps.__module__
 
 

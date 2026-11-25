@@ -80,7 +80,7 @@ def collect_dest_only_files(
         if mapping.sync_mode == SyncMode.SCAFFOLD:
             continue
         for dest_path in mapping.expand_dest_paths(dest_root):
-            if dest_path.is_dir() or mapping.is_excluded(dest_path):
+            if dest_path.is_dir() or mapping.is_excluded(dest_path.relative_to(dest_root)):
                 continue
             mapped = _src_for_dest_file(mapping, dest_path, src_root, dest_root)
             if mapped is None:

@@ -1,0 +1,21 @@
+name: __ROOT__
+ts: 2026-11-25 07:45:38.361437+00:00
+type: fix
+author: Hunter Hogan
+changelog_message: 'fix(copy): match exclude_dirs only below the repo root'
+group: __ROOT__
+message: 'fix(copy): match exclude_dirs only below the repo root
+
+
+  PathMapping.is_excluded checked every part of the absolute path, so a
+
+  source or destination repo inside a folder named venv, node_modules,
+
+  .tox, etc. had every file excluded and copy, pull and prune synced
+
+  nothing. Callers now pass the path relative to the repo root.
+
+
+  Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>'
+rephrased: true
+short_sha: 33ca48
