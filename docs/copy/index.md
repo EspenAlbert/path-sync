@@ -75,6 +75,7 @@ Copy files from SRC to DEST repositories.
 
 | Version | Change |
 |---------|--------|
+| unreleased | fix(copy): compare PR sync timestamps as datetimes |
 | 0.9.1 | fix(merge): Waits for default-branch CI and prompts on draft PRs |
 | 0.7.6 | fix(cmd_copy): enhance sync output with destination header and adjust summary formatting |
 | 0.7.4 | fix(copy): skip PR close when running with --local/--skip-commit |

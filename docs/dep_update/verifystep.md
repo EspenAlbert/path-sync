@@ -2,7 +2,7 @@
 
 <!-- === DO_NOT_EDIT: pkg-ext verifystep_def === -->
 ## class: VerifyStep
-- [source](../../path_sync/_internal/models.py#L63)
+- [source](../../path_sync/_internal/models.py#L64)
 > **Since:** 0.4.0
 
 ```python

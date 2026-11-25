@@ -1,0 +1,25 @@
+name: copy
+ts: 2026-11-25 07:45:58.311844+00:00
+type: fix
+author: Hunter Hogan
+changelog_message: 'fix(copy): compare PR sync timestamps as datetimes'
+group: copy
+message: 'fix(copy): compare PR sync timestamps as datetimes
+
+
+  pr_already_synced compared the ISO-8601 strings from the PR body and
+
+  from the source commit. The strings keep the committer''s UTC offset, so
+
+  a commit at 12:00+02:00 (10:00 UTC) sorted after one at 11:00+00:00
+
+  and a newer source commit was skipped as already synced. Parse both
+
+  with datetime.fromisoformat and compare instants. A timestamp without
+
+  an offset is read as UTC; an unparsable one counts as not synced.
+
+
+  Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>'
+rephrased: true
+short_sha: 2647d6

@@ -2,7 +2,7 @@
 
 <!-- === DO_NOT_EDIT: pkg-ext pathmapping_def === -->
 ## class: PathMapping
-- [source](../../path_sync/_internal/models.py#L74)
+- [source](../../path_sync/_internal/models.py#L75)
 > **Since:** 0.3.0
 
 ```python
