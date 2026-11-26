@@ -13,7 +13,7 @@
 <a id="copy_def"></a>
 
 ### cli_command: `copy`
-- [source](../../path_sync/_internal/cmd_copy.py#L69)
+- [source](../../path_sync/_internal/cmd_copy.py#L70)
 > **Since:** 0.4.1
 
 ```python
@@ -75,6 +75,7 @@ Copy files from SRC to DEST repositories.
 
 | Version | Change |
 |---------|--------|
+| unreleased | fix(copy): keep orphan cleanup out of .venv, node_modules and other excluded folders |
 | 0.9.1 | fix(merge): Waits for default-branch CI and prompts on draft PRs |
 | 0.7.6 | fix(cmd_copy): enhance sync output with destination header and adjust summary formatting |
 | 0.7.4 | fix(copy): skip PR close when running with --local/--skip-commit |

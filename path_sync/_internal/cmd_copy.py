@@ -16,6 +16,7 @@ from path_sync._internal.dest_only import collect_dest_only_files, prune_eligibl
 from path_sync._internal.file_utils import ensure_parents_write_text
 from path_sync._internal.log_capture import capture_log
 from path_sync._internal.models import (
+    DEFAULT_EXCLUDE_DIRS,
     Destination,
     PathMapping,
     SrcConfig,
@@ -589,11 +590,12 @@ def _cleanup_orphans(
 
 def _find_files_with_config(dest_root: Path, config_name: str) -> list[Path]:
     result = []
-    for path in dest_root.rglob("*"):
-        if ".git" in path.parts:
-            continue
-        if header.file_get_config_name(path) == config_name:
-            result.append(path)
+    for dirpath, dirnames, filenames in dest_root.walk():
+        dirnames[:] = [name for name in dirnames if name not in DEFAULT_EXCLUDE_DIRS]
+        for filename in filenames:
+            path = dirpath / filename
+            if header.file_get_config_name(path) == config_name:
+                result.append(path)
     return result
 
 

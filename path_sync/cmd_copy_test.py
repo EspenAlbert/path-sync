@@ -9,6 +9,7 @@ from path_sync._internal.cmd_copy import (
     CopyOptions,
     _cleanup_orphans,
     _close_stale_pr,
+    _find_files_with_config,
     _print_dest_only_hint,
     _skip_already_synced,
     _sync_path,
@@ -106,6 +107,27 @@ def test_cleanup_orphans(tmp_path):
     assert deleted == 1
     assert not orphan.exists()
     assert other.exists()
+
+
+def test_cleanup_orphans_skips_excluded_dirs(tmp_path):
+    dest_root = tmp_path / "dest"
+    dest_root.mkdir()
+
+    orphan = dest_root / "src" / "orphan.py"
+    venv_file = dest_root / ".venv" / "lib" / "venv_file.py"
+    node_modules_file = dest_root / "node_modules" / "pkg" / "module.py"
+    for path in (orphan, venv_file, node_modules_file):
+        path.parent.mkdir(parents=True)
+        path.write_text(add_header("content", path, CONFIG_NAME))
+
+    assert _find_files_with_config(dest_root, CONFIG_NAME) == [orphan]
+
+    deleted = _cleanup_orphans(dest_root, CONFIG_NAME, set(), dry_run=False)
+
+    assert deleted == 1
+    assert not orphan.exists()
+    assert venv_file.exists()
+    assert node_modules_file.exists()
 
 
 def test_sync_with_sections_replaces_managed(tmp_path):
