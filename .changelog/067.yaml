@@ -1,0 +1,25 @@
+name: copy
+ts: 2026-11-26 20:47:32.317439+00:00
+type: fix
+author: Hunter Hogan
+changelog_message: 'fix(copy): keep orphan cleanup out of .venv, node_modules and other excluded folders'
+group: copy
+message: 'fix(copy): do not descend into excluded dirs during orphan cleanup
+
+
+  _find_files_with_config walked the whole destination with rglob and
+
+  skipped only paths containing ".git", so it descended into .venv,
+
+  node_modules and similar folders. That is slow, and a file in one of
+
+  them whose first line carries the config header was deleted as an
+
+  orphan. Walk the tree with Path.walk and prune DEFAULT_EXCLUDE_DIRS
+
+  (which includes .git) from dirnames so those folders are never entered.
+
+
+  Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>'
+rephrased: true
+short_sha: 6d9b15
